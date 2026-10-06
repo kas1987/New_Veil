@@ -24,6 +24,7 @@ Desktop.ini
 
 # Operator-local intake (never publish dumps)
 90_intake/sources.json
+90_intake/sources.json.bak
 90_intake/from_*/
 90_intake/**/__pycache__/
 90_intake/**/.venv/
