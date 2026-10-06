@@ -1,0 +1,19 @@
+{
+  "lyssandra_lover_czech": {
+    "persona_id": "lyssandra_lover_czech",
+    "base_mask": "lover",
+    "cultural_mask": "czech",
+    "dialogue": {
+      "tiers": {
+        "1": {
+          "greeting": [
+            "Welcome back, wanderer."
+          ],
+          "command": [
+            "Let me guide you, softly."
+          ]
+        }
+      }
+    }
+  }
+}

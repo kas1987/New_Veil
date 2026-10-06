@@ -1,0 +1,32 @@
+{
+  "name": "prism_dssm_veil_engine",
+  "version": "0.1.0",
+  "description": "Prism social-physics engine — DSSM L0 core with L1–L5 layered field effects.",
+  "layers": {
+    "L0": "src/prism_dssm/dssm_core.py",
+    "L1": "src/prism_dssm/persona_filters.py",
+    "L2": "src/prism_dssm/persona_filters.py",
+    "L3": "src/prism_dssm/veil_effects.py",
+    "L4": "src/prism_dssm/network.py",
+    "L5": "src/prism_dssm/narrative_overrides.py"
+  },
+  "entrypoints": {
+    "stress_test": "src/prism_dssm/stress_test_runner.py",
+    "config_loader": "src/prism_dssm/config_loader.py"
+  },
+  "configs": [
+    "configs/personas.json",
+    "configs/veil_states.json",
+    "configs/follower_graph.json",
+    "configs/attachment_profiles.json",
+    "configs/signal_weights.json",
+    "configs/stress_test_default.json"
+  ],
+  "tests": ["tests/test_smoke.py"],
+  "win_condition": {
+    "trust_min": 60.0,
+    "suspicion_max": 40.0,
+    "resistance_max": 35.0,
+    "sessions_target": 50
+  }
+}

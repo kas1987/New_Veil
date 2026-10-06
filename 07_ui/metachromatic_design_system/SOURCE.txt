@@ -1,0 +1,6 @@
+MetaChromatic Design System
+Imported: 2026-05-24
+Origin: MetaChromatic Design System zip (operator-local import)
+Repo path: 07_ui/metachromatic_design_system/
+Bridge doc: 07_ui/veil_design_system/references/metachromatic-bridge.md
+Gradio theme: veil_observatory_theme.css

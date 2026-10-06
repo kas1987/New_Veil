@@ -1,0 +1,21 @@
+{
+  "_status": "reference",
+  "_consumed_by": "configs/personas.json (per-persona signal_weights override the defaults here)",
+  "_comment": "Reference catalog of canonical signal valences. Per-persona weights live in personas.json.",
+  "_runtime_pool_comment": "_runtime_pool lists signals the stress_test_runner currently draws. Items in 'positive'/'negative' but absent from _runtime_pool (e.g. gift, withdrawal, betrayal) are reserved for future scenario expansion.",
+  "_runtime_pool": {
+    "positive": ["compliment", "support", "honesty", "vulnerability"],
+    "negative": ["silence", "criticism", "deception"]
+  },
+  "positive": ["compliment", "support", "honesty", "vulnerability", "gift"],
+  "negative": ["silence", "criticism", "deception", "withdrawal", "betrayal"],
+  "default_weights": {
+    "compliment":    {"trust":  4, "affection":  2},
+    "support":       {"trust":  4, "affection":  3},
+    "honesty":       {"trust":  5, "suspicion": -2},
+    "vulnerability": {"trust":  3, "affection":  5},
+    "silence":       {"trust": -2, "suspicion":  1},
+    "criticism":     {"trust": -2, "affection": -1, "resistance": 1},
+    "deception":     {"trust": -5, "suspicion":  6, "resistance": 3}
+  }
+}

@@ -1,4 +1,4 @@
-# Repo Status — New_Veil
+# Repo Status - New_Veil
 
 | Field | Value |
 |-------|-------|
@@ -6,7 +6,7 @@
 | **Registry ID** | `REPO-VEIL-30` |
 | **GitHub** | [kas1987/New_Veil](https://github.com/kas1987/New_Veil) |
 | **Visibility** | public |
-| **Role** | Fresh product home for The Veil — selective reuse of legacy material |
+| **Role** | Fresh product home for The Veil - selective reuse of legacy material |
 | **Legacy remotes** | `kas1987/The-Veil` (old flagship), `kas1987/Viel-Small-Town` (old playground) |
 
 ## Policy vs old repos
@@ -15,7 +15,7 @@
 |-----------|------------|
 | The-Veil = canonical flagship | Historical only until content is promoted here |
 | Viel-Small-Town = do-not-merge playground | Still true for *that* repo; this root is the new join target |
-| Promote subsystems selectively | **Yes** — via local `90_intake/` into this tree |
+| Promote subsystems selectively | **Yes** - via local `90_intake/` into this tree |
 
 ## Promoted (2026-10-05)
 
@@ -25,6 +25,10 @@
 - `10_canon/` ← Viel-Small-Town
 - `13_agents/` ← sisters / supporting / whispertech + Mira (from legacy `02_agents`)
 - `01_districts/` ← Caetherra, Ashveil, Ember Vaults, Stillward, The Hollow + unlock engine
+- `03_memory/` ← schema + router (event dumps excluded)
+- `04_runtime/` ← orchestrator, DSSM, narrative/veil engines + `veil_core`
+- `05_alignment/` ← scorer, quarantine, rules
+- `07_ui/` ← Gradio observatory, hero, MetaChromatic / Veil design systems
 
 ## Public engineering
 
@@ -37,10 +41,11 @@
 
 ## Not yet
 
-- Runnable simulation bootstrap
-- Runtime / memory / alignment / UI planes
+- End-to-end runnable simulation bootstrap (deps/wiring still thin)
+- `11_world` / `15_voice` / harness queue planes
 
 ## Next
 
-1. Intake `04_runtime` + `03_memory` (+ `05_alignment`) when ready to run.
-2. Intake `11_world` / `07_ui` as needed.
+1. Wire a minimal smoke path (loader → memory schema → alignment scorer).
+2. Intake `11_world` when world docs are needed.
+3. Place TTS under `15_voice` (do not revive machine-local forwarders).

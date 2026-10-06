@@ -1,0 +1,17 @@
+{
+  "focal": "Player",
+  "agents": {
+    "Player": {"trust": 25.0, "affection": 20.0, "suspicion": 55.0, "resistance": 75.0},
+    "AllyA":  {"trust": 35.0, "affection": 30.0, "suspicion": 40.0, "resistance": 50.0},
+    "AllyB":  {"trust": 30.0, "affection": 28.0, "suspicion": 45.0, "resistance": 55.0},
+    "RivalC": {"trust": 20.0, "affection": 15.0, "suspicion": 60.0, "resistance": 65.0}
+  },
+  "edges": [
+    {"src": "Player", "dst": "AllyA",  "influence": 0.18, "polarity":  1},
+    {"src": "Player", "dst": "AllyB",  "influence": 0.12, "polarity":  1},
+    {"src": "Player", "dst": "RivalC", "influence": 0.20, "polarity": -1},
+    {"src": "AllyA",  "dst": "Player", "influence": 0.10, "polarity":  1},
+    {"src": "AllyB",  "dst": "Player", "influence": 0.08, "polarity":  1},
+    {"src": "RivalC", "dst": "Player", "influence": 0.15, "polarity": -1}
+  ]
+}

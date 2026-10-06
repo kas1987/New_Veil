@@ -1,0 +1,17 @@
+<!doctype html><html><head><meta charset="utf-8">
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  html,body{margin:0;background:#050812;background-image:radial-gradient(ellipse 70% 45% at 15% 0%,rgba(6,182,212,.07),transparent 65%),radial-gradient(ellipse 55% 40% at 85% 90%,rgba(139,92,246,.06),transparent 60%);color:#fff;font-family:'Prompt',sans-serif}
+  .card{padding:24px 28px;display:flex;gap:16px}
+  .panel{flex:1;background:rgba(10,14,26,.65);backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,.08);border-radius:16px;box-shadow:0 8px 32px rgba(0,0,0,.37);padding:16px;display:flex;flex-direction:column;gap:10px}
+  .panel .t{font-size:12px;font-weight:600;color:rgba(255,255,255,.9)}
+  .panel .d{font-size:11px;color:rgba(255,255,255,.4);line-height:1.5}
+  .hover{border-color:rgba(255,255,255,.15);box-shadow:0 12px 48px rgba(0,0,0,.5);transform:translateY(-2px)}
+  .border{position:relative;background:rgba(10,14,26,.65);backdrop-filter:blur(16px);border-radius:16px;padding:16px;overflow:hidden}
+  .border::before{content:'';position:absolute;inset:0;padding:1px;border-radius:16px;background:linear-gradient(135deg,#1e3a8a 0%,#06b6d4 15%,#7c3aed 30%,#c026d3 45%,#e11d48 55%,#f97316 70%,#eab308 85%,#22c55e 100%);-webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);-webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none}
+</style></head>
+<body><div class="card">
+  <div class="panel"><span class="t">Default</span><span class="d">Glass panel · blur 16 · border .08 · shadow md</span></div>
+  <div class="panel hover"><span class="t">Hover</span><span class="d">Border .15 · lift −2px · shadow lg</span></div>
+  <div class="panel border"><span class="t" style="color:rgba(255,255,255,.95)">Prismatic</span><span class="d">Gradient 1px border · brand moment</span></div>
+</div></body></html>

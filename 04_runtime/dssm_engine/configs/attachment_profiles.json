@@ -1,0 +1,23 @@
+{
+  "_status": "reference",
+  "_consumed_by": "src/prism_dssm/persona_filters.py:DEFAULT_PROFILES (hardcoded)",
+  "_comment": "Snapshot of DEFAULT_PROFILES kept for documentation/tooling. Edits here do NOT affect runtime — change persona_filters.DEFAULT_PROFILES.",
+  "anxious": {
+    "positive_gain_mult": 1.25,
+    "positive_loss_mult": 1.40,
+    "negative_gain_mult": 1.30,
+    "negative_loss_mult": 1.10
+  },
+  "avoidant": {
+    "positive_gain_mult": 0.70,
+    "positive_loss_mult": 1.15,
+    "negative_gain_mult": 1.20,
+    "negative_loss_mult": 0.85
+  },
+  "secure": {
+    "positive_gain_mult": 1.00,
+    "positive_loss_mult": 1.00,
+    "negative_gain_mult": 1.00,
+    "negative_loss_mult": 1.00
+  }
+}

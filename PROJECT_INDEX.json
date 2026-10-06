@@ -4,12 +4,16 @@
   "role": "creative-ip",
   "root": ".",
   "github": "kas1987/New_Veil",
-  "version": "0.2.1-scaffold",
+  "version": "0.3.0-scaffold",
   "status": "ACTIVE_SCAFFOLD",
   "updated_at": "2026-10-05",
   "promoted_planes": [
     "00_charter",
     "01_districts",
+    "03_memory",
+    "04_runtime",
+    "05_alignment",
+    "07_ui",
     "10_canon",
     "12_metaphysics",
     "13_agents",
@@ -31,22 +35,103 @@
     "intake": "90_intake/"
   },
   "planes": {
-    "00": { "folders": ["00_harness", "00_charter"], "role": "Governance / harness" },
-    "01": { "folders": ["01_districts"], "role": "Districts" },
-    "03": { "folders": ["03_memory"], "role": "Memory" },
-    "04": { "folders": ["04_runtime"], "role": "Runtime" },
-    "05": { "folders": ["05_alignment"], "role": "Alignment" },
-    "06": { "folders": ["06_logs"], "role": "Logs" },
-    "07": { "folders": ["07_ui"], "role": "UI" },
-    "09": { "folders": ["09_registry"], "role": "Registry" },
-    "10": { "folders": ["10_canon"], "role": "Canon" },
-    "11": { "folders": ["11_world"], "role": "World" },
-    "12": { "folders": ["12_metaphysics"], "role": "Metaphysics" },
-    "13": { "folders": ["13_agents"], "role": "Agents" },
-    "14": { "folders": ["14_psychometrics"], "role": "Psychometrics" },
-    "15": { "folders": ["15_voice"], "role": "Voice" },
-    "90": { "folders": ["90_intake"], "role": "Legacy intake staging" },
-    "99": { "folders": ["99_archive"], "role": "Archive" }
+    "00": {
+      "folders": [
+        "00_harness",
+        "00_charter"
+      ],
+      "role": "Governance / harness"
+    },
+    "01": {
+      "folders": [
+        "01_districts"
+      ],
+      "role": "Districts"
+    },
+    "03": {
+      "folders": [
+        "03_memory"
+      ],
+      "role": "Memory"
+    },
+    "04": {
+      "folders": [
+        "04_runtime"
+      ],
+      "role": "Runtime"
+    },
+    "05": {
+      "folders": [
+        "05_alignment"
+      ],
+      "role": "Alignment"
+    },
+    "06": {
+      "folders": [
+        "06_logs"
+      ],
+      "role": "Logs"
+    },
+    "07": {
+      "folders": [
+        "07_ui"
+      ],
+      "role": "UI"
+    },
+    "09": {
+      "folders": [
+        "09_registry"
+      ],
+      "role": "Registry"
+    },
+    "10": {
+      "folders": [
+        "10_canon"
+      ],
+      "role": "Canon"
+    },
+    "11": {
+      "folders": [
+        "11_world"
+      ],
+      "role": "World"
+    },
+    "12": {
+      "folders": [
+        "12_metaphysics"
+      ],
+      "role": "Metaphysics"
+    },
+    "13": {
+      "folders": [
+        "13_agents"
+      ],
+      "role": "Agents"
+    },
+    "14": {
+      "folders": [
+        "14_psychometrics"
+      ],
+      "role": "Psychometrics"
+    },
+    "15": {
+      "folders": [
+        "15_voice"
+      ],
+      "role": "Voice"
+    },
+    "90": {
+      "folders": [
+        "90_intake"
+      ],
+      "role": "Legacy intake staging"
+    },
+    "99": {
+      "folders": [
+        "99_archive"
+      ],
+      "role": "Archive"
+    }
   },
   "comfyui": {
     "runtime_hub_env": "VEIL_COMFY_HUB",

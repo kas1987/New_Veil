@@ -1,0 +1,17 @@
+prompt_matrix:
+  matrix_id: veil_scene_8b3b742c
+  status: active
+  description: Veil scene bridge one-shot matrix
+  base_prompts:
+  - "gothic elegance, intelligent eyes, mischievous smile, steampunk mystic fashion, warm lantern light, liminal dreamscape, void doors flickering, near-monochrome with subtle prism rainbows, gravitational distortion, prismatic chromatic aberration, dark heavy weight pulling at edges, painterly, cinematic, atmospheric depth of field"
+  negative_prompts:
+  - "low quality, blurry, distorted anatomy, watermark, signature, text"
+  variables: {}
+  seeds:
+  - 424242
+  cfg_values:
+  - 7.0
+  samplers:
+  - Euler
+  schedulers:
+  - normal

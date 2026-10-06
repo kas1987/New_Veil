@@ -1,0 +1,19 @@
+<!doctype html><html><head><meta charset="utf-8">
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  html,body{margin:0;background:#050812;background-image:radial-gradient(ellipse 70% 45% at 15% 0%,rgba(6,182,212,.07),transparent 65%);color:#fff;font-family:'Prompt',sans-serif}
+  .card{padding:24px 28px;display:flex;flex-direction:column;gap:10px;max-width:560px}
+  .row{display:flex;flex-direction:column;gap:6px}
+  .lbl{font-size:11px;color:rgba(255,255,255,.35);font-family:'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:.05em}
+  .track{height:6px;border-radius:9999px;background:rgba(255,255,255,.06);overflow:hidden}
+  .fill{height:100%;background:linear-gradient(90deg,#06b6d4,#0ea5e9);box-shadow:0 0 8px rgba(6,182,212,.5);border-radius:9999px}
+  @keyframes shim{0%{background-position:-200% 0}100%{background-position:200% 0}}
+  .skel{height:14px;border-radius:6px;background:linear-gradient(90deg,rgba(255,255,255,.04) 25%,rgba(255,255,255,.08) 50%,rgba(255,255,255,.04) 75%);background-size:200% 100%;animation:shim 1.6s ease infinite}
+  .skel.w60{width:60%}
+  .skel.w40{width:40%}
+</style></head>
+<body><div class="card">
+  <div class="row"><span class="lbl">Progress 34%</span><div class="track"><div class="fill" style="width:34%"></div></div></div>
+  <div class="row"><span class="lbl">Progress 82%</span><div class="track"><div class="fill" style="width:82%"></div></div></div>
+  <div class="row"><span class="lbl">Shimmer skeleton</span><div class="skel w60"></div><div class="skel w40" style="margin-top:6px"></div></div>
+</div></body></html>
