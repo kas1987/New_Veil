@@ -29,12 +29,10 @@
 
 ## Not yet
 
-- GitHub remote  
 - Runnable simulation bootstrap  
 - Runtime / memory / alignment / UI planes  
 
 ## Next
 
 1. Intake `04_runtime` + `03_memory` (+ `05_alignment`) when ready to run.  
-2. Intake `11_world` / `07_ui` as needed.  
-3. Add GitHub remote when you ask.
+2. Intake `11_world` / `07_ui` as needed.
