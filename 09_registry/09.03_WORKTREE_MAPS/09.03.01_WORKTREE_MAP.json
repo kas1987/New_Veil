@@ -1,5 +1,5 @@
 {
-  "root": "D:\\.30_Veil",
+  "root": ".",
   "updated_at": "2026-10-05",
   "promotions": [
     { "at": "2026-10-05", "from": "90_intake/from_the_veil/design", "to": "design" },
@@ -28,5 +28,21 @@
     { "nn": "90", "paths": ["90_intake"], "status": "active" },
     { "nn": "99", "paths": ["99_archive"], "status": "empty" }
   ],
-  "exceptions": ["AGENTS.md", "README.md", "REPO_STATUS.md", "JOIN_FROM.md", "CHROMATIC_TREES.md", "PROJECT_INDEX.json", "design", "docs", "scripts", "tests", ".agents"]
+  "exceptions": [
+    "AGENTS.md",
+    "README.md",
+    "REPO_STATUS.md",
+    "JOIN_FROM.md",
+    "CHROMATIC_TREES.md",
+    "PROJECT_INDEX.json",
+    "design",
+    "docs",
+    "scripts",
+    "tests",
+    ".agents",
+    ".github",
+    "LICENSE",
+    "SECURITY.md",
+    "CONTRIBUTING.md"
+  ]
 }

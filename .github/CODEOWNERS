@@ -1,0 +1,9 @@
+# Default owner for public review routing
+*       @kas1987
+
+# Canon and charter require explicit owner attention
+/00_charter/        @kas1987
+/10_canon/          @kas1987
+/12_metaphysics/    @kas1987
+/AGENTS.md          @kas1987
+/REPO_STATUS.md     @kas1987

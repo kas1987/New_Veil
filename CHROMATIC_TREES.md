@@ -1,4 +1,4 @@
-# ChromaticTrees — `D:\.30_Veil` (scaffold)
+# ChromaticTrees — New_Veil (scaffold)
 
 Fresh Veil home. Numbered planes only; no Small-Town waivers carried forward.
 

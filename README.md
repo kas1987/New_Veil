@@ -1,14 +1,17 @@
-# The Veil — `D:\.30_Veil`
+# New_Veil
 
-Fresh scaffold for The Veil. Older GitHub trees and Center_Mass fragments are **sources**, not parents. Pull what earns a place; leave the rest.
+[![CI](https://github.com/kas1987/New_Veil/actions/workflows/ci.yml/badge.svg)](https://github.com/kas1987/New_Veil/actions/workflows/ci.yml)
+[![CodeQL](https://github.com/kas1987/New_Veil/actions/workflows/codeql.yml/badge.svg)](https://github.com/kas1987/New_Veil/actions/workflows/codeql.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+
+Fresh public scaffold for **The Veil**. Older GitHub trees are **sources**, not parents. Pull what earns a place; leave the rest.
 
 | | |
 |---|---|
-| **Root** | `D:\.30_Veil` |
-| **Status** | `ACTIVE_SCAFFOLD` — charter, canon, metaphysics, design, agents, districts promoted |
 | **GitHub** | [kas1987/New_Veil](https://github.com/kas1987/New_Veil) |
-| **Legacy staging** | `D:\.20_Center_Mass\projects\games\_veil_github_staging\` |
+| **Status** | `ACTIVE_SCAFFOLD` — charter, canon, metaphysics, design, agents, districts promoted |
 | **Intake** | [`90_intake/`](90_intake/) → review → promote into numbered planes |
+| **Contribute** | [`CONTRIBUTING.md`](CONTRIBUTING.md) · [`SECURITY.md`](SECURITY.md) |
 
 ## Quick map
 
@@ -28,15 +31,31 @@ Fresh scaffold for The Veil. Older GitHub trees and Center_Mass fragments are **
 | `13_agents` | Sister + supporting profiles |
 | `14_psychometrics` | Instruments |
 | `15_voice` | Voice / TTS surface |
-| `90_intake` | Staging copies from old repos |
+| `90_intake` | Local staging from legacy sources (not tracked) |
 | `99_archive` | Rejected or frozen pulls |
 | `design` | Motif / visual system |
+
+## Local setup
+
+```bash
+git clone https://github.com/kas1987/New_Veil.git
+cd New_Veil
+python scripts/check_scaffold.py
+pip install pre-commit && pre-commit install
+```
+
+For selective intake from legacy clones:
+
+```bash
+cp 90_intake/sources.example.json 90_intake/sources.json
+# edit sources.json with your local paths
+```
 
 ## Workflow
 
 1. Read [`JOIN_FROM.md`](JOIN_FROM.md) for source inventory.  
-2. Copy a candidate into `90_intake/<source>/` (never edit the staging clones in place for “keep” work).  
-3. Review → promote into the matching numbered plane (or reject to `99_archive`).  
-4. Update `09_registry` worktree map when structure changes.
+2. Copy a candidate into local `90_intake/<source>/` (gitignored).  
+3. Review → promote into the matching numbered plane.  
+4. Open a PR; CI must pass.
 
 See [`AGENTS.md`](AGENTS.md) and [`REPO_STATUS.md`](REPO_STATUS.md).

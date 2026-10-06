@@ -1,0 +1,27 @@
+name: Feature request
+description: Propose a change or promotion into New_Veil
+title: "[feat] "
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem / opportunity
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed change
+      description: What to add, which plane, and why it belongs here (not only in legacy trees)
+    validations:
+      required: true
+  - type: dropdown
+    id: canon
+    attributes:
+      label: Touches immutable canon?
+      options:
+        - "No"
+        - "Yes — will follow REVIEW_GATES.md"
+    validations:
+      required: true

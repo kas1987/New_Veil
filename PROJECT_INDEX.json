@@ -2,14 +2,21 @@
   "name": "The-Veil",
   "repo_id": "REPO-VEIL-30",
   "role": "creative-ip",
-  "root": "D:\\.30_Veil",
+  "root": ".",
   "github": "kas1987/New_Veil",
-  "version": "0.2.0-scaffold",
+  "version": "0.2.1-scaffold",
   "status": "ACTIVE_SCAFFOLD",
   "updated_at": "2026-10-05",
-  "promoted_planes": ["00_charter", "01_districts", "10_canon", "12_metaphysics", "13_agents", "design"],
+  "promoted_planes": [
+    "00_charter",
+    "01_districts",
+    "10_canon",
+    "12_metaphysics",
+    "13_agents",
+    "design"
+  ],
   "legacy": {
-    "staging": "D:\\.20_Center_Mass\\projects\\games\\_veil_github_staging",
+    "staging_note": "Operator-local clones; see 90_intake/sources.example.json",
     "remotes": [
       "kas1987/The-Veil",
       "kas1987/Viel-Small-Town"
@@ -42,7 +49,7 @@
     "99": { "folders": ["99_archive"], "role": "Archive" }
   },
   "comfyui": {
-    "runtime_hub": "D:\\.000_AI",
+    "runtime_hub_env": "VEIL_COMFY_HUB",
     "default_server": "http://127.0.0.1:8188"
   }
 }

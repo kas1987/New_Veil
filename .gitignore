@@ -22,7 +22,9 @@ Desktop.ini
 .vscode/
 .idea/
 
-# Intake noise (keep structure; ignore huge accidental dumps)
+# Operator-local intake (never publish dumps)
+90_intake/sources.json
+90_intake/from_*/
 90_intake/**/__pycache__/
 90_intake/**/.venv/
 90_intake/**/*.sqlite

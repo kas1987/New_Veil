@@ -1,0 +1,33 @@
+name: Bug report
+description: Something broken or unexpected in New_Veil
+title: "[bug] "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for the report. Do **not** include secrets, tokens, or private paths.
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: Expected vs actual behavior
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: Steps to reproduce
+      description: Minimal steps or commands
+    validations:
+      required: true
+  - type: input
+    id: area
+    attributes:
+      label: Area / plane
+      placeholder: e.g. 13_agents, scripts/check_scaffold.py, CI
+  - type: textarea
+    id: env
+    attributes:
+      label: Environment
+      placeholder: OS, Python version, commit SHA

@@ -1,0 +1,55 @@
+{
+  "updated_at": "2026-10-05",
+  "note": "Copy to sources.json (gitignored) and fill local paths for intake_copy.ps1",
+  "sources": [
+    {
+      "id": "the_veil",
+      "intake_bucket": "from_the_veil",
+      "path": "PATH/TO/_veil_github_staging/The-Veil",
+      "github": "kas1987/The-Veil",
+      "priority": ["design", "selected agent_lore", "veil_init.sql ideas"]
+    },
+    {
+      "id": "viel_small_town",
+      "intake_bucket": "from_viel_small_town",
+      "path": "PATH/TO/_veil_github_staging/Viel-Small-Town",
+      "github": "kas1987/Viel-Small-Town",
+      "priority": ["00_charter", "10_canon", "12_metaphysics", "13_agents", "04_runtime", "03_memory", "01_districts", "07_ui"]
+    },
+    {
+      "id": "veil_core",
+      "intake_bucket": "from_veil_core",
+      "path": "PATH/TO/veil_core",
+      "github": null,
+      "priority": ["prism.py", "revelation.py", "voice.py", "db.py"]
+    },
+    {
+      "id": "center_mass_games_veil",
+      "intake_bucket": "from_center_mass",
+      "path": "PATH/TO/games/veil",
+      "github": null,
+      "priority": ["ai/sister duality"]
+    },
+    {
+      "id": "center_mass_docs",
+      "intake_bucket": "from_center_mass",
+      "path": "PATH/TO/docs/projects",
+      "github": null,
+      "priority": ["VEIL_CONTENT_AI_INTEGRATION.md", "SPRINT_VEIL_AI_OPTIMIZATION.md"]
+    },
+    {
+      "id": "zelex_sigil_pack",
+      "intake_bucket": "from_zelex_pack",
+      "path": "PATH/TO/Veil_Sigil_System_MasterPack",
+      "github": null,
+      "priority": ["SVG", "voice_data"]
+    },
+    {
+      "id": "veil_design_skill",
+      "intake_bucket": "from_center_mass",
+      "path": "PATH/TO/veil-design-system",
+      "github": null,
+      "priority": ["SKILL.md", "references"]
+    }
+  ]
+}

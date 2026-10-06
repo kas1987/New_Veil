@@ -1,13 +1,18 @@
 # Intake (`90_intake`)
 
-Drop selective copies from legacy sources here. Nothing in this folder is product-live until promoted into a numbered plane.
+Local-only staging for selective copies from legacy sources. **Bucket contents are gitignored** and must not be pushed to the public repo.
 
 | Bucket | Source |
 |--------|--------|
-| `from_the_veil/` | GitHub clone The-Veil |
-| `from_viel_small_town/` | GitHub clone Viel-Small-Town |
-| `from_veil_core/` | Center_Mass production_platform package |
-| `from_center_mass/` | Thin games/veil + docs |
-| `from_zelex_pack/` | Sigil master pack |
+| `from_the_veil/` | clone of `kas1987/The-Veil` |
+| `from_viel_small_town/` | clone of `kas1987/Viel-Small-Town` |
+| `from_veil_core/` | local production package |
+| `from_center_mass/` | local docs / thin game tree |
+| `from_zelex_pack/` | local sigil pack |
 
-Pointers: [`sources.json`](sources.json) · process: [`../JOIN_FROM.md`](../JOIN_FROM.md)
+1. Copy [`sources.example.json`](sources.example.json) → `sources.json` (gitignored).  
+2. Fill local paths.  
+3. Run `../scripts/intake_copy.ps1`.  
+4. Promote keepers into numbered planes via PR.
+
+Process: [`../JOIN_FROM.md`](../JOIN_FROM.md)
