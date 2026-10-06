@@ -5,7 +5,7 @@
 | **Status** | `ACTIVE_SCAFFOLD` |
 | **Registry ID** | `REPO-VEIL-30` |
 | **Root** | `D:\.30_Veil` |
-| **GitHub** | none yet (local scaffold) |
+| **GitHub** | [kas1987/New_Veil](https://github.com/kas1987/New_Veil) |
 | **Role** | Fresh product home for The Veil — selective reuse of legacy material |
 | **Legacy remotes** | `kas1987/The-Veil` (old flagship), `kas1987/Viel-Small-Town` (old playground) |
 | **Legacy staging** | `D:\.20_Center_Mass\projects\games\_veil_github_staging\` |
