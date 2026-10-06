@@ -1,0 +1,224 @@
+/**
+ * MetaChromatic — Colors & Type
+ * Merged from design/tokens/metachromatic-tokens.css + mobile app index.css.
+ * Use --mc-* vars for raw values; use the semantic aliases below for composing UI.
+ */
+
+/* ─────────────────────────────────────────────────────────────
+   Fonts (Prompt + JetBrains Mono, via Google Fonts — FLAG: no
+   self-hosted ttf was supplied; Google Fonts is a substitute)
+   ───────────────────────────────────────────────────────────── */
+@import url('https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+:root {
+  /* ═══ Brand — Navy foundation (dark-mode-first) ═══ */
+  --mc-navy:          #0a0e1a;   /* app background, deepest */
+  --mc-navy-light:    #141a2e;   /* surface 1 */
+  --mc-navy-mid:      #1e2842;   /* surface 2 */
+  --mc-navy-surface:  #232d4a;   /* elevated surface */
+
+  /* ═══ Prismatic spectrum (the rainbow arc from the logo) ═══ */
+  --mc-blue:          #1e3a8a;   --mc-blue-light:    #3b82f6;
+  --mc-cyan:          #06b6d4;   --mc-cyan-light:    #22d3ee;
+  --mc-purple:        #7c3aed;   --mc-purple-light:  #a78bfa;
+  --mc-magenta:       #c026d3;   --mc-magenta-light: #e879f9;
+  --mc-rose:          #e11d48;   --mc-rose-light:    #fb7185;
+  --mc-orange:        #f97316;   --mc-orange-light:  #fb923c;
+  --mc-yellow:        #eab308;   --mc-yellow-light:  #facc15;
+  --mc-green:         #22c55e;   --mc-green-light:   #4ade80;
+
+  /* ═══ Prismatic gradients ═══ */
+  --mc-gradient-prismatic: linear-gradient(135deg,
+    #1e3a8a 0%, #06b6d4 15%, #7c3aed 30%, #c026d3 45%,
+    #e11d48 55%, #f97316 70%, #eab308 85%, #22c55e 100%);
+  --mc-gradient-prismatic-90: linear-gradient(90deg,
+    #1e3a8a 0%, #06b6d4 15%, #7c3aed 30%, #c026d3 45%,
+    #e11d48 55%, #f97316 70%, #eab308 85%, #22c55e 100%);
+  --mc-gradient-cool: linear-gradient(135deg, #1e3a8a, #06b6d4, #7c3aed);
+  --mc-gradient-warm: linear-gradient(135deg, #e11d48, #f97316, #eab308, #22c55e);
+  --mc-gradient-primary: linear-gradient(135deg, rgba(6,182,212,0.85) 0%, rgba(14,116,144,0.85) 100%);
+
+  /* ═══ Text / foreground (white at varying opacities — for glass) ═══ */
+  --mc-text-primary:    rgba(255,255,255,0.95);
+  --mc-text-secondary:  rgba(255,255,255,0.65);
+  --mc-text-muted:      rgba(255,255,255,0.40);
+  --mc-text-disabled:   rgba(255,255,255,0.20);
+
+  /* ═══ Semantic colors ═══ */
+  --mc-success:   #22c55e;   --mc-success-bg: rgba(34,197,94,0.15);
+  --mc-warning:   #eab308;   --mc-warning-bg: rgba(234,179,8,0.15);
+  --mc-error:     #e11d48;   --mc-error-bg:   rgba(225,29,72,0.15);
+  --mc-info:      #06b6d4;   --mc-info-bg:    rgba(6,182,212,0.15);
+
+  /* ═══ Glass system ═══ */
+  --mc-glass-bg:            rgba(10,14,26,0.65);
+  --mc-glass-bg-light:      rgba(20,26,46,0.55);
+  --mc-glass-bg-heavy:      rgba(10,14,26,0.85);
+  --mc-glass-bg-elevated:   rgba(30,40,66,0.70);
+  --mc-glass-bg-white:      rgba(255,255,255,0.04);   /* alt: frosted-white on navy */
+  --mc-glass-bg-white-strong: rgba(255,255,255,0.07);
+  --mc-glass-border:        rgba(255,255,255,0.08);
+  --mc-glass-border-hover:  rgba(255,255,255,0.15);
+  --mc-glass-border-active: rgba(255,255,255,0.22);
+  --mc-glass-blur:          16px;
+  --mc-glass-blur-light:    8px;
+  --mc-glass-blur-heavy:    24px;
+  --mc-glass-blur-extreme:  40px;
+
+  /* ═══ Shadows ═══ */
+  --mc-shadow-sm:     0 4px 16px rgba(0,0,0,0.25);
+  --mc-shadow:        0 8px 32px rgba(0,0,0,0.37);
+  --mc-shadow-lg:     0 12px 48px rgba(0,0,0,0.50);
+  --mc-glow-cyan:     0 0 24px rgba(6,182,212,0.22);
+  --mc-glow-purple:   0 0 24px rgba(124,58,237,0.20);
+  --mc-glow-warm:     0 0 24px rgba(249,115,22,0.20);
+  --mc-text-glow:     0 0 20px rgba(6,182,212,0.45);
+
+  /* ═══ Radii (medium, 8–12px sweet spot; larger for cards) ═══ */
+  --mc-radius-xs:   4px;
+  --mc-radius-sm:   8px;
+  --mc-radius:      12px;
+  --mc-radius-md:   16px;
+  --mc-radius-lg:   24px;
+  --mc-radius-xl:   32px;
+  --mc-radius-full: 9999px;
+
+  /* ═══ Spacing scale (4-based) ═══ */
+  --mc-space-1:  0.25rem;   --mc-space-2:  0.5rem;
+  --mc-space-3:  0.75rem;   --mc-space-4:  1rem;
+  --mc-space-5:  1.25rem;   --mc-space-6:  1.5rem;
+  --mc-space-8:  2rem;      --mc-space-10: 2.5rem;
+  --mc-space-12: 3rem;      --mc-space-16: 4rem;
+
+  /* ═══ Transitions ═══ */
+  --mc-transition-fast:   150ms ease;
+  --mc-transition-normal: 250ms ease;
+  --mc-transition-slow:   400ms ease;
+  --mc-transition-spring: 500ms cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  /* ═══ Typography families ═══ */
+  --mc-font-display: 'Prompt', ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --mc-font-body:    'Prompt', ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --mc-font-mono:    'JetBrains Mono', ui-monospace, 'Fira Code', Menlo, monospace;
+
+  /* ═══ Type scale ═══ */
+  --mc-text-xs:   0.75rem;   /* 12 */
+  --mc-text-sm:   0.875rem;  /* 14 */
+  --mc-text-base: 1rem;      /* 16 */
+  --mc-text-lg:   1.125rem;  /* 18 */
+  --mc-text-xl:   1.25rem;   /* 20 */
+  --mc-text-2xl:  1.5rem;    /* 24 */
+  --mc-text-3xl:  1.875rem;  /* 30 */
+  --mc-text-4xl:  2.25rem;   /* 36 */
+  --mc-text-5xl:  3rem;      /* 48 */
+  --mc-text-6xl:  4rem;      /* 64 */
+
+  /* ═══ Semantic role aliases (for quick consumption) ═══ */
+  --bg-app:     #050812;
+  --bg-surface: var(--mc-navy);
+  --bg-raised:  var(--mc-navy-light);
+  --fg-1:       var(--mc-text-primary);
+  --fg-2:       var(--mc-text-secondary);
+  --fg-3:       var(--mc-text-muted);
+  --fg-4:       var(--mc-text-disabled);
+  --accent:     var(--mc-cyan);
+  --accent-2:   var(--mc-purple);
+  --stroke:     var(--mc-glass-border);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   Semantic text styles — apply directly as classes
+   ═══════════════════════════════════════════════════════════════ */
+
+.mc-display {
+  font-family: var(--mc-font-display);
+  font-size: var(--mc-text-6xl);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1.05;
+  color: var(--fg-1);
+}
+
+.mc-h1 {
+  font-family: var(--mc-font-display);
+  font-size: var(--mc-text-4xl);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+  color: var(--fg-1);
+}
+
+.mc-h2 {
+  font-family: var(--mc-font-display);
+  font-size: var(--mc-text-3xl);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+  color: var(--fg-1);
+}
+
+.mc-h3 {
+  font-family: var(--mc-font-display);
+  font-size: var(--mc-text-xl);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  line-height: 1.25;
+  color: var(--fg-1);
+}
+
+.mc-body {
+  font-family: var(--mc-font-body);
+  font-size: var(--mc-text-base);
+  font-weight: 400;
+  line-height: 1.6;
+  color: var(--fg-2);
+}
+
+.mc-small {
+  font-family: var(--mc-font-body);
+  font-size: var(--mc-text-sm);
+  line-height: 1.5;
+  color: var(--fg-2);
+}
+
+.mc-label {
+  font-family: var(--mc-font-body);
+  font-size: var(--mc-text-xs);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--fg-3);
+}
+
+.mc-mono {
+  font-family: var(--mc-font-mono);
+  font-size: var(--mc-text-sm);
+  color: var(--fg-2);
+}
+
+.mc-prismatic-text {
+  background: var(--mc-gradient-prismatic);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+
+.mc-text-glow {
+  text-shadow: var(--mc-text-glow);
+}
+
+/* ═══ App body baseline ═══ */
+body.mc {
+  margin: 0;
+  background: var(--bg-app);
+  background-image:
+    radial-gradient(ellipse 70% 45% at 15% 0%, rgba(6,182,212,0.07) 0%, transparent 65%),
+    radial-gradient(ellipse 55% 40% at 85% 90%, rgba(139,92,246,0.06) 0%, transparent 60%),
+    radial-gradient(ellipse 40% 30% at 50% 50%, rgba(14,116,144,0.03) 0%, transparent 60%);
+  background-attachment: fixed;
+  color: var(--fg-1);
+  font-family: var(--mc-font-body);
+  -webkit-font-smoothing: antialiased;
+  overscroll-behavior: none;
+}

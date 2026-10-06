@@ -9,7 +9,7 @@ Fresh public scaffold for **The Veil**. Older GitHub trees are **sources**, not 
 | | |
 |---|---|
 | **GitHub** | [kas1987/New_Veil](https://github.com/kas1987/New_Veil) |
-| **Status** | `ACTIVE_SCAFFOLD` — charter, canon, metaphysics, design, agents, districts promoted |
+| **Status** | `ACTIVE_SCAFFOLD` — charter, canon, agents, districts, runtime, memory, alignment, UI promoted |
 | **Intake** | [`90_intake/`](90_intake/) → review → promote into numbered planes |
 | **Contribute** | [`CONTRIBUTING.md`](CONTRIBUTING.md) · [`SECURITY.md`](SECURITY.md) |
 

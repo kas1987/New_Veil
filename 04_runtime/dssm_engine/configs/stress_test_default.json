@@ -1,0 +1,10 @@
+{
+  "sessions": 50,
+  "ratios": [2.0, 3.0, 4.0, 5.0, 6.0, 7.0],
+  "seeds": [11, 13, 17, 19, 23],
+  "win_condition": {
+    "trust_min": 60.0,
+    "suspicion_max": 40.0,
+    "resistance_max": 35.0
+  }
+}

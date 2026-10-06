@@ -1,0 +1,152 @@
+<!doctype html><html><head><meta charset="utf-8">
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  html,body{margin:0;background:radial-gradient(ellipse 100% 80% at 50% 50%,#1a1530 0%,#0a0815 50%,#050308 100%);color:#fff;font-family:'Prompt',sans-serif;overflow:hidden;height:100vh}
+  .card{padding:18px 28px;display:grid;grid-template-columns:200px 1fr;gap:24px;align-items:center;height:100%;box-sizing:border-box}
+  .stage{position:relative;width:180px;height:180px;display:flex;align-items:center;justify-content:center;perspective:600px}
+  .stage::before{content:'';position:absolute;width:120px;height:14px;bottom:14px;left:50%;transform:translateX(-50%);background:radial-gradient(ellipse,rgba(0,0,0,.6) 0%,transparent 70%);filter:blur(6px)}
+  .stage::after{content:'';position:absolute;inset:-20px;background:radial-gradient(circle,rgba(168,85,247,.3) 0%,rgba(6,182,212,.2) 35%,transparent 65%);filter:blur(30px);animation:halo 5s ease-in-out infinite;pointer-events:none}
+  @keyframes halo{0%,100%{opacity:.7;transform:scale(1)}50%{opacity:1;transform:scale(1.1)}}
+  .gem{transform-style:preserve-3d;animation:float 6s ease-in-out infinite}
+  @keyframes float{0%,100%{transform:translateY(0) rotateY(-8deg)}50%{transform:translateY(-6px) rotateY(8deg)}}
+  svg{display:block;filter:drop-shadow(0 24px 40px rgba(168,85,247,.4)) drop-shadow(0 12px 24px rgba(6,182,212,.3))}
+  .meta{display:flex;flex-direction:column;gap:12px}
+  .tag{font-family:'JetBrains Mono',monospace;font-size:9px;color:rgba(255,255,255,.45);text-transform:uppercase;letter-spacing:.22em;display:flex;align-items:center;gap:8px}
+  .tag::before{content:'';width:5px;height:5px;border-radius:9999px;background:#22d3ee;box-shadow:0 0 10px rgba(6,182,212,.8)}
+  .wordmark{font-size:38px;font-weight:700;letter-spacing:-.035em;line-height:1;background:linear-gradient(115deg,#67e8f9 0%,#a78bfa 35%,#e879f9 60%,#fb7185 80%,#fbbf24 100%);background-size:200% 100%;-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;animation:flow 6s ease-in-out infinite}
+  @keyframes flow{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}
+  .sub{font-size:13px;color:rgba(255,255,255,.5);font-weight:300}
+  .sizes{display:flex;align-items:flex-end;gap:18px;margin-top:6px}
+  .sz{display:flex;flex-direction:column;align-items:center;gap:4px}
+  .sz span{font-family:'JetBrains Mono',monospace;font-size:8px;color:rgba(255,255,255,.3);letter-spacing:.1em}
+  .mini{filter:drop-shadow(0 4px 8px rgba(168,85,247,.4))}
+</style>
+<svg width="0" height="0" style="position:absolute">
+  <defs>
+    <!-- top facet: bright cyan-mint -->
+    <linearGradient id="topL" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#a5f3fc"/>
+      <stop offset=".5" stop-color="#22d3ee"/>
+      <stop offset="1" stop-color="#0e7490"/>
+    </linearGradient>
+    <!-- top right facet: violet-pink -->
+    <linearGradient id="topR" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#f0abfc"/>
+      <stop offset=".5" stop-color="#c026d3"/>
+      <stop offset="1" stop-color="#7c3aed"/>
+    </linearGradient>
+    <!-- left side: deep teal-blue -->
+    <linearGradient id="sideL" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#0891b2"/>
+      <stop offset=".6" stop-color="#1e3a8a"/>
+      <stop offset="1" stop-color="#0c0a1f"/>
+    </linearGradient>
+    <!-- right side: warm magenta-orange -->
+    <linearGradient id="sideR" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#e11d48"/>
+      <stop offset=".5" stop-color="#9d174d"/>
+      <stop offset="1" stop-color="#1c0a14"/>
+    </linearGradient>
+    <!-- bottom facet -->
+    <linearGradient id="bot" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#fbbf24"/>
+      <stop offset=".5" stop-color="#f97316"/>
+      <stop offset="1" stop-color="#7c2d12"/>
+    </linearGradient>
+    <!-- glossy highlight overlay -->
+    <linearGradient id="gloss" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffffff" stop-opacity=".95"/>
+      <stop offset=".5" stop-color="#ffffff" stop-opacity=".15"/>
+      <stop offset="1" stop-color="#ffffff" stop-opacity="0"/>
+    </linearGradient>
+    <radialGradient id="spec" cx=".5" cy=".5" r=".5">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="1"/>
+      <stop offset=".4" stop-color="#ffffff" stop-opacity=".4"/>
+      <stop offset="1" stop-color="#ffffff" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="soft" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation=".5"/>
+    </filter>
+  </defs>
+</svg>
+</head>
+<body>
+<div class="card">
+  <div class="stage">
+    <div class="gem">
+      <svg width="170" height="170" viewBox="-90 -90 180 180">
+        <!-- isometric hex gem: top crown + 4 visible side facets + bottom point -->
+        <!-- Coordinates designed in iso projection -->
+
+        <!-- bottom pavilion (back) - deep shadow -->
+        <polygon points="-50,-5 -25,-25 25,-25 50,-5 0,55" fill="#0a0612" opacity=".4"/>
+
+        <!-- LEFT side facet (deep) -->
+        <polygon points="-60,-10 -50,-5 -30,30 -45,15" fill="url(#sideL)" stroke="rgba(0,0,0,.3)" stroke-width=".5"/>
+
+        <!-- LEFT-FRONT side facet -->
+        <polygon points="-50,-5 -25,-25 0,-15 0,40 -30,30" fill="url(#sideL)" stroke="rgba(0,0,0,.25)" stroke-width=".5"/>
+
+        <!-- RIGHT side facet (deep) -->
+        <polygon points="60,-10 50,-5 30,30 45,15" fill="url(#sideR)" stroke="rgba(0,0,0,.3)" stroke-width=".5"/>
+
+        <!-- RIGHT-FRONT side facet -->
+        <polygon points="50,-5 25,-25 0,-15 0,40 30,30" fill="url(#sideR)" stroke="rgba(0,0,0,.25)" stroke-width=".5"/>
+
+        <!-- bottom front point shading -->
+        <polygon points="-30,30 0,40 30,30 0,55" fill="url(#bot)" stroke="rgba(0,0,0,.3)" stroke-width=".5"/>
+
+        <!-- TOP CROWN — left facet -->
+        <polygon points="-60,-10 -25,-45 -25,-25 -50,-5" fill="url(#topL)" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+        <!-- TOP CROWN — right facet -->
+        <polygon points="60,-10 25,-45 25,-25 50,-5" fill="url(#topR)" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+        <!-- TOP CROWN — center back facet -->
+        <polygon points="-25,-45 25,-45 25,-25 -25,-25" fill="url(#topL)" stroke="rgba(255,255,255,.25)" stroke-width=".7"/>
+        <!-- TOP CROWN — center front diamond -->
+        <polygon points="-25,-25 25,-25 0,-15" fill="url(#topR)" stroke="rgba(255,255,255,.25)" stroke-width=".7"/>
+
+        <!-- glossy top highlight -->
+        <polygon points="-25,-45 25,-45 22,-38 -22,-38" fill="url(#gloss)" opacity=".9"/>
+        <polygon points="-25,-45 -22,-38 -52,-7 -60,-10" fill="url(#gloss)" opacity=".4"/>
+
+        <!-- specular highlights (chunky 3D look) -->
+        <ellipse cx="-12" cy="-32" rx="6" ry="2.5" fill="url(#spec)"/>
+        <ellipse cx="14" cy="-20" rx="4" ry="1.5" fill="white" opacity=".7"/>
+        <ellipse cx="-38" cy="5" rx="2.5" ry="6" fill="white" opacity=".25" transform="rotate(-25 -38 5)"/>
+        <ellipse cx="36" cy="0" rx="2" ry="5" fill="white" opacity=".2" transform="rotate(20 36 0)"/>
+
+        <!-- inner color glow refractions -->
+        <ellipse cx="0" cy="20" rx="20" ry="8" fill="#fbbf24" opacity=".3" filter="url(#soft)"/>
+        <ellipse cx="-20" cy="0" rx="6" ry="3" fill="#22d3ee" opacity=".5" filter="url(#soft)"/>
+        <ellipse cx="22" cy="-2" rx="6" ry="3" fill="#e879f9" opacity=".5" filter="url(#soft)"/>
+
+        <!-- bright sparkle on top edge -->
+        <g fill="white">
+          <polygon points="-22,-44 -19,-40 -22,-36 -25,-40" opacity=".95"/>
+        </g>
+
+        <!-- floating sparkles -->
+        <g fill="white">
+          <circle cx="-70" cy="-50" r="1.5" opacity=".9"/>
+          <circle cx="70" cy="-30" r="1.2" opacity=".8"/>
+          <circle cx="-65" cy="60" r="1" opacity=".6"/>
+          <circle cx="75" cy="55" r="1.3" opacity=".7"/>
+          <polygon points="-78,-35 -76,-32 -78,-29 -80,-32" opacity=".7"/>
+          <polygon points="80,40 82,43 80,46 78,43" opacity=".6"/>
+        </g>
+      </svg>
+    </div>
+  </div>
+  <div class="meta">
+    <div class="tag">Brand mark · 3D Gem</div>
+    <div class="wordmark">MetaChromatic</div>
+    <div class="sub">A faceted prism that refracts the brand's full spectrum.</div>
+    <div class="sizes">
+      <div class="sz"><svg class="mini" width="20" height="20" viewBox="-90 -90 180 180"><polygon points="-60,-10 -25,-45 25,-45 60,-10 0,55" fill="url(#topR)" stroke="rgba(255,255,255,.3)"/></svg><span>20</span></div>
+      <div class="sz"><svg class="mini" width="32" height="32" viewBox="-90 -90 180 180"><polygon points="-60,-10 -25,-45 -25,-25 -50,-5" fill="url(#topL)"/><polygon points="-25,-45 25,-45 25,-25 -25,-25" fill="url(#topL)"/><polygon points="60,-10 25,-45 25,-25 50,-5" fill="url(#topR)"/><polygon points="-50,-5 -25,-25 0,-15 0,40 -30,30" fill="url(#sideL)"/><polygon points="50,-5 25,-25 0,-15 0,40 30,30" fill="url(#sideR)"/><polygon points="-30,30 0,40 30,30 0,55" fill="url(#bot)"/></svg><span>32</span></div>
+      <div class="sz"><svg class="mini" width="48" height="48" viewBox="-90 -90 180 180"><polygon points="-60,-10 -25,-45 -25,-25 -50,-5" fill="url(#topL)"/><polygon points="-25,-45 25,-45 25,-25 -25,-25" fill="url(#topL)"/><polygon points="-25,-25 25,-25 0,-15" fill="url(#topR)"/><polygon points="60,-10 25,-45 25,-25 50,-5" fill="url(#topR)"/><polygon points="-50,-5 -25,-25 0,-15 0,40 -30,30" fill="url(#sideL)"/><polygon points="50,-5 25,-25 0,-15 0,40 30,30" fill="url(#sideR)"/><polygon points="-30,30 0,40 30,30 0,55" fill="url(#bot)"/></svg><span>48</span></div>
+      <div class="sz"><svg class="mini" width="64" height="64" viewBox="-90 -90 180 180"><polygon points="-60,-10 -25,-45 -25,-25 -50,-5" fill="url(#topL)"/><polygon points="-25,-45 25,-45 25,-25 -25,-25" fill="url(#topL)"/><polygon points="-25,-25 25,-25 0,-15" fill="url(#topR)"/><polygon points="60,-10 25,-45 25,-25 50,-5" fill="url(#topR)"/><polygon points="-50,-5 -25,-25 0,-15 0,40 -30,30" fill="url(#sideL)"/><polygon points="50,-5 25,-25 0,-15 0,40 30,30" fill="url(#sideR)"/><polygon points="-30,30 0,40 30,30 0,55" fill="url(#bot)"/><ellipse cx="-12" cy="-32" rx="6" ry="2.5" fill="white" opacity=".8"/></svg><span>64</span></div>
+    </div>
+  </div>
+</div>
+</body></html>

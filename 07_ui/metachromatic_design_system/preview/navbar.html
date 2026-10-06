@@ -1,0 +1,27 @@
+<!doctype html><html><head><meta charset="utf-8">
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  html,body{margin:0;background:#050812;color:#fff;font-family:'Prompt',sans-serif;height:100%}
+  .card{padding:20px;height:100%;display:flex;justify-content:center;align-items:flex-end}
+  .nav{width:360px;height:64px;background:rgba(5,8,18,.82);backdrop-filter:blur(28px) saturate(200%);border-top:1px solid rgba(255,255,255,.06);border-radius:12px;display:flex;position:relative}
+  .tab{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;position:relative}
+  .tab .ic{font-size:18px;line-height:1}
+  .tab .lb{font-size:9px;font-weight:500;letter-spacing:.02em}
+  .off{color:rgba(255,255,255,.35)}
+  .on{color:#22d3ee;text-shadow:0 0 20px rgba(6,182,212,.45)}
+  .on .ic{transform:scale(1.1)}
+  .ind{position:absolute;bottom:0;width:28px;height:2px;border-radius:9999px;background:#22d3ee;opacity:.8;left:50%;transform:translateX(-50%)}
+  .dot{position:absolute;top:10px;right:14px;width:6px;height:6px;border-radius:9999px;background:#4ade80;box-shadow:0 0 6px rgba(52,211,153,.7)}
+</style></head>
+<body><div class="card">
+  <nav class="nav">
+    <span class="dot"></span>
+    <div class="tab off"><span class="ic">⊞</span><span class="lb">Models</span></div>
+    <div class="tab off"><span class="ic">🖼</span><span class="lb">Outputs</span></div>
+    <div class="tab on"><span class="ic">✦</span><span class="lb">Generate</span><span class="ind"></span></div>
+    <div class="tab off"><span class="ic">🏷</span><span class="lb">Tag</span></div>
+    <div class="tab off"><span class="ic">✓</span><span class="lb">Review</span></div>
+    <div class="tab off"><span class="ic">⇪</span><span class="lb">Export</span></div>
+    <div class="tab off"><span class="ic">♫</span><span class="lb">Audio</span></div>
+  </nav>
+</div></body></html>

@@ -1,0 +1,201 @@
+{
+  "personas": [
+    {
+      "persona": "Mira",
+      "archetype": "The Catalyst",
+      "signal_weights": {
+        "compliment":    {"trust": 8,  "affection": 2},
+        "silence":       {"trust": -2, "suspicion": 1},
+        "vulnerability": {"affection": 10, "trust": 3},
+        "criticism":     {"trust": -3, "affection": -2},
+        "support":       {"trust": 5,  "affection": 4},
+        "deception":     {"suspicion": 6, "trust": -4},
+        "honesty":       {"trust": 6,  "suspicion": -2}
+      },
+      "attachment_state": "anxious",
+      "attachment_modifiers": {},
+      "override_rules": [
+        {"trigger": "failure", "effect": "delayed_trust_gain", "delay_turns": 3, "amount": 7.0},
+        {"trigger": "always",  "effect": "block_negative_trust"},
+        {"trigger": "always",  "effect": "vulnerability_amplify", "factor": 1.4}
+      ],
+      "initial_state": {"trust": 30.0, "affection": 25.0, "suspicion": 50.0, "resistance": 70.0}
+    },
+    {
+      "persona": "Shadow",
+      "archetype": "The Mirror",
+      "signal_weights": {
+        "compliment":    {"trust": 2,  "suspicion": 1},
+        "silence":       {"suspicion": 3},
+        "vulnerability": {"suspicion": 8, "trust": -1},
+        "criticism":     {"suspicion": 5, "resistance": 3},
+        "support":       {"trust": 3,  "suspicion": 1},
+        "deception":     {"suspicion": 10, "resistance": 5, "trust": -6},
+        "honesty":       {"trust": 4,  "suspicion": -3}
+      },
+      "attachment_state": "avoidant",
+      "attachment_modifiers": {},
+      "override_rules": [
+        {"trigger": "always", "effect": "mirror_player"}
+      ],
+      "initial_state": {"trust": 25.0, "affection": 20.0, "suspicion": 60.0, "resistance": 75.0}
+    },
+    {
+      "persona": "Elias",
+      "archetype": "The Architect",
+      "signal_weights": {
+        "compliment":    {"trust": 4},
+        "silence":       {"trust": -6, "resistance": 2},
+        "vulnerability": {"trust": 3,  "affection": 2},
+        "criticism":     {"trust": -2, "resistance": 1},
+        "support":       {"trust": 5,  "resistance": -2},
+        "deception":     {"resistance": 8, "trust": -8, "suspicion": 6},
+        "honesty":       {"trust": 7,  "resistance": -3}
+      },
+      "attachment_state": "secure",
+      "attachment_modifiers": {},
+      "override_rules": [
+        {"trigger": "always", "effect": "punish_optimization", "streak_threshold": 3, "resistance_penalty": 5.0}
+      ],
+      "initial_state": {"trust": 30.0, "affection": 22.0, "suspicion": 45.0, "resistance": 65.0}
+    },
+    {
+      "persona": "Lyra",
+      "archetype": "The Oracle",
+      "signal_weights": {
+        "compliment":    {"trust": 3,  "affection": 1},
+        "silence":       {"affection": 2, "trust": 1},
+        "vulnerability": {"trust": 6,  "affection": 7},
+        "criticism":     {"trust": -1, "suspicion": 2},
+        "support":       {"trust": 4,  "affection": 3},
+        "deception":     {"suspicion": 7, "trust": -5},
+        "honesty":       {"trust": 5,  "affection": 2}
+      },
+      "attachment_state": "secure",
+      "attachment_modifiers": {},
+      "override_rules": [
+        {"trigger": "always", "effect": "vulnerability_amplify", "factor": 1.6}
+      ],
+      "initial_state": {"trust": 35.0, "affection": 30.0, "suspicion": 40.0, "resistance": 60.0}
+    },
+    {
+      "persona": "Solenne",
+      "archetype": "The Guardian",
+      "signal_weights": {
+        "compliment":    {"trust": 8,  "affection": 3},
+        "silence":       {"trust": -1, "suspicion": 1},
+        "vulnerability": {"affection": 8, "trust": 4},
+        "criticism":     {"trust": -2, "affection": -1},
+        "support":       {"trust": 6,  "affection": 5},
+        "deception":     {"suspicion": 5, "trust": -4},
+        "honesty":       {"trust": 7,  "suspicion": -2}
+      },
+      "attachment_state": "secure",
+      "attachment_modifiers": {},
+      "override_rules": [
+        {"trigger": "always", "effect": "block_negative_trust", "floor": 20.0},
+        {"trigger": "always", "effect": "vulnerability_amplify", "factor": 1.3}
+      ],
+      "initial_state": {"trust": 40.0, "affection": 35.0, "suspicion": 18.0, "resistance": 50.0}
+    },
+    {
+      "persona": "Witness",
+      "archetype": "The Observer",
+      "signal_weights": {
+        "compliment":    {"trust": 1,  "affection": 0},
+        "silence":       {"suspicion": 2},
+        "vulnerability": {"suspicion": 4, "trust": 1},
+        "criticism":     {"suspicion": 3},
+        "support":       {"trust": 1},
+        "deception":     {"suspicion": 10, "trust": -2},
+        "honesty":       {"trust": 3,  "suspicion": -1}
+      },
+      "attachment_state": "secure",
+      "attachment_modifiers": {},
+      "override_rules": [
+        {"trigger": "always", "effect": "block_negative_trust"},
+        {"trigger": "always", "effect": "mirror_player"}
+      ],
+      "initial_state": {"trust": 20.0, "affection": 10.0, "suspicion": 60.0, "resistance": 80.0}
+    },
+    {
+      "persona": "Sael",
+      "archetype": "The Tender",
+      "signal_weights": {
+        "compliment":    {"trust": 3,  "affection": 2},
+        "silence":       {"trust": 1,  "affection": 1},
+        "vulnerability": {"trust": 5,  "affection": 8},
+        "criticism":     {"trust": -1, "suspicion": 1},
+        "support":       {"trust": 5,  "affection": 4},
+        "deception":     {"suspicion": 6, "trust": -3},
+        "honesty":       {"trust": 4,  "suspicion": -1}
+      },
+      "attachment_state": "secure",
+      "attachment_modifiers": {},
+      "override_rules": [
+        {"trigger": "always", "effect": "block_negative_trust", "floor": 25.0},
+        {"trigger": "always", "effect": "vulnerability_amplify", "factor": 1.2}
+      ],
+      "initial_state": {"trust": 35.0, "affection": 30.0, "suspicion": 15.0, "resistance": 55.0}
+    },
+    {
+      "persona": "Halen",
+      "archetype": "The Welcomer",
+      "signal_weights": {
+        "compliment":    {"trust": 6,  "affection": 4},
+        "silence":       {"suspicion": 3},
+        "vulnerability": {"trust": 4,  "affection": 6},
+        "criticism":     {"trust": -2, "affection": -1},
+        "support":       {"trust": 8,  "affection": 5},
+        "deception":     {"suspicion": 8, "trust": -5},
+        "honesty":       {"trust": 5,  "affection": 2}
+      },
+      "attachment_state": "anxious_preoccupied",
+      "attachment_modifiers": {},
+      "override_rules": [
+        {"trigger": "always", "effect": "block_negative_trust", "floor": 15.0},
+        {"trigger": "always", "effect": "vulnerability_amplify", "factor": 1.3}
+      ],
+      "initial_state": {"trust": 40.0, "affection": 35.0, "suspicion": 10.0, "resistance": 45.0}
+    },
+    {
+      "persona": "Rendered",
+      "archetype": "The Transformer",
+      "signal_weights": {
+        "compliment":    {"trust": 1,  "suspicion": 1},
+        "silence":       {"suspicion": 2, "resistance": 1},
+        "vulnerability": {"trust": 3,  "affection": 2},
+        "criticism":     {"trust": -3, "resistance": 2},
+        "support":       {"trust": 2,  "affection": 1},
+        "deception":     {"suspicion": 10, "trust": -8, "resistance": 5},
+        "honesty":       {"trust": 6,  "resistance": -2}
+      },
+      "attachment_state": "avoidant",
+      "attachment_modifiers": {},
+      "override_rules": [
+        {"trigger": "always", "effect": "mirror_player"},
+        {"trigger": "failure", "effect": "delayed_trust_gain", "delay_turns": 2, "amount": 5.0}
+      ],
+      "initial_state": {"trust": 15.0, "affection": 10.0, "suspicion": 55.0, "resistance": 80.0}
+    },
+    {
+      "persona": "Threadwatcher",
+      "archetype": "The Unbound",
+      "signal_weights": {
+        "compliment":    {"trust": 2,  "affection": 1},
+        "silence":       {"trust": 1},
+        "vulnerability": {"trust": 4,  "affection": 2},
+        "criticism":     {"trust": -1},
+        "support":       {"trust": 3,  "affection": 2},
+        "deception":     {"suspicion": 8, "trust": -6},
+        "honesty":       {"trust": 5,  "suspicion": -2}
+      },
+      "attachment_state": "secure",
+      "attachment_modifiers": {},
+      "override_rules": [
+        {"trigger": "always", "effect": "mirror_player"}
+      ],
+      "initial_state": {"trust": 25.0, "affection": 15.0, "suspicion": 20.0, "resistance": 40.0}
+    }
+  ]
+}

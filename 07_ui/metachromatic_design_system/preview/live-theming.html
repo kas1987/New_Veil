@@ -1,0 +1,92 @@
+<!doctype html><html><head><meta charset="utf-8">
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  :root{
+    --h:200;
+    --c1:hsl(var(--h) 90% 60%);
+    --c2:hsl(calc(var(--h) + 60) 85% 65%);
+    --c3:hsl(calc(var(--h) + 120) 80% 60%);
+    --glow:hsl(var(--h) 90% 55% / .55);
+  }
+  html,body{margin:0;background:radial-gradient(ellipse 80% 60% at 30% 20%,hsl(var(--h) 50% 12%) 0%,#050308 60%);color:#fff;font-family:'Prompt',sans-serif;overflow:hidden;height:100vh;transition:background .3s}
+  .card{padding:18px 24px;display:grid;grid-template-columns:1fr 1.1fr;gap:24px;align-items:center;height:100%;box-sizing:border-box}
+
+  /* LEFT: live preview */
+  .preview{position:relative;height:160px;border-radius:18px;border:1px solid rgba(255,255,255,.08);background:rgba(8,10,20,.7);backdrop-filter:blur(20px);overflow:hidden;display:flex;flex-direction:column;justify-content:space-between;padding:16px}
+  .preview::before{content:'';position:absolute;inset:-40%;background:radial-gradient(circle at 30% 30%,var(--c1),transparent 50%),radial-gradient(circle at 70% 80%,var(--c2),transparent 50%);opacity:.25;filter:blur(40px);transition:all .3s;animation:swirl 12s ease-in-out infinite}
+  @keyframes swirl{0%,100%{transform:rotate(0)}50%{transform:rotate(180deg)}}
+  .top{display:flex;align-items:center;gap:10px;position:relative;z-index:1}
+  .gem-mini{width:36px;height:36px;flex-shrink:0;filter:drop-shadow(0 4px 12px var(--glow));transition:filter .3s}
+  .title{font-size:14px;font-weight:600;letter-spacing:-.01em;background:linear-gradient(115deg,var(--c1),var(--c2),var(--c3));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;transition:all .3s}
+  .meta{font-family:'JetBrains Mono',monospace;font-size:8px;color:rgba(255,255,255,.4);letter-spacing:.1em;text-transform:uppercase}
+  .row{display:flex;align-items:center;gap:8px;position:relative;z-index:1}
+  .swatch{width:22px;height:22px;border-radius:6px;border:1px solid rgba(255,255,255,.15);box-shadow:0 4px 10px rgba(0,0,0,.4),inset 0 1px 0 rgba(255,255,255,.2);transition:background .3s}
+  .s1{background:var(--c1)}.s2{background:var(--c2)}.s3{background:var(--c3)}
+  .btn{margin-left:auto;padding:7px 14px;border-radius:9999px;font-size:11px;font-weight:600;letter-spacing:.02em;color:#fff;background:linear-gradient(135deg,var(--c1),var(--c2));box-shadow:0 4px 14px var(--glow),inset 0 1px 0 rgba(255,255,255,.3);border:none;cursor:pointer;transition:all .3s}
+
+  /* RIGHT: control */
+  .control{display:flex;flex-direction:column;gap:14px}
+  .label-row{display:flex;justify-content:space-between;align-items:baseline}
+  .lbl{font-family:'JetBrains Mono',monospace;font-size:9px;color:rgba(255,255,255,.5);letter-spacing:.18em;text-transform:uppercase;display:flex;align-items:center;gap:8px}
+  .lbl::before{content:'';width:6px;height:6px;border-radius:9999px;background:var(--c1);box-shadow:0 0 10px var(--glow);transition:all .3s}
+  .val{font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:600;color:var(--c1);transition:color .3s}
+  .slider{-webkit-appearance:none;appearance:none;width:100%;height:14px;border-radius:9999px;background:linear-gradient(90deg,hsl(0 90% 60%),hsl(60 90% 60%),hsl(120 90% 60%),hsl(180 90% 60%),hsl(240 90% 60%),hsl(300 90% 60%),hsl(360 90% 60%));outline:none;cursor:pointer;border:1px solid rgba(255,255,255,.1);box-shadow:inset 0 2px 4px rgba(0,0,0,.4)}
+  .slider::-webkit-slider-thumb{-webkit-appearance:none;width:22px;height:22px;border-radius:9999px;background:#fff;border:2px solid var(--c1);box-shadow:0 2px 12px var(--glow),0 0 0 4px rgba(255,255,255,.05);cursor:grab;transition:border-color .3s,box-shadow .3s}
+  .slider::-moz-range-thumb{width:22px;height:22px;border-radius:9999px;background:#fff;border:2px solid var(--c1);box-shadow:0 2px 12px var(--glow);cursor:grab}
+  .hint{font-size:11px;color:rgba(255,255,255,.4);font-style:italic;line-height:1.4}
+</style></head>
+<body>
+<div class="card">
+  <div class="preview">
+    <div class="top">
+      <svg class="gem-mini" viewBox="-90 -90 180 180">
+        <defs>
+          <linearGradient id="gtop" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="var(--c1)"/><stop offset="1" stop-color="var(--c2)"/></linearGradient>
+          <linearGradient id="gside" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="var(--c2)"/><stop offset="1" stop-color="#0c0a1f"/></linearGradient>
+          <linearGradient id="gbot" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="var(--c3)"/><stop offset="1" stop-color="#1c0a14"/></linearGradient>
+        </defs>
+        <polygon points="-60,-10 -25,-45 -25,-25 -50,-5" fill="url(#gtop)"/>
+        <polygon points="-25,-45 25,-45 25,-25 -25,-25" fill="url(#gtop)"/>
+        <polygon points="-25,-25 25,-25 0,-15" fill="url(#gtop)" opacity=".85"/>
+        <polygon points="60,-10 25,-45 25,-25 50,-5" fill="url(#gtop)" opacity=".9"/>
+        <polygon points="-50,-5 -25,-25 0,-15 0,40 -30,30" fill="url(#gside)"/>
+        <polygon points="50,-5 25,-25 0,-15 0,40 30,30" fill="url(#gside)"/>
+        <polygon points="-30,30 0,40 30,30 0,55" fill="url(#gbot)"/>
+        <ellipse cx="-12" cy="-32" rx="6" ry="2.5" fill="white" opacity=".85"/>
+      </svg>
+      <div>
+        <div class="title">Aurora Palette</div>
+        <div class="meta" id="m">hsl 200 · 5 stops</div>
+      </div>
+    </div>
+    <div class="row">
+      <div class="swatch s1"></div>
+      <div class="swatch s2"></div>
+      <div class="swatch s3"></div>
+      <button class="btn">Apply</button>
+    </div>
+  </div>
+
+  <div class="control">
+    <div class="label-row">
+      <span class="lbl">Live theme</span>
+      <span class="val" id="v">200°</span>
+    </div>
+    <input class="slider" type="range" min="0" max="360" value="200" id="s">
+    <div class="hint">Drag → every gradient, glow & accent retunes in real time. This <em>is</em> MetaChromatic.</div>
+  </div>
+</div>
+<script>
+  const s=document.getElementById('s'),v=document.getElementById('v'),m=document.getElementById('m');
+  s.addEventListener('input',()=>{
+    document.documentElement.style.setProperty('--h',s.value);
+    v.textContent=s.value+'°';
+    m.textContent='hsl '+s.value+' · 5 stops';
+  });
+  // gentle auto-demo on load
+  let t=0,raf;
+  function demo(){t+=.5;if(t>40)return cancelAnimationFrame(raf);const v2=200+Math.sin(t*.1)*40;s.value=v2;s.dispatchEvent(new Event('input'));raf=requestAnimationFrame(demo)}
+  setTimeout(demo,800);
+  s.addEventListener('pointerdown',()=>cancelAnimationFrame(raf));
+</script>
+</body></html>

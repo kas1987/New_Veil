@@ -1,3 +1,3 @@
-# 05_alignment
+# Alignment
 
-Alignment scorer and quarantine.
+Promoted from Viel-Small-Town `05_alignment`: scorer, semantic scorer, quarantine, rules, colocated tests.

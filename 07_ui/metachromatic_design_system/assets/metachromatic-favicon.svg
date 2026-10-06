@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
+  <defs>
+    <linearGradient id="fl" x1="0" y1="1" x2="0.4" y2="0" gradientUnits="objectBoundingBox">
+      <stop offset="0%" stop-color="#1e3a8a"></stop>
+      <stop offset="50%" stop-color="#06b6d4"></stop>
+      <stop offset="100%" stop-color="#7c3aed"></stop>
+    </linearGradient>
+    <linearGradient id="fr" x1="0.6" y1="0" x2="1" y2="1" gradientUnits="objectBoundingBox">
+      <stop offset="0%" stop-color="#c026d3"></stop>
+      <stop offset="40%" stop-color="#f97316"></stop>
+      <stop offset="100%" stop-color="#22c55e"></stop>
+    </linearGradient>
+    <radialGradient id="fbg" cx="0.5" cy="0.4" r="0.6">
+      <stop offset="0%" stop-color="#1a1f3a"></stop>
+      <stop offset="100%" stop-color="#0a0e1a"></stop>
+    </radialGradient>
+  </defs>
+
+  
+  <rect width="32" height="32" rx="7" fill="url(#fbg)"></rect>
+  <rect x="0.5" y="0.5" width="31" height="31" rx="6.5" fill="none" stroke="#3a4a6b" stroke-opacity="0.35" stroke-width="0.5"></rect>
+
+  
+  <g opacity="0.08" stroke="#fff" stroke-width="0.3" fill="none">
+    <polygon points="16,5 27,16 16,27 5,16"></polygon>
+    <line x1="5" y1="16" x2="27" y2="16"></line>
+    <line x1="16" y1="5" x2="16" y2="27"></line>
+  </g>
+
+  
+  <path d="M 8,25 L 10,13 C 10.5,11 11.5,9.5 13,8.5 L 15.5,7.5 L 16,8 L 12.5,18 L 10.5,25 Z" fill="url(#fl)"></path>
+
+  
+  <path d="M 24,25 L 22,13 C 21.5,11 20.5,9.5 19,8.5 L 16.5,7.5 L 16,8 L 19.5,18 L 21.5,25 Z" fill="url(#fr)"></path>
+
+  
+  <circle cx="16" cy="7.5" r="1.5" fill="#fff" opacity="0.15"></circle>
+</svg>

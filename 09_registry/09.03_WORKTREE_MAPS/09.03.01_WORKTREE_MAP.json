@@ -2,31 +2,192 @@
   "root": ".",
   "updated_at": "2026-10-05",
   "promotions": [
-    { "at": "2026-10-05", "from": "90_intake/from_the_veil/design", "to": "design" },
-    { "at": "2026-10-05", "from": "90_intake/from_viel_small_town/12_metaphysics", "to": "12_metaphysics" },
-    { "at": "2026-10-05", "from": "90_intake/from_viel_small_town/00_charter", "to": "00_charter" },
-    { "at": "2026-10-05", "from": "90_intake/from_viel_small_town/10_canon", "to": "10_canon" },
-    { "at": "2026-10-05", "from": "90_intake/from_viel_small_town/13_agents", "to": "13_agents" },
-    { "at": "2026-10-05", "from": "90_intake/from_viel_small_town/02_agents/mira", "to": "13_agents/mira" },
-    { "at": "2026-10-05", "from": "90_intake/from_viel_small_town/01_districts", "to": "01_districts" }
+    {
+      "at": "2026-10-05",
+      "from": "90_intake/from_the_veil/design",
+      "to": "design"
+    },
+    {
+      "at": "2026-10-05",
+      "from": "90_intake/from_viel_small_town/12_metaphysics",
+      "to": "12_metaphysics"
+    },
+    {
+      "at": "2026-10-05",
+      "from": "90_intake/from_viel_small_town/00_charter",
+      "to": "00_charter"
+    },
+    {
+      "at": "2026-10-05",
+      "from": "90_intake/from_viel_small_town/10_canon",
+      "to": "10_canon"
+    },
+    {
+      "at": "2026-10-05",
+      "from": "90_intake/from_viel_small_town/13_agents",
+      "to": "13_agents"
+    },
+    {
+      "at": "2026-10-05",
+      "from": "90_intake/from_viel_small_town/02_agents/mira",
+      "to": "13_agents/mira"
+    },
+    {
+      "at": "2026-10-05",
+      "from": "90_intake/from_viel_small_town/01_districts",
+      "to": "01_districts"
+    },
+    {
+      "at": "2026-10-05",
+      "from": "90_intake/from_viel_small_town/03_memory",
+      "to": "03_memory",
+      "note": "schema + router; events excluded"
+    },
+    {
+      "at": "2026-10-05",
+      "from": "90_intake/from_viel_small_town/04_runtime",
+      "to": "04_runtime",
+      "note": "no vendor/results/tts forwarder/archive"
+    },
+    {
+      "at": "2026-10-05",
+      "from": "90_intake/from_veil_core/veil_core",
+      "to": "04_runtime/veil_core"
+    },
+    {
+      "at": "2026-10-05",
+      "from": "90_intake/from_viel_small_town/05_alignment",
+      "to": "05_alignment"
+    },
+    {
+      "at": "2026-10-05",
+      "from": "90_intake/from_viel_small_town/07_ui",
+      "to": "07_ui"
+    }
   ],
   "planes": [
-    { "nn": "00", "paths": ["00_charter", "00_harness"], "status": "partial", "note": "charter promoted from Viel-Small-Town; harness still empty" },
-    { "nn": "01", "paths": ["01_districts"], "status": "active", "note": "promoted from Viel-Small-Town 01_districts" },
-    { "nn": "03", "paths": ["03_memory"], "status": "empty" },
-    { "nn": "04", "paths": ["04_runtime"], "status": "empty" },
-    { "nn": "05", "paths": ["05_alignment"], "status": "empty" },
-    { "nn": "06", "paths": ["06_logs"], "status": "empty" },
-    { "nn": "07", "paths": ["07_ui"], "status": "empty" },
-    { "nn": "09", "paths": ["09_registry"], "status": "active" },
-    { "nn": "10", "paths": ["10_canon"], "status": "active", "note": "promoted from Viel-Small-Town 10_canon" },
-    { "nn": "11", "paths": ["11_world"], "status": "empty" },
-    { "nn": "12", "paths": ["12_metaphysics"], "status": "active", "note": "promoted from Viel-Small-Town 12_metaphysics" },
-    { "nn": "13", "paths": ["13_agents"], "status": "active", "note": "sisters/supporting/whispertech + mira folded from legacy 02_agents" },
-    { "nn": "14", "paths": ["14_psychometrics"], "status": "empty" },
-    { "nn": "15", "paths": ["15_voice"], "status": "empty" },
-    { "nn": "90", "paths": ["90_intake"], "status": "active" },
-    { "nn": "99", "paths": ["99_archive"], "status": "empty" }
+    {
+      "nn": "00",
+      "paths": [
+        "00_charter",
+        "00_harness"
+      ],
+      "status": "partial",
+      "note": "charter promoted from Viel-Small-Town; harness still empty"
+    },
+    {
+      "nn": "01",
+      "paths": [
+        "01_districts"
+      ],
+      "status": "active",
+      "note": "promoted from Viel-Small-Town 01_districts"
+    },
+    {
+      "nn": "03",
+      "paths": [
+        "03_memory"
+      ],
+      "status": "active",
+      "note": "schema + memory_router; events gitignored"
+    },
+    {
+      "nn": "04",
+      "paths": [
+        "04_runtime"
+      ],
+      "status": "active",
+      "note": "orchestrator/DSSM/narrative/veil_engine + veil_core; vendor/results excluded"
+    },
+    {
+      "nn": "05",
+      "paths": [
+        "05_alignment"
+      ],
+      "status": "active",
+      "note": "scorer/quarantine/rules + tests"
+    },
+    {
+      "nn": "06",
+      "paths": [
+        "06_logs"
+      ],
+      "status": "empty"
+    },
+    {
+      "nn": "07",
+      "paths": [
+        "07_ui"
+      ],
+      "status": "active",
+      "note": "gradio/observatory/hero + design systems"
+    },
+    {
+      "nn": "09",
+      "paths": [
+        "09_registry"
+      ],
+      "status": "active"
+    },
+    {
+      "nn": "10",
+      "paths": [
+        "10_canon"
+      ],
+      "status": "active",
+      "note": "promoted from Viel-Small-Town 10_canon"
+    },
+    {
+      "nn": "11",
+      "paths": [
+        "11_world"
+      ],
+      "status": "empty"
+    },
+    {
+      "nn": "12",
+      "paths": [
+        "12_metaphysics"
+      ],
+      "status": "active",
+      "note": "promoted from Viel-Small-Town 12_metaphysics"
+    },
+    {
+      "nn": "13",
+      "paths": [
+        "13_agents"
+      ],
+      "status": "active",
+      "note": "sisters/supporting/whispertech + mira folded from legacy 02_agents"
+    },
+    {
+      "nn": "14",
+      "paths": [
+        "14_psychometrics"
+      ],
+      "status": "empty"
+    },
+    {
+      "nn": "15",
+      "paths": [
+        "15_voice"
+      ],
+      "status": "empty"
+    },
+    {
+      "nn": "90",
+      "paths": [
+        "90_intake"
+      ],
+      "status": "active"
+    },
+    {
+      "nn": "99",
+      "paths": [
+        "99_archive"
+      ],
+      "status": "empty"
+    }
   ],
   "exceptions": [
     "AGENTS.md",
@@ -43,6 +204,7 @@
     ".github",
     "LICENSE",
     "SECURITY.md",
-    "CONTRIBUTING.md"
+    "CONTRIBUTING.md",
+    "veil_loader.py"
   ]
 }

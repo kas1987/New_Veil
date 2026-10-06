@@ -35,3 +35,9 @@ Desktop.ini
 **/*.ckpt
 **/*.pt
 **/node_modules/
+
+# Runtime dumps (keep schema/router; events are local)
+03_memory/events/**
+!03_memory/events/.gitkeep
+04_runtime/dssm_engine/results/
+04_runtime/dssm_engine/vendor/

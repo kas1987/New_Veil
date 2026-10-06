@@ -113,7 +113,7 @@ def main() -> int:
     if "planes" not in worktree:
         errors.append("worktree map missing planes")
 
-    # Canon anchors expected after first promotions
+    # Canon / runtime anchors expected after promotions
     for rel in (
         "10_canon/IMMUTABLE_CANON.md",
         "10_canon/CANON_INDEX.json",
@@ -122,6 +122,15 @@ def main() -> int:
         "13_agents/mira/profile.json",
         "01_districts/unlock_engine.py",
         "design/veil_motif_design_doc.md",
+        "03_memory/schema.sql",
+        "03_memory/memory_router.py",
+        "04_runtime/orchestrator.py",
+        "04_runtime/veil_core/prism.py",
+        "05_alignment/scorer.py",
+        "05_alignment/rules.json",
+        "07_ui/gradio_app.py",
+        "07_ui/metachromatic_design_system/SKILL.md",
+        "veil_loader.py",
     ):
         if not (ROOT / rel).is_file():
             errors.append(f"missing promoted keeper: {rel}")

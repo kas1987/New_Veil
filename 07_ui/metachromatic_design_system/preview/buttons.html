@@ -1,0 +1,19 @@
+<!doctype html><html><head><meta charset="utf-8">
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  html,body{margin:0;background:#050812;background-image:radial-gradient(ellipse 70% 45% at 15% 0%,rgba(6,182,212,.07),transparent 65%);color:#fff;font-family:'Prompt',sans-serif}
+  .card{padding:28px;display:flex;gap:16px;align-items:center;flex-wrap:wrap}
+  .btn{padding:0 18px;height:44px;border-radius:12px;font-size:14px;font-weight:600;font-family:inherit;border:none;cursor:pointer;display:inline-flex;align-items:center;gap:8px}
+  .primary{background:linear-gradient(135deg,rgba(6,182,212,.85),rgba(14,116,144,.85));border:1px solid rgba(6,182,212,.45);color:#fff;box-shadow:0 0 24px rgba(6,182,212,.22),inset 0 1px 0 rgba(255,255,255,.15)}
+  .secondary{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.65)}
+  .ghost{background:transparent;border:1px solid rgba(255,255,255,.08);color:rgba(255,255,255,.6)}
+  .disabled{background:linear-gradient(135deg,rgba(6,182,212,.85),rgba(14,116,144,.85));opacity:.32;color:#fff;border:1px solid rgba(6,182,212,.45)}
+  .lg{height:56px;padding:0 24px;border-radius:16px;font-size:16px}
+</style></head>
+<body><div class="card">
+  <button class="btn primary">✦ Generate</button>
+  <button class="btn secondary">Cancel</button>
+  <button class="btn ghost">Reload</button>
+  <button class="btn disabled" disabled>✦ Generate</button>
+  <button class="btn lg primary">✦ Generate</button>
+</div></body></html>

@@ -1,0 +1,102 @@
+/**
+ * MetaChromatic theme for Veil Town Observatory (Gradio).
+ * Ops/harness surface — not in-world VEIL narrative chrome.
+ * Token base loaded separately via gradio_app._observatory_css().
+ */
+
+:root {
+  --veil-obs-accent: var(--mc-cyan);
+  --veil-obs-accent-dim: rgba(6, 182, 212, 0.35);
+}
+
+body,
+.gradio-container {
+  background: var(--bg-app) !important;
+  background-image:
+    radial-gradient(ellipse 70% 45% at 15% 0%, rgba(6, 182, 212, 0.07) 0%, transparent 65%),
+    radial-gradient(ellipse 55% 40% at 85% 90%, rgba(139, 92, 246, 0.06) 0%, transparent 60%),
+    radial-gradient(ellipse 40% 30% at 50% 50%, rgba(14, 116, 144, 0.03) 0%, transparent 60%) !important;
+  background-attachment: fixed !important;
+  color: var(--fg-1) !important;
+  font-family: var(--mc-font-body) !important;
+}
+
+h1, h2, h3, .prose h1, .prose h2, .prose h3 {
+  font-family: var(--mc-font-display) !important;
+  letter-spacing: -0.02em;
+  color: var(--fg-1) !important;
+}
+
+label, .label-wrap, span.label {
+  font-family: var(--mc-font-body) !important;
+  font-size: var(--mc-text-xs) !important;
+  font-weight: 500 !important;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--fg-3) !important;
+}
+
+button.primary,
+button[class*="primary"],
+.gr-button-primary {
+  background: var(--mc-gradient-primary) !important;
+  border: 1px solid var(--mc-glass-border-hover) !important;
+  border-radius: var(--mc-radius-md) !important;
+  box-shadow: var(--mc-glow-cyan), inset 0 1px 0 rgba(255, 255, 255, 0.15) !important;
+  color: var(--fg-1) !important;
+  font-family: var(--mc-font-body) !important;
+  font-weight: 600 !important;
+}
+
+button.secondary,
+.gr-button-secondary {
+  background: var(--mc-glass-bg-white) !important;
+  border: 1px solid var(--mc-glass-border) !important;
+  border-radius: var(--mc-radius) !important;
+  color: var(--fg-2) !important;
+}
+
+.block,
+.panel,
+.tabs,
+.tabitem,
+.form,
+.contain,
+.gr-box,
+.gr-panel {
+  background: var(--mc-glass-bg) !important;
+  border: 1px solid var(--mc-glass-border) !important;
+  border-radius: var(--mc-radius-md) !important;
+  box-shadow: var(--mc-shadow-sm) !important;
+  backdrop-filter: blur(var(--mc-glass-blur)) saturate(180%) !important;
+}
+
+input,
+textarea,
+select,
+.gr-input,
+.gr-text-input {
+  background: rgba(10, 14, 26, 0.55) !important;
+  border: 1px solid var(--mc-glass-border) !important;
+  border-radius: var(--mc-radius-sm) !important;
+  color: var(--fg-1) !important;
+  font-family: var(--mc-font-mono) !important;
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+  border-color: var(--mc-cyan) !important;
+  box-shadow: 0 0 0 2px var(--veil-obs-accent-dim), inset 0 0 12px rgba(6, 182, 212, 0.12) !important;
+  outline: none !important;
+}
+
+table, .dataframe, .gr dataframe {
+  font-family: var(--mc-font-mono) !important;
+  font-size: var(--mc-text-sm) !important;
+  color: var(--fg-2) !important;
+}
+
+footer {
+  display: none !important;
+}

@@ -1,0 +1,14 @@
+{
+  "1.1": {
+    "mind_voice": "en-US-AriaNeural",
+    "body_voice": "cs-CZ-VlastaNeural",
+    "binding_preferences": [
+      "vows",
+      "protection"
+    ],
+    "sample": {
+      "mind": "Hold steady, I will keep you safe.",
+      "body": "P\u0159ijmi moje objet\u00ed."
+    }
+  }
+}
