@@ -109,15 +109,12 @@ class VoicePrismAudioDirector:
 
             from narrative_engine.config import AUDIO_OUT_DIR
 
-            # Never honor caller directories — basename only under AUDIO_OUT_DIR.
+            # Ignore caller path entirely — filename is derived from beat/character only.
             audio_root = Path(AUDIO_OUT_DIR).resolve()
             audio_root.mkdir(parents=True, exist_ok=True)
-            safe_name = Path(str(output_path)).name or "voice_out.wav"
-            if safe_name in {".", ".."} or "/" in safe_name or "\\" in safe_name:
-                safe_name = "voice_out.wav"
-            out = (audio_root / safe_name).resolve()
-            if out.parent != audio_root:
-                raise ValueError("output_path outside AUDIO_OUT_DIR")
+            _ = output_path  # retained for API compatibility; never used for I/O
+            safe_key = "".join(ch if ch.isalnum() or ch in "-_" else "_" for ch in str(character_key))[:64]
+            out = audio_root / f"{safe_key}_beat{beat:02d}.wav"
             result = self._engine.render(seg, speaker_ref=None, out_path=out)
             if result and Path(result).exists():
                 logger.info(f"VoicePrism audio saved: {result}")
