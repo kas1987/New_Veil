@@ -1,0 +1,48 @@
+{
+  "name": "The-Veil",
+  "repo_id": "REPO-VEIL-30",
+  "role": "creative-ip",
+  "root": "D:\\.30_Veil",
+  "github": null,
+  "version": "0.1.0-scaffold",
+  "status": "ACTIVE_SCAFFOLD",
+  "updated_at": "2026-10-05",
+  "promoted_planes": ["00_charter", "10_canon", "12_metaphysics", "design"],
+  "legacy": {
+    "staging": "D:\\.20_Center_Mass\\projects\\games\\_veil_github_staging",
+    "remotes": [
+      "kas1987/The-Veil",
+      "kas1987/Viel-Small-Town"
+    ],
+    "join_from": "JOIN_FROM.md"
+  },
+  "source_of_truth": {
+    "agent_rules": "AGENTS.md",
+    "repo_status": "REPO_STATUS.md",
+    "chromatic": "CHROMATIC_TREES.md",
+    "worktree_map": "09_registry/09.03_WORKTREE_MAPS/09.03.01_WORKTREE_MAP.json",
+    "intake": "90_intake/"
+  },
+  "planes": {
+    "00": { "folders": ["00_harness", "00_charter"], "role": "Governance / harness" },
+    "01": { "folders": ["01_districts"], "role": "Districts" },
+    "03": { "folders": ["03_memory"], "role": "Memory" },
+    "04": { "folders": ["04_runtime"], "role": "Runtime" },
+    "05": { "folders": ["05_alignment"], "role": "Alignment" },
+    "06": { "folders": ["06_logs"], "role": "Logs" },
+    "07": { "folders": ["07_ui"], "role": "UI" },
+    "09": { "folders": ["09_registry"], "role": "Registry" },
+    "10": { "folders": ["10_canon"], "role": "Canon" },
+    "11": { "folders": ["11_world"], "role": "World" },
+    "12": { "folders": ["12_metaphysics"], "role": "Metaphysics" },
+    "13": { "folders": ["13_agents"], "role": "Agents" },
+    "14": { "folders": ["14_psychometrics"], "role": "Psychometrics" },
+    "15": { "folders": ["15_voice"], "role": "Voice" },
+    "90": { "folders": ["90_intake"], "role": "Legacy intake staging" },
+    "99": { "folders": ["99_archive"], "role": "Archive" }
+  },
+  "comfyui": {
+    "runtime_hub": "D:\\.000_AI",
+    "default_server": "http://127.0.0.1:8188"
+  }
+}

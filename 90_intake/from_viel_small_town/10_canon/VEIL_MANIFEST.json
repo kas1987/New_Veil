@@ -1,0 +1,18 @@
+{
+  "project_id": "the-veil",
+  "display_name": "The Veil",
+  "repo": "kas1987/The-Veil",
+  "default_router": "veil-router",
+  "default_dispatcher": "veil-dispatcher",
+  "agents": ["Lorekeeper", "Architect", "VoiceSteward"],
+  "safe_intents": ["chat", "agent_handoff", "voice_pipeline"],
+  "write_intents": ["docs_update", "code_patch"],
+  "integration": {
+    "local_town": "Viel-Small-Town",
+    "harness_review": {
+      "Lorekeeper": "canon_review",
+      "Architect": "code_review",
+      "VoiceSteward": "whispertech_review"
+    }
+  }
+}

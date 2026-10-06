@@ -1,0 +1,95 @@
+{
+  "version": "0.1.0",
+  "objects": [
+    {
+      "id": "mirror",
+      "display_name": "Mirror",
+      "prism_meaning": "Reflection, self-knowledge, the self you present",
+      "dq_meaning": "The self you hide, the truth you avoid",
+      "trigger_type": "interaction",
+      "depth_required": 0.0,
+      "event_type": "vision",
+      "depth_reveal_threshold": 0.5,
+      "prism_description": "A warm reflection that shows you at your best.",
+      "dq_description": "The reflection lingers a half-second too long. It shows something you recognize."
+    },
+    {
+      "id": "key",
+      "display_name": "Key",
+      "prism_meaning": "Access, possibility, invitation",
+      "dq_meaning": "What you are locked out of, the cost of passage",
+      "trigger_type": "interaction",
+      "depth_required": 0.0,
+      "event_type": "convergence",
+      "depth_reveal_threshold": 0.6,
+      "prism_description": "A key that opens a door you were meant to find.",
+      "dq_description": "The key is warm. It has been held before, by someone who did not return."
+    },
+    {
+      "id": "ash",
+      "display_name": "Ash",
+      "prism_meaning": "Memory turned to dust, what remains",
+      "dq_meaning": "Transformation residue, the cost of change",
+      "trigger_type": "proximity",
+      "depth_required": 0.0,
+      "event_type": "memory_echo",
+      "depth_reveal_threshold": 0.4,
+      "prism_description": "Soft grey ash drifts through the air. Something ended here.",
+      "dq_description": "The ash is composed of erased memories. Walking through it exposes fragments of what was taken."
+    },
+    {
+      "id": "thread",
+      "display_name": "Thread",
+      "prism_meaning": "Connection, guidance, the way forward",
+      "dq_meaning": "The leash, the bond that constrains, the tie that holds you back",
+      "trigger_type": "agent_reference",
+      "depth_required": 0.0,
+      "event_type": "echo",
+      "depth_reveal_threshold": 0.5,
+      "prism_description": "A silver thread, barely visible, leading somewhere warm.",
+      "dq_description": "The thread is attached to you. You did not choose this."
+    },
+    {
+      "id": "lantern",
+      "display_name": "Lantern",
+      "prism_meaning": "Warmth, safety, the known and navigable",
+      "dq_meaning": "What casts the shadow — the light that creates darkness behind you",
+      "trigger_type": "proximity",
+      "depth_required": 0.0,
+      "event_type": "vision",
+      "depth_reveal_threshold": 0.65,
+      "prism_description": "A warm lantern lights the path. You feel safe here.",
+      "dq_description": "You notice the lantern casts your shadow long behind you. Something moves in it."
+    },
+    {
+      "id": "void_door",
+      "display_name": "Void Door",
+      "prism_meaning": null,
+      "dq_meaning": "The threshold — what is on the other side",
+      "trigger_type": "proximity",
+      "depth_required": 0.75,
+      "event_type": "convergence",
+      "depth_reveal_threshold": 0.75,
+      "render_rule": "ABSENT_BELOW_THRESHOLD",
+      "prism_description": null,
+      "dq_description": "A door with no wall. You can see through it, but the other side is not the same place."
+    },
+    {
+      "id": "wall_of_the_unseen_gate",
+      "display_name": "Wall of the Unseen Gate",
+      "prism_meaning": "Eastern boundary of Caetherra; passage toward Ashveil",
+      "dq_meaning": "A gate that is not there until depth reveals it",
+      "trigger_type": "proximity",
+      "depth_required": 0.5,
+      "event_type": "threshold",
+      "depth_reveal_threshold": 0.5,
+      "prism_description": "A warm stone wall at the edge of the market square.",
+      "dq_description": "At sufficient depth, the wall shows a gate that was never visible before.",
+      "district": "caetherra"
+    }
+  ],
+  "render_rules": {
+    "ABSENT_BELOW_THRESHOLD": "Object does not appear in rendered lists. Not shown as locked. Not shown at all.",
+    "LOCKED_BELOW_THRESHOLD": "Object appears but is visually inert. Interaction prompts a depth hint."
+  }
+}

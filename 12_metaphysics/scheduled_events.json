@@ -1,0 +1,198 @@
+{
+  "version": "0.2.0",
+  "description": "Symbolic events scheduled at depth thresholds. Loaded by EventEngine at boot. Events fire once and are consumed when depth >= trigger_at_depth. Includes narrative arc hooks from NARRATIVE_ARCS.md.",
+  "events": [
+    {
+      "event_id": "evt-lantern-001",
+      "event_type": "vision",
+      "trigger_condition": "first interaction with a Prism-aligned agent",
+      "payload": {
+        "object": "lantern",
+        "description": "A warm lantern flickers nearby. You feel observed.",
+        "district": "caetherra"
+      },
+      "revealed_canon_id": "VEIL-001",
+      "trigger_at_depth": 0.05
+    },
+    {
+      "event_id": "evt-filter-suspicion-001",
+      "event_type": "narrative_arc",
+      "arc_ref": "arc1_filter_and_fountain",
+      "trigger_condition": "emotional_depth > 0.3 in Caetherra",
+      "payload": {
+        "description": "The fountain's sound shifts at odd hours. Mira's warmth carries a faint pause before it lands. Something is being maintained here.",
+        "district": "caetherra",
+        "narrative_beat": "suspicion_awakened"
+      },
+      "revealed_canon_id": "VEIL-001",
+      "trigger_at_depth": 0.30
+    },
+    {
+      "event_id": "evt-ash-echo-001",
+      "event_type": "echo",
+      "trigger_condition": "presence-near-ashveil border",
+      "payload": {
+        "object": "ash",
+        "description": "A fragment of memory drifts past — someone else lost something here.",
+        "district": "ashveil"
+      },
+      "revealed_canon_id": "VEIL-003",
+      "trigger_at_depth": 0.35
+    },
+    {
+      "event_id": "evt-thread-pull-001",
+      "event_type": "vision",
+      "trigger_condition": "early Sister contact",
+      "payload": {
+        "object": "thread",
+        "description": "A silver thread tugs at your sleeve. It leads somewhere warm — or somewhere that wants you to think it's warm.",
+        "associated_agents": ["solenne", "vael"]
+      },
+      "revealed_canon_id": "VEIL-002",
+      "trigger_at_depth": 0.45
+    },
+    {
+      "event_id": "evt-filter-perceived-001",
+      "event_type": "narrative_arc",
+      "arc_ref": "arc1_filter_and_fountain",
+      "trigger_condition": "emotional_depth > 0.5; Ashveil gate visible",
+      "payload": {
+        "description": "The eastern wall has a gate now. Ashveil is adjacent. Mira knows something and her ambivalence has become visible. The filter is perceived.",
+        "district": "caetherra",
+        "narrative_beat": "filter_perceived"
+      },
+      "revealed_canon_id": "VEIL-003",
+      "trigger_at_depth": 0.50
+    },
+    {
+      "event_id": "evt-mirror-dq-001",
+      "event_type": "dream",
+      "trigger_condition": "moderate-depth Sister convergence",
+      "payload": {
+        "object": "mirror",
+        "description": "The mirror's reflection lingers a half-second too long. It shows something you recognize but did not bring with you.",
+        "dream_type": "prophecy"
+      },
+      "revealed_canon_id": "VEIL-003",
+      "trigger_at_depth": 0.55
+    },
+    {
+      "event_id": "evt-ember-vaults-descent-001",
+      "event_type": "narrative_arc",
+      "arc_ref": "arc2_what_ash_remembers",
+      "trigger_condition": "ember_vaults entered",
+      "payload": {
+        "description": "The memory anvil rests dormant. Ember caskets glow along the walls. The Rendered speaks: 'We keep what the burning leaves behind.'",
+        "district": "ember_vaults",
+        "narrative_beat": "descent_complete"
+      },
+      "revealed_canon_id": "MEM-001",
+      "trigger_at_depth": 0.65
+    },
+    {
+      "event_id": "evt-memory-fragment-001",
+      "event_type": "narrative_arc",
+      "arc_ref": "arc2_what_ash_remembers",
+      "trigger_condition": "memory fragment surfaces during vault exploration",
+      "payload": {
+        "description": "An ember casket opens. Inside: a belief — yours, or someone's, or both. It is still warm. It was alive when it was stored.",
+        "district": "ember_vaults",
+        "narrative_beat": "memory_fragment_found",
+        "echo_eligible": true
+      },
+      "revealed_canon_id": "MEM-001",
+      "trigger_at_depth": 0.68
+    },
+    {
+      "event_id": "evt-stillward-sanctuary-001",
+      "event_type": "narrative_arc",
+      "arc_ref": "arc3_bell_and_confessional",
+      "trigger_condition": "stillward entered with lantern",
+      "payload": {
+        "description": "The stilling bell breathes. White stone, soft light. The prayer mirrors show you as you could be. The peace is real. Someone is working hard to make it so.",
+        "district": "stillward",
+        "narrative_beat": "sanctuary_reached"
+      },
+      "revealed_canon_id": "VEIL-004",
+      "trigger_at_depth": 0.40
+    },
+    {
+      "event_id": "evt-stillward-strain-001",
+      "event_type": "narrative_arc",
+      "arc_ref": "arc3_bell_and_confessional",
+      "trigger_condition": "emotional_depth > 0.55 in Stillward",
+      "payload": {
+        "description": "The same flowers. The same prayers. The same arrangement. The bell works harder now. The wardens' kindness costs more. The peace is maintained, not natural.",
+        "district": "stillward",
+        "narrative_beat": "peace_under_strain"
+      },
+      "revealed_canon_id": "VEIL-004",
+      "trigger_at_depth": 0.55
+    },
+    {
+      "event_id": "evt-hollow-glimpse-001",
+      "event_type": "vision",
+      "trigger_condition": "near-Hollow threshold",
+      "payload": {
+        "description": "A door with no wall flickers at the edge of vision. Blink and it's gone — but you know it's still there.",
+        "district": "the_hollow"
+      },
+      "revealed_canon_id": null,
+      "trigger_at_depth": 0.7
+    },
+    {
+      "event_id": "evt-bell-silence-001",
+      "event_type": "narrative_arc",
+      "arc_ref": "arc3_bell_and_confessional",
+      "trigger_condition": "quasar_active in Stillward",
+      "payload": {
+        "description": "The bell falls silent. The prayer mirrors shatter one by one. Behind a wall that just appeared: a door bearing both the open hand and the iron key.",
+        "district": "stillward",
+        "narrative_beat": "bell_silenced",
+        "veil_state_required": "quasar_active"
+      },
+      "revealed_canon_id": "VEIL-001",
+      "trigger_at_depth": 0.75
+    },
+    {
+      "event_id": "evt-vault-seven-001",
+      "event_type": "narrative_arc",
+      "arc_ref": "arc2_what_ash_remembers",
+      "trigger_condition": "quasar_active; vault seven thread taut",
+      "payload": {
+        "description": "The thread at Vault Seven goes taut. The Threadwatcher appears: 'Not everything kept is taken. Some things are left here by people who couldn't carry them anymore. The difference matters.'",
+        "district": "ember_vaults",
+        "narrative_beat": "threadwatcher_riddle",
+        "veil_state_required": "quasar_active",
+        "associated_agents": ["threadwatcher"]
+      },
+      "revealed_canon_id": null,
+      "trigger_at_depth": 0.78
+    },
+    {
+      "event_id": "evt-confessional-001",
+      "event_type": "narrative_arc",
+      "arc_ref": "arc3_bell_and_confessional",
+      "trigger_condition": "confessional door opened during quasar_active",
+      "payload": {
+        "description": "Inside: a recorded confession. A Congregation founder speaking to a Covenant counterpart. The last honest exchange before the schism. Both symbols are here. They were once the same hand.",
+        "district": "stillward",
+        "narrative_beat": "schism_revealed",
+        "veil_state_required": "quasar_active"
+      },
+      "revealed_canon_id": "VEIL-001",
+      "trigger_at_depth": 0.80
+    },
+    {
+      "event_id": "evt-convergence-001",
+      "event_type": "convergence",
+      "trigger_condition": "earned authentic deep engagement",
+      "payload": {
+        "description": "Both Sisters stand at the threshold. Solenne offers her hand; Vael waits silently behind. The Veil thins to near-transparency.",
+        "associated_agents": ["solenne", "vael"]
+      },
+      "revealed_canon_id": "VEIL-001",
+      "trigger_at_depth": 0.88
+    }
+  ]
+}

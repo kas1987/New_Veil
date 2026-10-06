@@ -1,0 +1,34 @@
+# Python
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+*.egg-info/
+
+# Local state
+.env
+.env.*
+!.env.example
+*.sqlite
+*.db
+06_logs/**
+!06_logs/.gitkeep
+
+# OS / editor
+Thumbs.db
+Desktop.ini
+.DS_Store
+.vscode/
+.idea/
+
+# Intake noise (keep structure; ignore huge accidental dumps)
+90_intake/**/__pycache__/
+90_intake/**/.venv/
+90_intake/**/*.sqlite
+
+# Secrets / large media dumps
+**/*.safetensors
+**/*.ckpt
+**/*.pt
+**/node_modules/

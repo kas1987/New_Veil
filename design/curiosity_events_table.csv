@@ -1,0 +1,7 @@
+Event,Curiosity Points,Cap,Notes
+Examine mirror/symbol,1,repeatable,Environment or UI
+Replay branch,3,1 per branch,Only if chosen by player
+Read optional lore,2,per object,Archives/notes/etc.
+Unusual dialogue,2,per encounter,Press for secrets
+Uncover echo/whisper,5,per event,Secret/vision
+Explore/ignore main path,1 per scene,per area,Lingering instead of progressing

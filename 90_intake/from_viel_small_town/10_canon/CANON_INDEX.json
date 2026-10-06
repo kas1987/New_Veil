@@ -1,0 +1,19 @@
+{
+  "canon_version": "0.3.0",
+  "anchors": [
+    {"id": "VEIL-001", "name": "Prism Surface", "mutable": false},
+    {"id": "VEIL-002", "name": "Dark Quasar Depth", "mutable": false},
+    {"id": "VEIL-003", "name": "Emotional Depth Unlocks Truth", "mutable": false},
+    {"id": "MIRA-001", "name": "Mira First Awakening", "mutable": false},
+    {"id": "MEM-001", "name": "Memory Shapes World State", "mutable": false},
+    {"id": "VEIL-004", "name": "No Easy Wins", "mutable": false, "text": "High-trust bonds attract disruption. The Dark Quasar's gravity ensures truth must be earned, not gifted."},
+    {"id": "VEIL-005", "name": "Veil State Cycle", "mutable": false, "text": "The Veil walks a deterministic schedule: calm → still → storm → quasar_active → still → calm → storm → quasar_active. No state is permanent."},
+    {"id": "VEIL-006", "name": "Signal Distortion", "mutable": false, "text": "Every emotional signal passes through the Veil before reaching the core. Entropy multiplier, noise, spike probability, and polarity flip are state-dependent."},
+    {"id": "VEIL-007", "name": "Quasar Activation", "mutable": false, "text": "The Dark Quasar operates only in quasar_active state. It applies emotional gravity drag to high-trust relationships: suspicion rises, affection sags."},
+    {"id": "VEIL-008", "name": "Affection Instability", "mutable": false, "text": "When affection exceeds the instability threshold and the signal is negative, the Quasar amplifies the negative by 25%."},
+    {"id": "VEIL-009", "name": "Dreams as Revelation", "mutable": false, "text": "Dreams are symbolic memory events that bypass the Veil's normal filtering. They can reveal hidden truth or corrupt certainty."},
+    {"id": "VEIL-010", "name": "Caetherra as Filter", "mutable": false, "text": "Caetherra is not merely a welcoming city. It is a filter. Shallow interaction leads to false surfaces. Emotional depth unlocks hidden paths."},
+    {"id": "VEIL-011", "name": "The Schism", "mutable": false, "text": "The Prism Congregation and the Ashen Covenant were once a single organization. The Stillward confessional contains the last honest exchange before they divided. The schism was over method, not purpose: both sought truth, but disagreed on whether to filter or to burn."},
+    {"id": "VEIL-012", "name": "Curation Not Destruction", "mutable": false, "text": "The Ember Vaults store what the Covenant burns. The ash is not destruction; it is archiving. A belief reduced to ash is a belief preserved in its final form. Whether this is liberation or theft depends on whether the belief was ready to be released."}
+  ]
+}

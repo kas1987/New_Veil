@@ -1,0 +1,29 @@
+{
+  "root": "D:\\.30_Veil",
+  "updated_at": "2026-10-05",
+  "promotions": [
+    { "at": "2026-10-05", "from": "90_intake/from_the_veil/design", "to": "design" },
+    { "at": "2026-10-05", "from": "90_intake/from_viel_small_town/12_metaphysics", "to": "12_metaphysics" },
+    { "at": "2026-10-05", "from": "90_intake/from_viel_small_town/00_charter", "to": "00_charter" },
+    { "at": "2026-10-05", "from": "90_intake/from_viel_small_town/10_canon", "to": "10_canon" }
+  ],
+  "planes": [
+    { "nn": "00", "paths": ["00_charter", "00_harness"], "status": "partial", "note": "charter promoted from Viel-Small-Town; harness still empty" },
+    { "nn": "01", "paths": ["01_districts"], "status": "empty" },
+    { "nn": "03", "paths": ["03_memory"], "status": "empty" },
+    { "nn": "04", "paths": ["04_runtime"], "status": "empty" },
+    { "nn": "05", "paths": ["05_alignment"], "status": "empty" },
+    { "nn": "06", "paths": ["06_logs"], "status": "empty" },
+    { "nn": "07", "paths": ["07_ui"], "status": "empty" },
+    { "nn": "09", "paths": ["09_registry"], "status": "active" },
+    { "nn": "10", "paths": ["10_canon"], "status": "active", "note": "promoted from Viel-Small-Town 10_canon" },
+    { "nn": "11", "paths": ["11_world"], "status": "empty" },
+    { "nn": "12", "paths": ["12_metaphysics"], "status": "active", "note": "promoted from Viel-Small-Town 12_metaphysics" },
+    { "nn": "13", "paths": ["13_agents"], "status": "empty" },
+    { "nn": "14", "paths": ["14_psychometrics"], "status": "empty" },
+    { "nn": "15", "paths": ["15_voice"], "status": "empty" },
+    { "nn": "90", "paths": ["90_intake"], "status": "active" },
+    { "nn": "99", "paths": ["99_archive"], "status": "empty" }
+  ],
+  "exceptions": ["AGENTS.md", "README.md", "REPO_STATUS.md", "JOIN_FROM.md", "CHROMATIC_TREES.md", "PROJECT_INDEX.json", "design", "docs", "scripts", "tests", ".agents"]
+}
