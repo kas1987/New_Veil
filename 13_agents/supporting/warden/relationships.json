@@ -1,0 +1,28 @@
+{
+  "relationships": [
+    {
+      "agent": "mira",
+      "type": "complex",
+      "trust": 55,
+      "affection": 40,
+      "suspicion": 15,
+      "notes": "Mira understands the cost of maintenance. Sael respects this but worries about Mira's ambivalence — it threatens the stability the Stillward needs."
+    },
+    {
+      "agent": "rendered",
+      "type": "opposed",
+      "trust": 10,
+      "affection": 5,
+      "suspicion": 70,
+      "notes": "The Rendered represents everything the Stillward exists to counter. Yet Sael knows the confessional proves they were once the same."
+    },
+    {
+      "agent": "warden",
+      "type": "self",
+      "trust": 80,
+      "affection": 50,
+      "suspicion": 5,
+      "notes": "Self-trust is high but tested by the effort of maintenance. Doubt accumulates during quasar_active."
+    }
+  ]
+}

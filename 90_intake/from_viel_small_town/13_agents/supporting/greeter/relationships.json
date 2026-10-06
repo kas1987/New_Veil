@@ -1,0 +1,28 @@
+{
+  "relationships": [
+    {
+      "agent": "mira",
+      "type": "colleague",
+      "trust": 70,
+      "affection": 60,
+      "suspicion": 10,
+      "notes": "Mira stands near the threshold with Halen. Halen trusts Mira but doesn't understand her ambivalence. They see it as a weight she carries, not a choice she makes."
+    },
+    {
+      "agent": "warden",
+      "type": "ally",
+      "trust": 65,
+      "affection": 55,
+      "suspicion": 5,
+      "notes": "Sael understands the effort of welcoming. Halen feels seen by the warden in a way no one else sees them."
+    },
+    {
+      "agent": "rendered",
+      "type": "unknown",
+      "trust": 25,
+      "affection": 5,
+      "suspicion": 45,
+      "notes": "Halen has never met The Rendered directly. They feel a vague dread toward the Ashen Covenant — not hatred, but the fear of someone who knows the cold exists without having felt it."
+    }
+  ]
+}

@@ -5,7 +5,7 @@ Fresh scaffold for The Veil. Older GitHub trees and Center_Mass fragments are **
 | | |
 |---|---|
 | **Root** | `D:\.30_Veil` |
-| **Status** | `ACTIVE_SCAFFOLD` — charter, canon, metaphysics, design promoted |
+| **Status** | `ACTIVE_SCAFFOLD` — charter, canon, metaphysics, design, agents, districts promoted |
 | **Legacy staging** | `D:\.20_Center_Mass\projects\games\_veil_github_staging\` |
 | **Intake** | [`90_intake/`](90_intake/) → review → promote into numbered planes |
 

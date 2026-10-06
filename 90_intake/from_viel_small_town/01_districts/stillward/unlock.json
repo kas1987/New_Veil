@@ -1,0 +1,32 @@
+{
+  "district": "stillward",
+  "display_name": "The Stillward",
+  "surface_function": "A serene monastery sanctuary at the town's northern edge. White stone, soft light, the stilling bell. Peace that feels real because it is — and because someone is working very hard to keep it that way.",
+  "hidden_function": "The peace is curated, not organic. Nothing decays here because nothing is allowed to. Deep beneath the cloister, an Ashen Covenant confessional proves the two factions were once one.",
+  "unlock_conditions": {
+    "min_resonance": 0.4,
+    "min_interactions": 3,
+    "required_emotional_tags": ["warmth"],
+    "veil_states_allowed": ["calm", "still", "storm", "quasar_active"],
+    "veil_states_blocked": []
+  },
+  "prerequisites": {
+    "has_lantern": true,
+    "lantern_used": true
+  },
+  "conceals": [
+    "Ashen Covenant confessional",
+    "prayer mirror shatter sequence",
+    "Congregation-Covenant schism history"
+  ],
+  "npcs": ["wardens"],
+  "atmosphere": {
+    "default_mood": "Serene peace",
+    "veil_state_moods": {
+      "calm": "Perfect stillness. The bell breathes.",
+      "still": "Waiting. The mirrors hold fewer reflections.",
+      "storm": "The bell rings loud. Peace requires effort.",
+      "quasar_active": "The bell falls silent. The mirrors break. The confessional appears."
+    }
+  }
+}

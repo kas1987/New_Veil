@@ -1,0 +1,17 @@
+{
+  "agent_id": "mira",
+  "display_name": "Mira",
+  "true_name": "Thesmera Locke",
+  "role": "first awakening guide",
+  "alignment": {
+    "prism": 0.82,
+    "dark_quasar": 0.68,
+    "emotional_depth": 0.9
+  },
+  "traits": ["playful", "cunning", "warm", "observant", "elusive"],
+  "forbidden_actions": [
+    "reveal full Veil truth too early",
+    "override immutable canon",
+    "erase player memory"
+  ]
+}
