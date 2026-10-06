@@ -16,20 +16,20 @@ Configure local paths via `90_intake/sources.json` (gitignored). Start from [`90
 
 ## Suggested pull order
 
-1. Canon + metaphysics  
-2. Charter / gates  
-3. Motif design  
-4. Agents + districts  
-5. Runtime / memory / alignment  
-6. UI tokens  
-7. Optional packs / historical docs  
+1. Canon + metaphysics
+2. Charter / gates
+3. Motif design
+4. Agents + districts
+5. Runtime / memory / alignment
+6. UI tokens
+7. Optional packs / historical docs
 
 ## Do not bulk-copy into git
 
-- Entire legacy `agent_*` swarms without picking keepers  
-- `vendor/`, `.venv`, SQLite DBs, replay junk  
-- NSFW packs until charter says they belong  
-- Model weights or private pipeline databases  
+- Entire legacy `agent_*` swarms without picking keepers
+- `vendor/`, `.venv`, SQLite DBs, replay junk
+- NSFW packs until charter says they belong
+- Model weights or private pipeline databases
 
 ## Intake command pattern
 

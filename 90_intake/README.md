@@ -10,9 +10,9 @@ Local-only staging for selective copies from legacy sources. **Bucket contents a
 | `from_center_mass/` | local docs / thin game tree |
 | `from_zelex_pack/` | local sigil pack |
 
-1. Copy [`sources.example.json`](sources.example.json) → `sources.json` (gitignored).  
-2. Fill local paths.  
-3. Run `../scripts/intake_copy.ps1`.  
+1. Copy [`sources.example.json`](sources.example.json) → `sources.json` (gitignored).
+2. Fill local paths.
+3. Run `../scripts/intake_copy.ps1`.
 4. Promote keepers into numbered planes via PR.
 
 Process: [`../JOIN_FROM.md`](../JOIN_FROM.md)

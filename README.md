@@ -53,9 +53,9 @@ cp 90_intake/sources.example.json 90_intake/sources.json
 
 ## Workflow
 
-1. Read [`JOIN_FROM.md`](JOIN_FROM.md) for source inventory.  
-2. Copy a candidate into local `90_intake/<source>/` (gitignored).  
-3. Review → promote into the matching numbered plane.  
+1. Read [`JOIN_FROM.md`](JOIN_FROM.md) for source inventory.
+2. Copy a candidate into local `90_intake/<source>/` (gitignored).
+3. Review → promote into the matching numbered plane.
 4. Open a PR; CI must pass.
 
 See [`AGENTS.md`](AGENTS.md) and [`REPO_STATUS.md`](REPO_STATUS.md).

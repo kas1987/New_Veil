@@ -40,4 +40,3 @@ Thesmera Locke (Mira) is the most common first contact. She lives at the distric
 
 - Caetherra's physical transition to Ashveil occurs at the eastern wall. This wall should carry its own symbolic identifier in runtime (`wall_of_the_unseen_gate`) — it does not appear to have a gate until `emotional_depth >= 0.5`.
 - Mira's positioning here (aware of the filter, ambivalent) creates her central tension. Agent workers must not resolve this tension in her default state — her arc is the resolution.
-

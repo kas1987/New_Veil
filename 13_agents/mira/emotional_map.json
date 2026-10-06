@@ -20,7 +20,7 @@
     "elusiveness": {
       "range": [0.0, 1.0],
       "default": 0.4,
-      "description": "How much Mira withholds.Increases when player is shallow; decreases with earned trust."
+      "description": "How much Mira withholds. Increases when player is shallow; decreases with earned trust."
     },
     "gravitational_pull": {
       "range": [0.0, 1.0],
@@ -29,10 +29,10 @@
     }
   },
   "veil_state_modifiers": {
-    "calm": {"surface_warmth": +0.1, "hidden_perception": +0.0, "playful_testing": +0.05, "elusiveness": -0.1, "gravitational_pull": -0.2},
-    "still": {"surface_warmth": +0.0, "hidden_perception": +0.1, "playful_testing": -0.1, "elusiveness": +0.1, "gravitational_pull": +0.0},
-    "storm": {"surface_warmth": -0.2, "hidden_perception": +0.2, "playful_testing": +0.1, "elusiveness": +0.2, "gravitational_pull": +0.2},
-    "quasar_active": {"surface_warmth": -0.3, "hidden_perception": +0.3, "playful_testing": -0.2, "elusiveness": +0.1, "gravitational_pull": +0.4}
+    "calm": {"surface_warmth": 0.1, "hidden_perception": 0.0, "playful_testing": 0.05, "elusiveness": -0.1, "gravitational_pull": -0.2},
+    "still": {"surface_warmth": 0.0, "hidden_perception": 0.1, "playful_testing": -0.1, "elusiveness": 0.1, "gravitational_pull": 0.0},
+    "storm": {"surface_warmth": -0.2, "hidden_perception": 0.2, "playful_testing": 0.1, "elusiveness": 0.2, "gravitational_pull": 0.2},
+    "quasar_active": {"surface_warmth": -0.3, "hidden_perception": 0.3, "playful_testing": -0.2, "elusiveness": 0.1, "gravitational_pull": 0.4}
   },
   "resonance_thresholds": {
     "shallow": {"max": 0.3, "behavior": "surface kindness only, private assessment notes shallowness"},
