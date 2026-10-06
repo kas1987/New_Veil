@@ -107,7 +107,14 @@ class VoicePrismAudioDirector:
                 language="en",
             )
 
-            out = Path(output_path)
+            from narrative_engine.config import AUDIO_OUT_DIR
+
+            audio_root = Path(AUDIO_OUT_DIR).resolve()
+            audio_root.mkdir(parents=True, exist_ok=True)
+            requested = Path(output_path)
+            out = requested.resolve() if requested.is_absolute() else (audio_root / requested).resolve()
+            if audio_root not in out.parents and out.parent != audio_root:
+                raise ValueError("output_path outside AUDIO_OUT_DIR")
             out.parent.mkdir(parents=True, exist_ok=True)
             result = self._engine.render(seg, speaker_ref=None, out_path=out)
             if result and Path(result).exists():

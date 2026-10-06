@@ -7,13 +7,43 @@ import urllib.error
 import urllib.request
 from collections import deque
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Any
+import uuid as _uuid_mod
+import re as _re
 
 # ==========================================
 # ⚙️ CONFIGURATION & BEST PRACTICES SETUP
 # ==========================================
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(name)s: %(message)s", datefmt="%H:%M:%S")
 logger = logging.getLogger("NarrativeEngine")
+
+
+def _safe_log_text(value: object, limit: int = 200) -> str:
+    """Collapse control chars so user text cannot inject log lines."""
+    s = str(value).replace("\r", "\\r").replace("\n", "\\n")
+    if len(s) > limit:
+        s = s[:limit] + "…"
+    return s
+
+
+_SESSION_ID_RE = _re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$")
+
+
+def _sanitize_session_id(session_id: str | None) -> str:
+    if session_id and _SESSION_ID_RE.fullmatch(session_id):
+        return session_id
+    return str(_uuid_mod.uuid4())
+
+
+def _resolve_under(root: Path, *parts: str) -> Path:
+    """Resolve path under root; reject escapes."""
+    base = root.resolve()
+    candidate = base.joinpath(*parts).resolve()
+    if candidate != base and base not in candidate.parents:
+        raise ValueError("path escapes allowed root")
+    return candidate
+
 
 from narrative_engine.config import (
     AUDIO_OUT_DIR as _AUDIO_OUT_DIR,
@@ -77,15 +107,18 @@ class CharacterState:
     def to_dict(self) -> dict[str, int]:
         return {"arousal": self.arousal, "inhibition": self.inhibition, "intimacy": self.intimacy}
 
-    def save(self, path: str) -> None:
-        with open(path, "w", encoding="utf-8") as f:
+    def save(self, path: str | Path) -> None:
+        p = Path(path).resolve()
+        p.parent.mkdir(parents=True, exist_ok=True)
+        with open(p, "w", encoding="utf-8") as f:
             json.dump(self.to_dict(), f)
 
     @classmethod
-    def load(cls, path: str) -> "CharacterState":
-        from pathlib import Path as _Path
-
-        p = _Path(path)
+    def load(cls, path: str | Path) -> "CharacterState":
+        p = Path(path).resolve()
+        sessions_root = Path(_SESSIONS_DIR).resolve()
+        if sessions_root not in p.parents and p.parent != sessions_root:
+            raise ValueError("state path outside SESSIONS_DIR")
         if not p.exists():
             return cls()
         data = json.loads(p.read_text(encoding="utf-8"))
@@ -166,13 +199,16 @@ class ElevenLabsAudioDirector:
         settings = params["voice_settings"]
 
         if not voice_id:
-            logger.warning(f"No voice_id for character '{character_key}' — skipping TTS")
+            logger.warning("No voice_id for character %s — skipping TTS", _safe_log_text(character_key, 64))
             return None
 
         logger.info(
-            f"TTS speak | char={character_key} beat={beat_number} "
-            f"type={params['beat_type']} "
-            f"stability={settings.get('stability')} style={settings.get('style')}"
+            "TTS speak | char=%s beat=%s type=%s stability=%s style=%s",
+            _safe_log_text(character_key, 64),
+            beat_number,
+            _safe_log_text(params.get("beat_type"), 64),
+            settings.get("stability"),
+            settings.get("style"),
         )
 
         try:
@@ -514,9 +550,6 @@ class InteractiveNarrativeEngine:
         taxonomy_dir: str = None,
         audio_out_dir: str = None,
     ):
-        import uuid as _uuid
-        from pathlib import Path as _Path
-
         _tax = taxonomy_dir or TAXONOMY_DIR
         self.state = CharacterState()
         try:
@@ -538,12 +571,12 @@ class InteractiveNarrativeEngine:
         self._history: deque[tuple[str, str]] = deque(maxlen=history_max)
         self._audio_out_dir = audio_out_dir or audio_output_dir or str(_AUDIO_OUT_DIR)
 
-        # Session persistence
-        self._session_id = session_id or str(_uuid.uuid4())
-        self._session_dir = _Path(str(_SESSIONS_DIR)) / self._session_id
+        # Session persistence (session id sanitized; paths stay under SESSIONS_DIR)
+        self._session_id = _sanitize_session_id(session_id)
+        self._session_dir = _resolve_under(Path(_SESSIONS_DIR), self._session_id)
         self._session_dir.mkdir(parents=True, exist_ok=True)
-        self._state_path = str(self._session_dir / "state.json")
-        self._history_path = str(self._session_dir / "history.json")
+        self._state_path = str(_resolve_under(self._session_dir, "state.json"))
+        self._history_path = str(_resolve_under(self._session_dir, "history.json"))
         self._load_session()
 
     def _save_session(self) -> None:
@@ -552,10 +585,8 @@ class InteractiveNarrativeEngine:
             json.dump(list(self._history), f, ensure_ascii=False)
 
     def _load_session(self) -> None:
-        from pathlib import Path as _Path
-
         self.state = CharacterState.load(self._state_path)
-        hp = _Path(self._history_path)
+        hp = Path(self._history_path)
         if hp.exists():
             pairs = json.loads(hp.read_text(encoding="utf-8"))
             self._history = deque(pairs, maxlen=self.HISTORY_MAX)
@@ -579,8 +610,8 @@ class InteractiveNarrativeEngine:
             self.beat = beat
             self._beat = beat
 
-        logger.info(f"--- TURN START (beat={self.beat}, char={self.character_key}) ---")
-        logger.info(f"User Action: '{text}'")
+        logger.info("--- TURN START (beat=%s, char=%s) ---", self.beat, _safe_log_text(self.character_key, 64))
+        logger.info("User Action: %s", _safe_log_text(text))
 
         # 1. Update state
         self.state.apply_stimulus(arousal_mod, inhibition_mod, intimacy_mod)
@@ -608,11 +639,11 @@ class InteractiveNarrativeEngine:
             history=self._history if self._history else None,
             tease_directive=tease,
         )
-        logger.debug(f"Computed LLM Prompt:\n{prompt}")
+        logger.debug("Computed LLM Prompt:\n%s", _safe_log_text(prompt, 2000))
         self.beat += 1
 
         raw_response = self.llm.generate(prompt)
-        logger.info(f"LLM Raw Text: '{raw_response}'")
+        logger.info("LLM Raw Text: %s", _safe_log_text(raw_response))
 
         # 4. Store exchange in rolling history
         self._history.append(("user", text))

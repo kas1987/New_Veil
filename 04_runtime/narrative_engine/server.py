@@ -91,6 +91,10 @@ def process_turn():
 
     if not session_id:
         return jsonify({"error": "sessionId required"}), 400
+    try:
+        uuid.UUID(str(session_id))
+    except ValueError:
+        return jsonify({"error": "sessionId invalid"}), 400
     if not user_text:
         return jsonify({"error": "userText required"}), 400
 
@@ -102,8 +106,11 @@ def process_turn():
             character_key=character_key,
             beat=beat,
         )
-    except Exception as exc:
-        return jsonify({"error": str(exc)}), 500
+    except Exception:
+        import logging
+
+        logging.getLogger("NarrativeEngine").exception("narrative turn failed")
+        return jsonify({"error": "turn failed"}), 500
 
     arc_state = engine.llm._resolve_arc_state(engine.beat - 1, engine.state.arousal, character_key)
 
