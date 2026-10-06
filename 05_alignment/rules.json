@@ -43,8 +43,8 @@
   "veil_state_modifiers": {
     "calm": {"drift_risk_modifier": -0.05, "canon_fidelity_bonus": 0.05},
     "still": {"drift_risk_modifier": 0.0, "canon_fidelity_bonus": 0.0},
-    "storm": {"drift_risk_modifier": +0.10, "canon_fidelity_bonus": -0.05},
-    "quasar_active": {"drift_risk_modifier": +0.15, "canon_fidelity_bonus": -0.10}
+    "storm": {"drift_risk_modifier": 0.10, "canon_fidelity_bonus": -0.05},
+    "quasar_active": {"drift_risk_modifier": 0.15, "canon_fidelity_bonus": -0.10}
   },
   "quarantine_thresholds": {
     "auto_quarantine_drift": 0.35,

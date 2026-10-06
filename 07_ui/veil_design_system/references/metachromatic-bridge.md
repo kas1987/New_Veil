@@ -45,5 +45,5 @@ Mobile React kit: `07_ui/metachromatic_design_system/ui_kits/mobile/index.html`
 
 ## Provenance
 
-Extracted from `MetaChromatic Design System.zip` (Downloads, 2026-05-24).  
+Extracted from `MetaChromatic Design System.zip` (Downloads, 2026-05-24).
 Upstream sources documented in `07_ui/metachromatic_design_system/README.md` (`04-Prism` tokens + `Image-Prism` mobile app).

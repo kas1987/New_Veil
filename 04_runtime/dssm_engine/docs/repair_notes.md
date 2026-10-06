@@ -66,4 +66,3 @@ Live log of behavioral fixes. Add an entry when adjusting the engine to repair a
 **Verification:**
 - `pytest tests/ -v` → 6 passed (added `test_l4_propagation_changes_neighbors`, `test_vulnerability_amplify_injects_when_missing`).
 - Audit artifacts: `.agents/research/2026-04-26-dssm-layer-audit.md`, `.agents/plans/2026-04-26-dssm-audit-followups.md`, `.agents/council/2026-04-26-pre-mortem-dssm-audit-followups.md`.
-

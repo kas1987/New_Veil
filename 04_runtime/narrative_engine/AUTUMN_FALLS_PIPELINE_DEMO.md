@@ -74,5 +74,5 @@ The image generation prompt dynamically injects visual modifiers based on the ne
 ---
 
 ## The Workflow Recap
-By treating the **Narrative State** as the ultimate source of truth, everything branches together automatically. 
+By treating the **Narrative State** as the ultimate source of truth, everything branches together automatically.
 You don't have to tell the image generator to give her *"flushed skin"* or tell the TTS to *"sound breathy"*. You just chat. The Engine adjusts the **State Numbers**, and those numbers tell Mistral to change its dialogue, tell ComfyUI to change its visual prompts, and tell the Audio router to change the SSML tags. And through it all, **ReActor** acts as the visual anchor, ensuring that no matter what the LLM hallucinates or what pose the prompt generates, the face mapped on top is always perfectly Autumn.
