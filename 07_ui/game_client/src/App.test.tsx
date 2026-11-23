@@ -217,8 +217,15 @@ describe('The Veil RPG Client', () => {
 
     expect(screen.getAllByText('Mira').length).toBeGreaterThan(0)
     expect(screen.getByText(/First Light/i)).toBeTruthy()
+    expect(screen.getByRole('img', { name: /Resonant Core: First Light/i })).toBeTruthy()
     expect(screen.getByText('350.0')).toBeTruthy()
     expect(screen.getByText(/Bond/i)).toBeTruthy()
+
+    // Toggle Audio harmonic cues
+    const audioBtn = screen.getByRole('button', { name: /Audio: Off/i })
+    expect(audioBtn.getAttribute('aria-pressed')).toBe('false')
+    fireEvent.click(audioBtn)
+    expect(screen.getByRole('button', { name: /Audio: On/i }).getAttribute('aria-pressed')).toBe('true')
 
     // Send quick dialogue prompt
     fireEvent.click(screen.getByRole('button', { name: /Ask about the Veil/i }))

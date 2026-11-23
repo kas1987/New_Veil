@@ -1667,13 +1667,22 @@ class VeilGameEngine:
             return {"ok": True, "npc_id": npc_id, "media_key": clean_key, "state": self._snapshot()}
 
     def _revealed_tokens(self, resonance: float) -> list[str]:
-        """Content words from earned item depth lines and earned codex titles (min_resonance >= 450.0)."""
+        """Content words from earned item depth lines, DQ object reveals, and codex titles."""
         generic_starter = {"veil", "town", "lore", "bible", "states", "membrane", "four"}
         texts: list[str] = []
         for item_id in self._inventory_map():
             item = self.items_catalog.get(item_id) or {}
             if resonance >= float(item.get("depth_reveal_threshold") or 1000.0):
                 texts.append(str(item.get("dq_description") or ""))
+        beat_rows = self._rows_list(
+            "SELECT beat_label FROM narrative_beats WHERE player_id='player' AND beat_label LIKE 'inspected:%:dq'"
+        )
+        for row in beat_rows:
+            parts = str(row["beat_label"]).split(":")
+            if len(parts) == 3:
+                obj = self.symbolic_objects.get(parts[1]) or {}
+                if obj.get("dq_description"):
+                    texts.append(str(obj["dq_description"]))
         for _cid, title, _path, min_res, _category in (
             ("dream_system", "Dreams & Symbolic Echoes", "12_metaphysics/DREAM_SYSTEM.md", 450.0, "Metaphysics"),
             ("dark_quasar", "The Dark Quasar", "12_metaphysics/DARK_QUASAR.md", 600.0, "Forbidden Depth"),
