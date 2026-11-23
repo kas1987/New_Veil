@@ -4,7 +4,8 @@ from __future__ import annotations
 
 import logging
 import os
-from typing import Any, Dict, Iterable, Optional
+from collections.abc import Iterable
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -40,12 +41,12 @@ def get_db_connection():  # pragma: no cover - exercised only when DB exists
     except ImportError:
         logger.info("psycopg2 not installed - database features disabled")
         return None
-    except Exception as exc:  # noqa: BLE001 - we want to swallow all DB errors
+    except Exception as exc:
         logger.warning("Database connection failed: %s", exc)
         return None
 
 
-def execute_query(query: str, params: Optional[Iterable[Any]] = None):
+def execute_query(query: str, params: Iterable[Any] | None = None):
     """Execute a SELECT-style query and return rows as dicts (or ``None``)."""
 
     conn = get_db_connection()
@@ -53,16 +54,15 @@ def execute_query(query: str, params: Optional[Iterable[Any]] = None):
         return None
 
     try:
-        with conn:
-            with conn.cursor() as cursor:
-                cursor.execute(query, params)
-                return cursor.fetchall()
-    except Exception as exc:  # noqa: BLE001
+        with conn, conn.cursor() as cursor:
+            cursor.execute(query, params)
+            return cursor.fetchall()
+    except Exception as exc:
         logger.error("Query execution failed: %s", exc)
         return None
 
 
-def execute_function(function_name: str, params: Optional[Iterable[Any]] = None):
+def execute_function(function_name: str, params: Iterable[Any] | None = None):
     """Execute a stored function and return rows."""
 
     conn = get_db_connection()
@@ -77,16 +77,15 @@ def execute_function(function_name: str, params: Optional[Iterable[Any]] = None)
     )
 
     try:
-        with conn:
-            with conn.cursor() as cursor:
-                cursor.execute(query, params)
-                return cursor.fetchall()
-    except Exception as exc:  # noqa: BLE001
+        with conn, conn.cursor() as cursor:
+            cursor.execute(query, params)
+            return cursor.fetchall()
+    except Exception as exc:
         logger.error("Function execution failed: %s", exc)
         return None
 
 
-def insert_log(table: str, data: Dict[str, Any]) -> bool:
+def insert_log(table: str, data: dict[str, Any]) -> bool:
     """Insert a log row if the database is reachable."""
 
     conn = get_db_connection()
@@ -98,11 +97,10 @@ def insert_log(table: str, data: Dict[str, Any]) -> bool:
     query = f"INSERT INTO {table} ({columns}) VALUES ({placeholders})"
 
     try:
-        with conn:
-            with conn.cursor() as cursor:
-                cursor.execute(query, tuple(data.values()))
+        with conn, conn.cursor() as cursor:
+            cursor.execute(query, tuple(data.values()))
         return True
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:
         logger.error("Log insertion failed: %s", exc)
         return False
 
@@ -178,7 +176,7 @@ MOCK_PERSONAS = {
 }
 
 
-def get_mock_persona(mirror_state: int, cultural_mask: str) -> Dict[str, Any]:
+def get_mock_persona(mirror_state: int, cultural_mask: str) -> dict[str, Any]:
     """Fallback persona selection used when no database is available."""
 
     if 1 <= mirror_state <= 3:

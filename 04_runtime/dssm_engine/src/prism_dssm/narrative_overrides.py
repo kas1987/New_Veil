@@ -83,17 +83,16 @@ def pre_apply(
                 ctx.counters["streak"] = 0
             ctx.counters["last_signal"] = signal
 
-        elif effect == "vulnerability_amplify":
-            if signal == "vulnerability":
-                factor = float(rule.get("factor", 1.5))
-                amplified_any = False
-                for k in ("trust", "affection"):
-                    if k in out and out[k] > 0:
-                        out[k] *= factor
-                        amplified_any = True
-                if not amplified_any:
-                    # L1 emitted neither trust nor affection — make rule visible.
-                    out["affection"] = out.get("affection", 0.0) + (factor - 1.0)
+        elif effect == "vulnerability_amplify" and signal == "vulnerability":
+            factor = float(rule.get("factor", 1.5))
+            amplified_any = False
+            for k in ("trust", "affection"):
+                if k in out and out[k] > 0:
+                    out[k] *= factor
+                    amplified_any = True
+            if not amplified_any:
+                # L1 emitted neither trust nor affection — make rule visible.
+                out["affection"] = out.get("affection", 0.0) + (factor - 1.0)
     return out
 
 

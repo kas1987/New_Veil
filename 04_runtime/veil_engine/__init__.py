@@ -20,14 +20,14 @@ from .veil_effects import (
 
 __all__ = [
     "CoreState",
-    "Signal",
-    "VeilState",
-    "apply_veil_scalar",
-    "corrupt_deltas",
-    "maybe_force_spike",
+    "DarkQuasar",
     "EntropyConfig",
     "EntropyEngine",
     "QuasarConfig",
-    "DarkQuasar",
+    "Signal",
+    "VeilState",
     "VeilStateMachine",
+    "apply_veil_scalar",
+    "corrupt_deltas",
+    "maybe_force_spike",
 ]

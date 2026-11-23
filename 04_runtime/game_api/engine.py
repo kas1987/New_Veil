@@ -207,7 +207,9 @@ class VeilGameEngine:
         cur = self._conn.cursor()
         cur.execute("INSERT OR IGNORE INTO player_state (player_id) VALUES ('player')")
         cur.execute("INSERT OR IGNORE INTO world_state (player_id) VALUES ('player')")
-        cur.execute("INSERT OR IGNORE INTO player_stats (player_id) VALUES ('player')")
+        cur.execute(
+            "INSERT OR IGNORE INTO player_stats (player_id, resonance) VALUES ('player', 350.0)"
+        )
 
         # Starter items
         cur.execute(
@@ -518,7 +520,6 @@ class VeilGameEngine:
                         "resistance": round(float(rel["resistance"]), 1),
                         "interactions": int(rel["interactions"]),
                     },
-                    "portrait_url": f"/api/media/portrait/{char.get('portrait_hint', cid)}",
                     "portrait_url": f"/api/media/portrait/{portrait_key}",
                 }
             )

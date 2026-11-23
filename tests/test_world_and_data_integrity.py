@@ -96,7 +96,7 @@ def test_quests_economy_and_encounters_integrity() -> None:
         rewards = quest.get("rewards") or {}
         for item_id in rewards.get("items", []):
             assert item_id in items, f"Quest {quest['id']} unknown reward item {item_id}"
-        for faction_id in (rewards.get("faction") or {}).keys():
+        for faction_id in (rewards.get("faction") or {}):
             assert faction_id in factions, f"Quest {quest['id']} unknown reward faction {faction_id}"
 
     for merchant in economy["merchants"]:

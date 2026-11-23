@@ -42,8 +42,8 @@ jobs:
         with:
           python-version: "3.11"
 
-      - name: Install pre-commit
-        run: pip install pre-commit
+      - name: Install pre-commit and ruff
+        run: pip install pre-commit ruff
 
       - name: Run hooks
         run: pre-commit run --all-files
@@ -64,8 +64,21 @@ jobs:
       - name: Install package and dev dependencies
         run: pip install -e ".[dev]"
 
-      - name: Run full pytest suite
-        run: python -m pytest -q
+      - name: Run Ruff lint
+        run: ruff check .
+
+      - name: Run full pytest suite with coverage
+        run: >
+          python -m pytest
+          --cov=04_runtime
+          --cov=05_alignment
+          --cov=01_districts
+          --cov=03_memory
+          --cov=14_psychometrics
+          --cov=07_ui/observatory
+          --cov-report=term-missing
+          --cov-fail-under=48
+          -q
 
   frontend-ci:
     name: frontend UI (typecheck · vitest · build)
@@ -87,11 +100,48 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: TypeScript typecheck
-        run: npm run typecheck
+      - name: TypeScript lint and typecheck
+        run: npm run lint
 
-      - name: Run Vitest suite
-        run: npm test
+      - name: Run Vitest suite with coverage
+        run: npm run test:coverage
 
       - name: Production Vite build
         run: npm run build
+
+  e2e:
+    name: e2e · playwright full-stack
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install backend dependencies
+        run: pip install -e ".[dev]"
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: 07_ui/game_client/package-lock.json
+
+      - name: Install frontend dependencies and build client
+        working-directory: 07_ui/game_client
+        run: |
+          npm ci
+          npm run build
+
+      - name: Install Playwright Chromium
+        working-directory: 07_ui/game_client
+        run: npx playwright install --with-deps chromium
+
+      - name: Run Playwright full-stack smoke tests
+        working-directory: 07_ui/game_client
+        run: npm run test:e2e

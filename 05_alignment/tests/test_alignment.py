@@ -64,7 +64,7 @@ def test_should_quarantine_high_drift():
 
 def test_should_not_quarantine_good_alignment():
     alignment = {"canon_fidelity": 0.9, "drift_risk": 0.2, "role_fidelity": 0.95}
-    should, reason = quarantine_mod.should_quarantine(alignment)
+    should, _reason = quarantine_mod.should_quarantine(alignment)
     assert should is False
 
 

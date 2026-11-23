@@ -25,9 +25,9 @@ _DSSM_SRC = _HERE / "dssm_engine" / "src"
 if _DSSM_SRC.exists() and str(_DSSM_SRC) not in sys.path:
     sys.path.insert(0, str(_DSSM_SRC))
 
-from prism_dssm.dssm_core import apply_deltas, decay_step  # noqa: E402
-from prism_dssm.models import CoreParams, CoreState, Signal, VeilState  # noqa: E402
-from prism_dssm.veil_effects import DarkQuasar, EntropyEngine  # noqa: E402
+from prism_dssm.dssm_core import apply_deltas, decay_step
+from prism_dssm.models import CoreParams, CoreState, Signal, VeilState
+from prism_dssm.veil_effects import DarkQuasar, EntropyEngine
 
 _DEFAULT_DB = _HERE.parent / "03_memory" / "veil_town.sqlite"
 _DEFAULT_RESISTANCE = 50.0

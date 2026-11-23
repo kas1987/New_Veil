@@ -39,6 +39,14 @@ _Per_Gemini/
 **/dist/
 07_ui/game_client/.vite/
 
+# Test & Playwright artifacts
+.coverage
+coverage.xml
+htmlcov/
+07_ui/game_client/coverage/
+07_ui/game_client/playwright-report/
+07_ui/game_client/test-results/
+
 # Runtime dumps (keep schema/router; events are local)
 03_memory/events/**
 !03_memory/events/.gitkeep

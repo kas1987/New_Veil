@@ -64,28 +64,28 @@ _SYSTEM_PROMPT = (
 _HEURISTIC_RULES = (
     # (pattern, label) — first match wins. Order: strong-signal rules first so
     # specific labels (hostile/emotional/deep) win over broader ones (curious).
-    (re.compile(r"\b(fuck|shit|stupid|idiot|hate|garbage|trash)\b", re.I), "hostile"),
+    (re.compile(r"\b(fuck|shit|stupid|idiot|hate|garbage|trash)\b", re.IGNORECASE), "hostile"),
     (
         re.compile(
-            r"\b(love|hurt|cry|broken|lost|alone|afraid|grief|miss|need)\b", re.I
+            r"\b(love|hurt|cry|broken|lost|alone|afraid|grief|miss|need)\b", re.IGNORECASE
         ),
         "emotional",
     ),
     (
-        re.compile(r"\b(truth|deeper|honest|memory|dream|veil|shadow|gravity)\b", re.I),
+        re.compile(r"\b(truth|deeper|honest|memory|dream|veil|shadow|gravity)\b", re.IGNORECASE),
         "deep",
     ),
     (
-        re.compile(r"\b(no|wrong|lie|prove|deflect|hiding|really|but)\b", re.I),
+        re.compile(r"\b(no|wrong|lie|prove|deflect|hiding|really|but)\b", re.IGNORECASE),
         "challenging",
     ),
     (
-        re.compile(r"\b(fine|whatever|sure|ok|okay|nice|cool|yeah)\b", re.I),
+        re.compile(r"\b(fine|whatever|sure|ok|okay|nice|cool|yeah)\b", re.IGNORECASE),
         "shallow",
     ),
     (
         re.compile(
-            r"\b(why|what|how|tell me|explain|show me|who|where|reveal)\b", re.I
+            r"\b(why|what|how|tell me|explain|show me|who|where|reveal)\b", re.IGNORECASE
         ),
         "curious",
     ),

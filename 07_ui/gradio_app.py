@@ -16,8 +16,8 @@ if str(_HERE) not in sys.path:
 if str(_ROOT) not in sys.path:
     sys.path.insert(0, str(_ROOT))
 
-from observatory.charts import alignment_trend, veil_timeline  # noqa: E402
-from observatory.data import (  # noqa: E402
+from observatory.charts import alignment_trend, veil_timeline
+from observatory.data import (
     read_alignment_series,
     read_beats,
     read_events,
@@ -26,13 +26,13 @@ from observatory.data import (  # noqa: E402
     read_replay,
     read_veil_series,
 )
-from observatory.inspector import (  # noqa: E402
+from observatory.inspector import (
     build_district_tab,
     build_memory_inspector_tab,
     build_quarantine_review_tab,
 )
-from observatory.live_character import build_live_character_tab  # noqa: E402
-from observatory.relationships import build_relationships_tab  # noqa: E402
+from observatory.live_character import build_live_character_tab
+from observatory.relationships import build_relationships_tab
 
 _MC_DIR = _HERE / "metachromatic_design_system"
 _AGENT_CHOICES = [

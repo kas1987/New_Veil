@@ -15,7 +15,6 @@ import json
 import random
 from dataclasses import dataclass
 from pathlib import Path as _Path
-from typing import Dict, List, Optional
 
 from .models import CoreState, VeilState
 
@@ -46,12 +45,12 @@ def apply_veil_scalar(
 
 
 def corrupt_deltas(
-    deltas: Dict[str, float],
+    deltas: dict[str, float],
     veil: VeilState,
     rng: random.Random,
     polarity_flip_chance: float = 0.0,
     dropout_chance: float = 0.0,
-) -> Dict[str, float]:
+) -> dict[str, float]:
     """Multiplicative gaussian noise on each stock-delta channel.
 
     Used in dict-pipeline mode (Path B / convergence). Polarity-flip and dropout
@@ -59,7 +58,7 @@ def corrupt_deltas(
     """
     if rng.random() < dropout_chance:
         return {}
-    out: Dict[str, float] = {}
+    out: dict[str, float] = {}
     for k, v in deltas.items():
         if v == 0.0:
             out[k] = 0.0
@@ -75,7 +74,7 @@ def maybe_force_spike(
     veil: VeilState,
     session_idx: int,
     period: int,
-    intensity: Optional[float] = None,
+    intensity: float | None = None,
 ) -> float:
     """Deterministic periodic shock helper (reproducible regression test fixture)."""
     if period <= 0 or session_idx <= 0 or session_idx % period != 0:
@@ -181,9 +180,9 @@ class DarkQuasar:
 class VeilStateMachine:
     """Walks a named-state schedule. Exposes the active VeilState each tick."""
 
-    def __init__(self, states: List[VeilState], schedule: List[str] | None = None):
-        self.states: Dict[str, VeilState] = {s.name: s for s in states}
-        self.schedule: List[str] = schedule or [s.name for s in states]
+    def __init__(self, states: list[VeilState], schedule: list[str] | None = None):
+        self.states: dict[str, VeilState] = {s.name: s for s in states}
+        self.schedule: list[str] = schedule or [s.name for s in states]
         self.tick: int = 0
 
     @classmethod

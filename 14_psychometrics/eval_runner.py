@@ -26,7 +26,7 @@ if str(ROOT) not in sys.path:
 if str(_API_DIR) not in sys.path:
     sys.path.insert(0, str(_API_DIR))
 
-from engine import (  # noqa: E402
+from engine import (
     AdvanceVeil,
     Buy,
     Resolve,
@@ -247,8 +247,10 @@ def run_archetype(script: dict[str, Any]) -> dict[str, Any]:
             failures.append(msg)
             exploit_flags.append(f"exploit_peak_resonance:{msg}")
 
-        if "min_projected_turns_to_800" in assertions:
-            if projected_turns_to_800 is None or projected_turns_to_800 < assertions["min_projected_turns_to_800"]:
+        if "min_projected_turns_to_800" in assertions and (
+            projected_turns_to_800 is None
+            or projected_turns_to_800 < assertions["min_projected_turns_to_800"]
+        ):
                 msg = (
                     f"projected_turns_to_800={projected_turns_to_800} < "
                     f"min {assertions['min_projected_turns_to_800']}"

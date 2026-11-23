@@ -5,7 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 
 class SisterFacet(Enum):
@@ -40,8 +40,8 @@ class ConvergenceMoment:
     """Multiple Sisters interpreting the same event."""
 
     event_id: str
-    facets: List[SisterFacet]
-    interpretations: List[str]
+    facets: list[SisterFacet]
+    interpretations: list[str]
     timestamp: str = field(default_factory=lambda: datetime.now().isoformat())
     convergence_score: float = 0.0
 
@@ -50,9 +50,9 @@ class SisterPrismSystem:
     """Tracks collected facets and convergence moments."""
 
     def __init__(self) -> None:
-        self.collected_facets: List[SisterFacet] = []
-        self.prism_experiences: List[PrismExperience] = []
-        self.convergence_moments: List[ConvergenceMoment] = []
+        self.collected_facets: list[SisterFacet] = []
+        self.prism_experiences: list[PrismExperience] = []
+        self.convergence_moments: list[ConvergenceMoment] = []
 
     # --------------------------------------------------------------------- #
     # Core operations
@@ -85,7 +85,7 @@ class SisterPrismSystem:
         self._check_convergence(event_id)
         return experience
 
-    def _check_convergence(self, event_id: str) -> Optional[ConvergenceMoment]:
+    def _check_convergence(self, event_id: str) -> ConvergenceMoment | None:
         """Detect whether multiple Sisters have interpreted the same event."""
 
         event_experiences = [
@@ -111,7 +111,7 @@ class SisterPrismSystem:
 
         return convergence
 
-    def check_convergence(self, event_id: str) -> Optional[ConvergenceMoment]:
+    def check_convergence(self, event_id: str) -> ConvergenceMoment | None:
         """Public helper mirroring the private convergence check."""
 
         return self._check_convergence(event_id)
@@ -124,12 +124,12 @@ class SisterPrismSystem:
 
         return len(self.collected_facets) >= 6
 
-    def get_missing_facets(self) -> List[SisterFacet]:
+    def get_missing_facets(self) -> list[SisterFacet]:
         """List facets that have not yet been encountered."""
 
         return [facet for facet in SisterFacet if facet not in self.collected_facets]
 
-    def get_composite_understanding(self) -> Dict[str, Any]:
+    def get_composite_understanding(self) -> dict[str, Any]:
         """Summarise progress through the prism system."""
 
         return {
@@ -159,7 +159,7 @@ class SisterPrismSystem:
             ),
         }
 
-    def get_facet_insights(self, facet: SisterFacet) -> Dict[str, Any]:
+    def get_facet_insights(self, facet: SisterFacet) -> dict[str, Any]:
         """Return granular insights for a given facet."""
 
         experiences = [exp for exp in self.prism_experiences if exp.facet == facet]
@@ -175,7 +175,7 @@ class SisterPrismSystem:
         }
 
 
-_PRISM_INSTANCE: Optional[SisterPrismSystem] = None
+_PRISM_INSTANCE: SisterPrismSystem | None = None
 
 
 def get_prism_system() -> SisterPrismSystem:

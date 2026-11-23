@@ -20,3 +20,8 @@ repos:
         entry: python scripts/check_scaffold.py
         language: system
         pass_filenames: false
+      - id: ruff-check
+        name: ruff python lint
+        entry: ruff check .
+        language: system
+        pass_filenames: false

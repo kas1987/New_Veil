@@ -4,13 +4,11 @@ from __future__ import annotations
 
 import logging
 import random
-from pathlib import Path
-from typing import Dict, Optional
 
 import requests
 
 from . import assets
-from .prism import SisterFacet, SisterPrismSystem
+from .prism import SisterPrismSystem
 
 logger = logging.getLogger(__name__)
 
@@ -22,7 +20,7 @@ class LyssandraVoiceIntegration:
         self,
         *,
         voiceapp_base_url: str = "http://localhost:8000/api/v1",
-        dialogue_templates: Optional[Dict[str, Dict]] = None,
+        dialogue_templates: dict[str, dict] | None = None,
     ) -> None:
         self.voiceapp_base_url = voiceapp_base_url.rstrip("/")
         self.dialogue_templates = dialogue_templates or assets.load_lyssandra_dialogue_templates()
@@ -31,7 +29,7 @@ class LyssandraVoiceIntegration:
     # ------------------------------------------------------------------
     # Dialogue helpers
     # ------------------------------------------------------------------
-    def select_persona(self, mirror_state: int, cultural_mask: str) -> Dict[str, str]:
+    def select_persona(self, mirror_state: int, cultural_mask: str) -> dict[str, str]:
         from .db import get_mock_persona  # local import to avoid circular deps
 
         persona = get_mock_persona(mirror_state, cultural_mask)
@@ -40,7 +38,7 @@ class LyssandraVoiceIntegration:
             raise ValueError(f"No dialogue template for persona {persona['persona_id']}")
         return template
 
-    def pick_dialogue_line(self, persona_template: Dict[str, Dict], tier: str, dialogue_type: str) -> str:
+    def pick_dialogue_line(self, persona_template: dict[str, dict], tier: str, dialogue_type: str) -> str:
         tiers = persona_template.get("dialogue", {}).get("tiers", {})
         options = tiers.get(str(tier), {}).get(dialogue_type, [])
         if not options:
