@@ -35,6 +35,7 @@ export interface NpcProfile {
   can_join_party?: boolean
   in_party?: boolean
   bond?: number
+  bond_tier?: string
   stance?: string
   relationship: {
     trust: number
@@ -102,6 +103,23 @@ export interface MerchantEntry {
   }[]
 }
 
+export interface SymbolicObjectEntry {
+  id: string
+  display_name: string
+  inspected_prism: boolean
+  inspected_dq: boolean
+  can_reveal_dq: boolean
+  active_description: string
+}
+
+export interface DistrictStatus {
+  district_id: string
+  false_comfort_available: boolean
+  false_comfort_state: 'unanswered' | 'accepted' | 'declined'
+  unseen_gate_discovered: boolean
+  caetherra_awakened: boolean
+}
+
 export interface GameState {
   world: {
     world_id: string
@@ -131,6 +149,9 @@ export interface GameState {
     resonance_tier: { tier: number; name: string; description: string }
   }
   npcs_here: NpcProfile[]
+  objects_here?: SymbolicObjectEntry[]
+  narrative_beats?: string[]
+  district_status?: DistrictStatus
   inventory: InventoryItem[]
   quests: QuestEntry[]
   factions: FactionEntry[]

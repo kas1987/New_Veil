@@ -27,6 +27,8 @@ if str(_HERE) not in sys.path:
 from engine import (  # noqa: E402
     AdvanceVeil,
     Buy,
+    ChooseBeat,
+    Inspect,
     PlayResult,
     Resolve,
     Talk,
@@ -68,6 +70,15 @@ class PartyRequest(BaseModel):
 class PortraitBindRequest(BaseModel):
     npc_id: str
     media_key: str
+
+
+class InspectRequest(BaseModel):
+    object_id: str
+
+
+class BeatChoiceRequest(BaseModel):
+    beat_id: str
+    choice: str
 
 
 def create_app(db_path: Path | str | None = None) -> FastAPI:
@@ -116,6 +127,20 @@ def create_app(db_path: Path | str | None = None) -> FastAPI:
     def advance_veil() -> dict:
         result = engine.play(AdvanceVeil())
         return {"ok": result.ok, "veil_state": result.scene["world"]["veil_state"], "state": result.scene}
+
+    @app.post("/api/world/inspect")
+    def inspect_object(req: InspectRequest) -> dict:
+        try:
+            return _played(engine.play(Inspect(req.object_id)))
+        except ValueError as exc:
+            raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+    @app.post("/api/world/beat-choice")
+    def choose_beat(req: BeatChoiceRequest) -> dict:
+        try:
+            return _played(engine.play(ChooseBeat(req.beat_id, req.choice)))
+        except ValueError as exc:
+            raise HTTPException(status_code=400, detail=str(exc)) from exc
 
     @app.post("/api/dialogue/turn")
     def dialogue_turn(req: DialogueRequest) -> dict:

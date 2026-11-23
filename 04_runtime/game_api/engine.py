@@ -66,7 +66,18 @@ class ToggleParty:
     character_id: str
 
 
-PlayAction = Travel | Talk | AdvanceVeil | Buy | Use | Resolve | ToggleParty
+@dataclass(frozen=True)
+class Inspect:
+    object_id: str
+
+
+@dataclass(frozen=True)
+class ChooseBeat:
+    beat_id: str
+    choice: str
+
+
+PlayAction = Travel | Talk | AdvanceVeil | Buy | Use | Resolve | ToggleParty | Inspect | ChooseBeat
 
 
 @dataclass(frozen=True)
@@ -136,6 +147,10 @@ class VeilGameEngine:
         self.psychometrics = _load_json(self.repo_root / "14_psychometrics" / "attributes.json")
         self.voices = _load_json(self.repo_root / "15_voice" / "voice_registry.json")["voices"]
         self.dialogue_beats = _load_json(self.repo_root / "13_agents" / "caetherra_dialogue_beats.json")
+        self.symbolic_objects = {
+            obj["id"]: obj
+            for obj in _load_json(self.repo_root / "12_metaphysics" / "symbolic_object_registry.json")["objects"]
+        }
 
         self.locations = {loc["id"]: loc for loc in self.world["locations"]}
         self.settlements = {s["id"]: s for s in self.world["settlements"]}
@@ -583,6 +598,52 @@ class VeilGameEngine:
         # True vs. False Ending readiness (per 10_canon/LORE_BIBLE.md)
         ending_status = self._evaluate_ending(stats, ws, rels, discovered)
 
+        beat_rows = self._rows_list(
+            "SELECT beat_label FROM narrative_beats WHERE player_id='player' ORDER BY id ASC"
+        )
+        fired_beats = [str(r["beat_label"]) for r in beat_rows]
+        fired_set = set(fired_beats)
+        cur_res = float(stats.get("resonance", 350.0))
+
+        objects_here = []
+        for oid in current_loc.get("objects", []):
+            obj = self.symbolic_objects.get(oid)
+            if not obj:
+                continue
+            if obj.get("render_rule") == "ABSENT_BELOW_THRESHOLD" and cur_res < float(obj.get("depth_required", 0.0)):
+                continue
+            dq_threshold = float(obj.get("depth_reveal_threshold", 0.0))
+            inspected_prism = f"inspected:{oid}:prism" in fired_set
+            inspected_dq = f"inspected:{oid}:dq" in fired_set
+            objects_here.append(
+                {
+                    "id": oid,
+                    "display_name": obj["display_name"],
+                    "inspected_prism": inspected_prism,
+                    "inspected_dq": inspected_dq,
+                    "can_reveal_dq": bool(obj.get("dq_description")) and cur_res >= dq_threshold,
+                    "active_description": (
+                        obj["dq_description"]
+                        if (inspected_dq and obj.get("dq_description"))
+                        else (obj.get("prism_description") or obj.get("dq_description") or obj["display_name"])
+                    ),
+                }
+            )
+
+        comfort_state = "unanswered"
+        if "false_comfort_accepted" in fired_set:
+            comfort_state = "accepted"
+        elif "false_comfort_declined" in fired_set:
+            comfort_state = "declined"
+
+        district_status = {
+            "district_id": current_loc["district_id"],
+            "false_comfort_available": current_loc_id == "caetherra_plaza" and cur_res >= 500.0,
+            "false_comfort_state": comfort_state,
+            "unseen_gate_discovered": "inspected:wall_of_the_unseen_gate:dq" in fired_set,
+            "caetherra_awakened": "caetherra_awakened" in fired_set,
+        }
+
         return {
             "world": {
                 "world_id": self.world["world_id"],
@@ -607,6 +668,9 @@ class VeilGameEngine:
             },
             "npcs_here": present_npcs,
             "all_characters": list(self.characters.values()),
+            "objects_here": objects_here,
+            "narrative_beats": fired_beats,
+            "district_status": district_status,
             "inventory": inventory,
             "quests": quests,
             "factions": factions,
@@ -1006,6 +1070,20 @@ class VeilGameEngine:
                 )
                 if q_first and int(q_first["stage_index"]) >= 2 and "lantern" in inv_map and new_res >= 450.0 and shifted:
                     self._advance_quest_stage("q_first_awakening", 3)
+                if ws["current_location"] == "miras_garden" and new_res >= 650.0:
+                    gate_seen = self._row_dict(
+                        "SELECT 1 AS seen FROM narrative_beats WHERE player_id='player' AND beat_label='inspected:wall_of_the_unseen_gate:dq'"
+                    )
+                    if gate_seen:
+                        cur = self._conn.execute(
+                            "INSERT OR IGNORE INTO narrative_beats (player_id, beat_type, beat_label) "
+                            "VALUES ('player', 'district_closure', 'caetherra_awakened')"
+                        )
+                        if cur.rowcount == 1:
+                            self._conn.execute(
+                                "INSERT INTO memories (scope, agent_id, subject_id, content) VALUES ('event', 'world', 'player', ?)",
+                                ("Caetherra awakened: you witnessed the Unseen Gate and spoke with Mira in her garden.",),
+                            )
             elif npc_id == "kaelen_lanternwright":
                 q_sol = self._row_dict("SELECT stage_index FROM quest_progress WHERE player_id='player' AND quest_id='q_solstice_trade'")
                 if q_sol and int(q_sol["stage_index"]) >= 1:
@@ -1268,6 +1346,9 @@ class VeilGameEngine:
                 "memories": self._rows_list(
                     "SELECT scope, agent_id, subject_id, content, emotional_tags, canon_refs, created_at FROM memories ORDER BY id ASC"
                 ),
+                "narrative_beats": self._rows_list(
+                    "SELECT beat_type, beat_label, payload, fired_at FROM narrative_beats WHERE player_id='player' ORDER BY id ASC"
+                ),
             }
             slot_label = label.strip() or f"Save {datetime.now(UTC).strftime('%Y-%m-%d %H:%M')}"
             self._conn.execute(
@@ -1407,6 +1488,19 @@ class VeilGameEngine:
                             mem.get("created_at"),
                         ),
                     )
+            if "narrative_beats" in snap:
+                self._conn.execute("DELETE FROM narrative_beats WHERE player_id='player'")
+                for beat in snap["narrative_beats"]:
+                    self._conn.execute(
+                        "INSERT INTO narrative_beats (player_id, beat_type, beat_label, payload, fired_at) "
+                        "VALUES ('player', ?, ?, ?, ?)",
+                        (
+                            beat["beat_type"],
+                            beat["beat_label"],
+                            beat.get("payload") or "{}",
+                            beat.get("fired_at"),
+                        ),
+                    )
             self._conn.commit()
             return {"ok": True, "message": f"Loaded slot '{slot_id}'.", "state": self._snapshot()}
 
@@ -1420,6 +1514,115 @@ class VeilGameEngine:
         logs_dir.mkdir(parents=True, exist_ok=True)
         with (logs_dir / filename).open("a", encoding="utf-8") as fh:
             fh.write(json.dumps(payload) + "\n")
+
+    def _inspect_object(self, object_id: str) -> dict[str, Any]:
+        """Zero-drift dual-layer symbolic object inspection (ADR 0009)."""
+        with self._lock:
+            if object_id not in self.symbolic_objects:
+                raise ValueError(f"Unknown symbolic object: {object_id}")
+            ws = self._row_dict("SELECT * FROM world_state WHERE player_id='player'")
+            stats = self._row_dict("SELECT resonance FROM player_stats WHERE player_id='player'")
+            res = float(stats.get("resonance", 350.0))
+            current_loc = self.locations[ws["current_location"]]
+            if object_id not in current_loc.get("objects", []):
+                return {"ok": False, "message": "That object is not here.", "state": self._snapshot()}
+
+            obj = self.symbolic_objects[object_id]
+            if obj.get("render_rule") == "ABSENT_BELOW_THRESHOLD" and res < float(obj.get("depth_required", 0.0)):
+                return {"ok": False, "message": "That object is not here.", "state": self._snapshot()}
+
+            dq_threshold = float(obj.get("depth_reveal_threshold", 0.0))
+            if res >= dq_threshold and obj.get("dq_description"):
+                beat_label = f"inspected:{object_id}:dq"
+                cur = self._conn.execute(
+                    "INSERT OR IGNORE INTO narrative_beats (player_id, beat_type, beat_label) "
+                    "VALUES ('player', 'inspect', ?)",
+                    (beat_label,),
+                )
+                first_time = cur.rowcount == 1
+                if first_time:
+                    new_res = round(min(1000.0, res + 5.0), 2)
+                    self._conn.execute(
+                        "UPDATE player_stats SET resonance=?, "
+                        "has_crossed_first_threshold=CASE WHEN ?>=450.0 THEN 1 ELSE has_crossed_first_threshold END, "
+                        "updated_at=CURRENT_TIMESTAMP WHERE player_id='player'",
+                        (new_res, new_res),
+                    )
+                    self._conn.execute(
+                        "UPDATE player_state SET emotional_depth=?, last_updated=CURRENT_TIMESTAMP WHERE player_id='player'",
+                        (new_res,),
+                    )
+                    self._conn.execute(
+                        "INSERT INTO memories (scope, agent_id, subject_id, content) VALUES ('event', 'world', 'player', ?)",
+                        (f"Symbolic insight ({obj['display_name']}): {obj['dq_description']}",),
+                    )
+                    msg = f"{obj['dq_description']} (+5.0 Resonance insight)"
+                else:
+                    msg = str(obj["dq_description"])
+            else:
+                beat_label = f"inspected:{object_id}:prism"
+                self._conn.execute(
+                    "INSERT OR IGNORE INTO narrative_beats (player_id, beat_type, beat_label) "
+                    "VALUES ('player', 'inspect', ?)",
+                    (beat_label,),
+                )
+                msg = str(obj.get("prism_description") or obj.get("dq_description") or obj["display_name"])
+
+            self._conn.commit()
+            return {"ok": True, "message": msg, "state": self._snapshot()}
+
+    def _choose_beat(self, beat_id: str, choice: str) -> dict[str, Any]:
+        """Record a reversible district narrative beat choice without idle drift."""
+        with self._lock:
+            if beat_id != "caetherra_false_comfort":
+                raise ValueError(f"Unknown narrative beat: {beat_id}")
+            if choice not in ("accept", "decline"):
+                raise ValueError(f"Invalid beat choice: {choice}")
+
+            ws = self._row_dict("SELECT current_location FROM world_state WHERE player_id='player'")
+            stats = self._row_dict("SELECT resonance FROM player_stats WHERE player_id='player'")
+            res = float(stats.get("resonance", 350.0))
+            if ws.get("current_location") != "caetherra_plaza":
+                return {
+                    "ok": False,
+                    "message": "Halen Vey awaits at Caetherra Sunlit Plaza to offer the Congregation's seat.",
+                    "state": self._snapshot(),
+                }
+            if res < 500.0:
+                return {
+                    "ok": False,
+                    "message": "Reach 500.0 Resonance before the Congregation asks where you belong.",
+                    "state": self._snapshot(),
+                }
+
+            self._conn.execute(
+                "DELETE FROM narrative_beats WHERE player_id='player' "
+                "AND beat_label IN ('false_comfort_accepted', 'false_comfort_declined')"
+            )
+            beat_label = "false_comfort_accepted" if choice == "accept" else "false_comfort_declined"
+            self._conn.execute(
+                "INSERT INTO narrative_beats (player_id, beat_type, beat_label) "
+                "VALUES ('player', 'district_choice', ?)",
+                (beat_label,),
+            )
+            if choice == "accept":
+                msg = (
+                    "Halen Vey smiles with quiet relief. \"Wonderful—set your pack down by the fountain whenever you like. "
+                    "Caetherra always keeps room for warmth.\""
+                )
+                mem = "Chose to rest inside the Prism Congregation's comfort at Caetherra Plaza."
+            else:
+                msg = (
+                    "Halen Vey blinks gently and lifts a steady lantern toward the east. \"Carry your own light then, friend—"
+                    "though our lanterns stay lit if you ever return.\""
+                )
+                mem = "Declined False Comfort at Caetherra Plaza, keeping the eastern road open."
+            self._conn.execute(
+                "INSERT INTO memories (scope, agent_id, subject_id, content) VALUES ('event', 'greeter', 'player', ?)",
+                (mem,),
+            )
+            self._conn.commit()
+            return {"ok": True, "message": msg, "state": self._snapshot()}
 
     def _toggle_party(self, character_id: str) -> dict[str, Any]:
         with self._lock:
@@ -1579,6 +1782,12 @@ class VeilGameEngine:
         if isinstance(action, ToggleParty):
             raw = self._toggle_party(action.character_id)
             return PlayResult(ok=raw["ok"], message=raw["message"], scene=raw["state"])
+        if isinstance(action, Inspect):
+            raw = self._inspect_object(action.object_id)
+            return PlayResult(ok=raw["ok"], message=raw["message"], scene=raw["state"])
+        if isinstance(action, ChooseBeat):
+            raw = self._choose_beat(action.beat_id, action.choice)
+            return PlayResult(ok=raw["ok"], message=raw["message"], scene=raw["state"])
         raise ValueError(f"Unknown play action: {type(action).__name__}")
 
     def save(self, slot_id: str, label: str = "") -> PlayResult:
@@ -1611,6 +1820,7 @@ class VeilGameEngine:
                 "faction_reputation",
                 "completed_encounters",
                 "memories",
+                "narrative_beats",
             ):
                 self._conn.execute(f"DELETE FROM {table}")
             self._conn.execute("DELETE FROM relationships WHERE agent_b='player'")
