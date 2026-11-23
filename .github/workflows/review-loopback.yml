@@ -23,7 +23,7 @@ jobs:
     if: github.event.pull_request != null
     steps:
       - name: Check unresolved review threads and update sticky summary
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         with:
           script: |
             const prNumber = context.payload.pull_request.number;
