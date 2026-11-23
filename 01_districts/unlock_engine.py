@@ -18,7 +18,7 @@ DISTRICTS_PATH = Path("01_districts")
 
 @dataclass
 class UnlockCondition:
-    min_resonance: float = 0.5
+    min_resonance: float = 500.0
     min_interactions: int = 3
     required_emotional_tags: list[str] = field(default_factory=list)
     veil_states_allowed: list[str] = field(default_factory=lambda: ["calm", "still", "storm", "quasar_active"])
@@ -48,7 +48,7 @@ def check_unlock(
 
     Args:
         district_id: District name (e.g., 'caetherra')
-        resonance: Player's current resonance score (0.0-1.0)
+        resonance: Player's current resonance score (0.0-1000.0)
         interactions: Number of meaningful interactions
         emotional_tags: Tags accumulated from interactions
         veil_state: Current Veil state (calm/still/storm/quasar_active)
@@ -91,9 +91,9 @@ def check_unlock(
     # Veil state difficulty modifiers
     resonance_adjusted = resonance
     if veil_state == "storm":
-        resonance_adjusted -= 0.10  # Harder during storm
+        resonance_adjusted -= 100.0  # Harder during storm
     elif veil_state == "quasar_active":
-        resonance_adjusted -= 0.15  # Much harder during quasar
+        resonance_adjusted -= 150.0  # Much harder during quasar
 
     # Check resonance threshold
     if resonance_adjusted < condition.min_resonance:
@@ -188,7 +188,7 @@ def check_quasar_reveal(
             veil_state=veil_state,
         )
 
-    if resonance < 0.6:
+    if resonance < 600.0:
         return UnlockResult(
             unlocked=False,
             reason=f"The Quasar pulls, but your resonance ({resonance:.2f}) is not yet deep enough to see.",

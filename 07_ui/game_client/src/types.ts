@@ -34,6 +34,8 @@ export interface NpcProfile {
   is_merchant: boolean
   can_join_party?: boolean
   in_party?: boolean
+  bond?: number
+  stance?: string
   relationship: {
     trust: number
     affection: number

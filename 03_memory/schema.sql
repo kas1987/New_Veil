@@ -91,13 +91,18 @@ CREATE TABLE IF NOT EXISTS player_stats (
     player_id TEXT PRIMARY KEY DEFAULT 'player',
     level INTEGER DEFAULT 1,
     xp INTEGER DEFAULT 0,
-    resonance REAL DEFAULT 0.35,
+    resonance REAL DEFAULT 350.0,
     clarity REAL DEFAULT 10,
     empathy REAL DEFAULT 10,
     resolve REAL DEFAULT 10,
     perception REAL DEFAULT 10,
     veil_attunement REAL DEFAULT 10,
     emotional_tags TEXT DEFAULT '["warmth", "curiosity"]',
+    has_crossed_first_threshold INTEGER DEFAULT 0,
+    recent_keywords TEXT DEFAULT '[]',
+    drift_count INTEGER DEFAULT 0,
+    last_npc_lines TEXT DEFAULT '{}',
+    encounter_arcs TEXT DEFAULT '{}',
     updated_at TEXT DEFAULT CURRENT_TIMESTAMP
 );
 

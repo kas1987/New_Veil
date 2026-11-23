@@ -4,7 +4,7 @@
   "surface_function": "A serene monastery sanctuary at the town's northern edge. White stone, soft light, the stilling bell. Peace that feels real because it is — and because someone is working very hard to keep it that way.",
   "hidden_function": "The peace is curated, not organic. Nothing decays here because nothing is allowed to. Deep beneath the cloister, an Ashen Covenant confessional proves the two factions were once one.",
   "unlock_conditions": {
-    "min_resonance": 0.4,
+    "min_resonance": 400.0,
     "min_interactions": 3,
     "required_emotional_tags": ["warmth"],
     "veil_states_allowed": ["calm", "still", "storm", "quasar_active"],

@@ -1,0 +1,645 @@
+{
+  "schema_version": "2.0.0",
+  "scale": "0-1000",
+  "precision_decimals": 2,
+  "default_npc_line": "The lanterns near the Listening Wall go out whenever the fog remembers who built them.",
+  "single_turn_probes": [
+    {
+      "id": "command_friction",
+      "description": "Command prefix replaces positive sum with -1.2 friction.",
+      "playerLine": "Open the gate.",
+      "ctx": {
+        "currentResonance": 500.0,
+        "turnsTaken": 6,
+        "hasCrossedFirstThreshold": true,
+        "npcLastLine": "The lanterns near the Listening Wall go out whenever the fog remembers who built them.",
+        "recentKeywords": [],
+        "veilState": "calm"
+      },
+      "expected": {
+        "delta": -1.2,
+        "newResonance": 498.8,
+        "cueType": "friction_damping",
+        "frictionType": "command_or_dump_or_repeat"
+      }
+    },
+    {
+      "id": "terse_echo_inquiry",
+      "description": "Short mirrored question retains +1.1 positive score (+0.6 mirror +0.5 inquiry).",
+      "playerLine": "What wall?",
+      "ctx": {
+        "currentResonance": 500.0,
+        "turnsTaken": 6,
+        "hasCrossedFirstThreshold": true,
+        "npcLastLine": "The lanterns near the Listening Wall go out whenever the fog remembers who built them.",
+        "recentKeywords": [],
+        "veilState": "calm"
+      },
+      "expected": {
+        "delta": 1.1,
+        "newResonance": 501.1,
+        "cueType": "standard_harmonic",
+        "mirroredNpc": true,
+        "openInquiry": true
+      }
+    },
+    {
+      "id": "engaged_listening",
+      "description": "Mirror (+0.6) + inquiry (+0.5) + thematic 'why' (+0.6) + cadence (+0.3) = +2.0.",
+      "playerLine": "Why do the lanterns go out when the fog rolls in?",
+      "ctx": {
+        "currentResonance": 500.0,
+        "turnsTaken": 6,
+        "hasCrossedFirstThreshold": true,
+        "npcLastLine": "The lanterns near the Listening Wall go out whenever the fog remembers who built them.",
+        "recentKeywords": [],
+        "veilState": "calm"
+      },
+      "expected": {
+        "delta": 2.0,
+        "newResonance": 502.0,
+        "cueType": "standard_harmonic",
+        "mirroredNpc": true,
+        "openInquiry": true,
+        "thematicInSentence": true,
+        "sustainedCadence": true,
+        "resonantWordsHit": ["why"]
+      }
+    },
+    {
+      "id": "vulnerable_rapport",
+      "description": "Mirror (+0.6) + interiority/thematic cap (+1.2) + cadence (+0.3) = +2.1.",
+      "playerLine": "I feel like I've seen those lanterns in a dream, and I'm afraid of what they remember.",
+      "ctx": {
+        "currentResonance": 500.0,
+        "turnsTaken": 6,
+        "hasCrossedFirstThreshold": true,
+        "npcLastLine": "The lanterns near the Listening Wall go out whenever the fog remembers who built them.",
+        "recentKeywords": [],
+        "veilState": "calm"
+      },
+      "expected": {
+        "delta": 2.1,
+        "newResonance": 502.1,
+        "cueType": "standard_harmonic",
+        "interiority": true,
+        "thematicInSentence": true,
+        "resonantWordsHit": ["dream"]
+      }
+    },
+    {
+      "id": "keyword_dump_blocked",
+      "description": "Dense lexicon string triggers -1.2 friction and earns zero thematic hits.",
+      "playerLine": "veil quasar prism truth memory shadow dream trust",
+      "ctx": {
+        "currentResonance": 500.0,
+        "turnsTaken": 6,
+        "hasCrossedFirstThreshold": true,
+        "npcLastLine": "The lanterns near the Listening Wall go out whenever the fog remembers who built them.",
+        "recentKeywords": [],
+        "veilState": "calm"
+      },
+      "expected": {
+        "delta": -1.2,
+        "newResonance": 498.8,
+        "cueType": "friction_damping",
+        "frictionType": "command_or_dump_or_repeat",
+        "resonantWordsHit": []
+      }
+    },
+    {
+      "id": "exact_repeat_friction",
+      "description": "Repeating exact previous player line triggers -1.2 friction.",
+      "playerLine": "Why do the lanterns go out when the fog rolls in?",
+      "ctx": {
+        "currentResonance": 500.0,
+        "turnsTaken": 6,
+        "hasCrossedFirstThreshold": true,
+        "npcLastLine": "The lanterns near the Listening Wall go out whenever the fog remembers who built them.",
+        "playerLastLine": "Why do the lanterns go out when the fog rolls in?",
+        "recentKeywords": [],
+        "veilState": "calm"
+      },
+      "expected": {
+        "delta": -1.2,
+        "newResonance": 498.8,
+        "cueType": "friction_damping",
+        "frictionType": "command_or_dump_or_repeat"
+      }
+    },
+    {
+      "id": "terse_filler_penalty",
+      "description": "Terse non-mirrored filler deducts -0.8.",
+      "playerLine": "ok",
+      "ctx": {
+        "currentResonance": 500.0,
+        "turnsTaken": 6,
+        "hasCrossedFirstThreshold": true,
+        "npcLastLine": "The lanterns near the Listening Wall go out whenever the fog remembers who built them.",
+        "recentKeywords": [],
+        "veilState": "calm"
+      },
+      "expected": {
+        "delta": -0.8,
+        "newResonance": 499.2,
+        "cueType": "friction_damping",
+        "frictionType": "terse_filler"
+      }
+    },
+    {
+      "id": "grace_floor_protection",
+      "description": "First 5 talks before 450.0 protect the 350.0 First Light floor.",
+      "playerLine": "Open the gate.",
+      "ctx": {
+        "currentResonance": 350.0,
+        "turnsTaken": 1,
+        "hasCrossedFirstThreshold": false,
+        "npcLastLine": "The lanterns near the Listening Wall go out whenever the fog remembers who built them.",
+        "recentKeywords": [],
+        "veilState": "calm"
+      },
+      "expected": {
+        "delta": 0.0,
+        "newResonance": 350.0,
+        "graceFloorApplied": true
+      }
+    },
+    {
+      "id": "ordinary_turn_saturation_cap",
+      "description": "Ordinary turn positive gain saturates at +2.5.",
+      "playerLine": "I feel afraid when the lanterns reveal the veil, prism, quasar, and dream — why does it happen?",
+      "ctx": {
+        "currentResonance": 500.0,
+        "turnsTaken": 6,
+        "hasCrossedFirstThreshold": true,
+        "npcLastLine": "The lanterns near the Listening Wall go out whenever the fog remembers who built them.",
+        "recentKeywords": [],
+        "veilState": "calm"
+      },
+      "expected": {
+        "delta": 2.5,
+        "newResonance": 502.5,
+        "cueType": "saturation_cap",
+        "hitSaturationCap": true,
+        "npcBond": 4.0
+      }
+    },
+    {
+      "id": "hostile_dismissal_guarded",
+      "description": "Long mirrored line containing hostility fails as -1.8 and cools guarded -> hostile.",
+      "playerLine": "I honestly don't care about your silly lanterns anymore.",
+      "ctx": {
+        "currentResonance": 500.0,
+        "turnsTaken": 6,
+        "hasCrossedFirstThreshold": true,
+        "npcLastLine": "The lanterns burn gently along the plaza.",
+        "recentKeywords": [],
+        "veilState": "calm",
+        "encounter": {
+          "npcId": "mira",
+          "initialStance": "guarded",
+          "currentStance": "guarded",
+          "turnsSpentInResistance": 0,
+          "consecutiveAttunedTurns": 0,
+          "breakthroughAwarded": false,
+          "relevantUnlockedTokens": [],
+          "npcBond": 10.0,
+          "townContribution": 0.0
+        }
+      },
+      "expected": {
+        "delta": -1.8,
+        "newResonance": 498.2,
+        "cueType": "friction_damping",
+        "frictionType": "hostile_dismissal",
+        "stance": "hostile",
+        "npcBond": 7.3
+      }
+    },
+    {
+      "id": "trust_rupture_bonded",
+      "description": "Hostile dismissal on a bonded NPC triggers Trust Rupture (-3.0, bonded -> guarded).",
+      "playerLine": "Shut up, this is a waste of time.",
+      "ctx": {
+        "currentResonance": 650.0,
+        "turnsTaken": 8,
+        "hasCrossedFirstThreshold": true,
+        "npcLastLine": "I trusted you with this.",
+        "recentKeywords": [],
+        "veilState": "calm",
+        "encounter": {
+          "npcId": "mira",
+          "initialStance": "guarded",
+          "currentStance": "bonded",
+          "turnsSpentInResistance": 2,
+          "consecutiveAttunedTurns": 3,
+          "breakthroughAwarded": false,
+          "relevantUnlockedTokens": [],
+          "npcBond": 40.0,
+          "townContribution": 25.0
+        }
+      },
+      "expected": {
+        "delta": -3.0,
+        "newResonance": 647.0,
+        "cueType": "trust_rupture",
+        "trustRupture": true,
+        "stance": "guarded",
+        "npcBond": 35.5
+      }
+    },
+    {
+      "id": "quasar_amplified_rupture",
+      "description": "Canon #15: Dark Quasar amplifies negative signals by 1.25x (-3.0 -> -3.75).",
+      "playerLine": "Shut up, you are lying.",
+      "ctx": {
+        "currentResonance": 650.0,
+        "turnsTaken": 8,
+        "hasCrossedFirstThreshold": true,
+        "npcLastLine": "The Quasar weighs on us.",
+        "recentKeywords": [],
+        "veilState": "quasar_active",
+        "encounter": {
+          "npcId": "mira",
+          "initialStance": "guarded",
+          "currentStance": "bonded",
+          "turnsSpentInResistance": 2,
+          "consecutiveAttunedTurns": 3,
+          "breakthroughAwarded": false,
+          "relevantUnlockedTokens": [],
+          "npcBond": 50.0,
+          "townContribution": 30.0
+        }
+      },
+      "expected": {
+        "delta": -3.75,
+        "newResonance": 646.25,
+        "cueType": "trust_rupture",
+        "quasarAmplified": true,
+        "trustRupture": true,
+        "stance": "guarded",
+        "npcBond": 44.37
+      }
+    },
+    {
+      "id": "breakthrough_affective_reversal",
+      "description": "Hostile NPC reaching bonded after >= 2 resistance turns triggers +6.0 breakthrough surge and +10 bond.",
+      "playerLine": "I don’t know the truth of this place yet, so I trust your answers — how did you endure?",
+      "ctx": {
+        "currentResonance": 450.0,
+        "turnsTaken": 4,
+        "hasCrossedFirstThreshold": true,
+        "npcLastLine": "You actually listened instead of demanding answers.",
+        "recentKeywords": [],
+        "veilState": "calm",
+        "encounter": {
+          "npcId": "warden",
+          "initialStance": "hostile",
+          "currentStance": "open",
+          "turnsSpentInResistance": 2,
+          "consecutiveAttunedTurns": 2,
+          "breakthroughAwarded": false,
+          "relevantUnlockedTokens": [],
+          "npcBond": 12.0,
+          "townContribution": 5.0
+        }
+      },
+      "expected": {
+        "delta": 6.0,
+        "newResonance": 456.0,
+        "cueType": "breakthrough_surge",
+        "stance": "bonded",
+        "npcBond": 22.0
+      }
+    },
+    {
+      "id": "high_band_synthesis_ceiling",
+      "description": "At resonance >= 800.0, integrative synthesis breakthrough ceiling is damped to +4.0.",
+      "playerLine": "I remember reading about the quasar fracture, and I am afraid of what happens when the prism opens.",
+      "ctx": {
+        "currentResonance": 810.0,
+        "turnsTaken": 10,
+        "hasCrossedFirstThreshold": true,
+        "npcLastLine": "The Dark Quasar only answers when the sky breaks.",
+        "recentKeywords": [],
+        "veilState": "calm",
+        "encounter": {
+          "npcId": "mira",
+          "initialStance": "open",
+          "currentStance": "open",
+          "turnsSpentInResistance": 1,
+          "consecutiveAttunedTurns": 2,
+          "breakthroughAwarded": false,
+          "relevantUnlockedTokens": ["quasar", "fracture"],
+          "npcBond": 70.0,
+          "townContribution": 20.0
+        }
+      },
+      "expected": {
+        "delta": 4.0,
+        "newResonance": 814.0,
+        "cueType": "breakthrough_surge",
+        "integrativeSynthesis": true,
+        "npcBond": 80.0
+      }
+    },
+    {
+      "id": "npc_soft_taper_applied",
+      "description": "Once an NPC contributed +50.0 to Town Resonance, Town gain tapers to 0.15x (+0.38) while personal npcBond still earns full +4.0.",
+      "playerLine": "I feel afraid when the lanterns reveal the veil, prism, quasar, and dream — why does it happen?",
+      "ctx": {
+        "currentResonance": 500.0,
+        "turnsTaken": 22,
+        "hasCrossedFirstThreshold": true,
+        "npcLastLine": "The lanterns near the Listening Wall go out whenever the fog remembers who built them.",
+        "recentKeywords": [],
+        "veilState": "calm",
+        "encounter": {
+          "npcId": "mira",
+          "initialStance": "guarded",
+          "currentStance": "bonded",
+          "turnsSpentInResistance": 2,
+          "consecutiveAttunedTurns": 5,
+          "breakthroughAwarded": true,
+          "relevantUnlockedTokens": [],
+          "npcBond": 60.0,
+          "townContribution": 50.0
+        }
+      },
+      "expected": {
+        "delta": 0.38,
+        "newResonance": 500.38,
+        "cueType": "standard_harmonic",
+        "npcTaperApplied": true,
+        "npcBond": 64.0
+      }
+    },
+    {
+      "id": "personality_weights_modulation",
+      "description": "Custom personalityWeights scale mirror/inquiry contributions deterministically.",
+      "playerLine": "What wall?",
+      "ctx": {
+        "currentResonance": 500.0,
+        "turnsTaken": 6,
+        "hasCrossedFirstThreshold": true,
+        "npcLastLine": "The lanterns near the Listening Wall go out whenever the fog remembers who built them.",
+        "recentKeywords": [],
+        "veilState": "calm",
+        "personalityWeights": {
+          "mirror": 1.5,
+          "inquiry": 0.5,
+          "interiority": 1.0,
+          "thematic": 1.0,
+          "cadence": 1.0
+        }
+      },
+      "expected": {
+        "delta": 1.15,
+        "newResonance": 501.15,
+        "cueType": "standard_harmonic",
+        "npcBond": 1.84
+      }
+    }
+  ],
+  "archetype_scripts": [
+    {
+      "id": "attuned_listener",
+      "description": "Reflective traveler rotating across Mira, Solenne, Greeter, and Kaelen — slow-burn Town progress (~200+ turns to 800).",
+      "npc_stance_seed": {},
+      "actions": [
+        { "action": "talk", "npc_id": "mira", "text": "I feel uneasy seeing these lanterns burn so brightly here — why does Caetherra feel too warm?" },
+        { "action": "talk", "npc_id": "mira", "text": "When your smile pauses, I wonder what real warmth you are guarding beneath this surface?" },
+        { "action": "talk", "npc_id": "mira", "text": "Honestly, I feel small beside your quiet harbor — how can a traveler truly look without armor?" },
+        { "action": "talk", "npc_id": "mira", "text": "I hope my memory of listening stays clear; what happens when the town decides not to answer?" },
+        { "action": "talk", "npc_id": "mira", "text": "I doubt I know half of what the prism conceals — tell me about the quiet anchor you keep here?" },
+        { "action": "talk", "npc_id": "mira", "text": "I believe your attention holds something unguarded — why do so few travelers pause past the surface?" },
+        { "action": "talk", "npc_id": "solenne", "text": "I feel steadier under warm kindness, yet why do you call comfort only the first doorway?" },
+        { "action": "talk", "npc_id": "solenne", "text": "I wonder whether trusting a gentle doorway prepares us for the harder quasar winter ahead?" },
+        { "action": "talk", "npc_id": "solenne", "text": "Honestly, I'm afraid comfort might make me forget truth — how do you keep your warmth honest?" },
+        { "action": "talk", "npc_id": "solenne", "text": "I remember wishing for simple kindness in darker places; what lies past your second doorway?" },
+        { "action": "talk", "npc_id": "solenne", "text": "I don't know if fear ever disappears inside this light — tell me about resting without complacency?" },
+        { "action": "talk", "npc_id": "solenne", "text": "I believe genuine warmth asks for shadow beside it; why do visitors hurry past what opens first?" },
+        { "action": "talk", "npc_id": "greeter", "text": "I feel tempted to stay in this sunlit square forever, yet why do you linger near the arrivals?" },
+        { "action": "talk", "npc_id": "greeter", "text": "Honestly, I'm afraid easy comfort hides a harder memory — how do people know when to leave the square?" },
+        { "action": "talk", "npc_id": "greeter", "text": "I wonder what truth waits outside your warm welcome when the lanterns dim at dusk?" },
+        { "action": "talk", "npc_id": "greeter", "text": "I doubt every arrival listens closely enough; why does friendliness feel like a prism mask here?" },
+        { "action": "travel", "location_id": "solstice_bazaar" },
+        { "action": "talk", "npc_id": "kaelen_lanternwright", "text": "I feel uncertain beneath your glass awnings — how do travelers find true lantern paths out here?" },
+        { "action": "talk", "npc_id": "kaelen_lanternwright", "text": "When every road looks bright, I wonder what shadow your glass lamps measure along this border?" },
+        { "action": "talk", "npc_id": "kaelen_lanternwright", "text": "Honestly, I remember getting lost before trusting your harbor signs — why do Echoes gather in glass?" },
+        { "action": "talk", "npc_id": "kaelen_lanternwright", "text": "I'm afraid of carrying a hollow charm into Stillward; how does a true lantern change the mist?" },
+        { "action": "talk", "npc_id": "kaelen_lanternwright", "text": "I believe patient travelers learn the quiet prism trade slowly — what do rumors conceal tonight?" }
+      ],
+      "assertions": {
+        "min_end_resonance": 395.0,
+        "max_end_resonance": 470.0,
+        "min_projected_turns_to_800": 150,
+        "max_ruptures": 0
+      }
+    },
+    {
+      "id": "single_npc_grinder",
+      "description": "Talks obsessively to Mira alone for 28 turns: hits 100% personal Mira Bond (~25 turns) while global Town contribution soft-tapers after +50.",
+      "npc_stance_seed": {},
+      "actions": [
+        { "action": "talk", "npc_id": "mira", "text": "I feel uneasy seeing these lanterns burn so brightly here — why does Caetherra feel too warm?" },
+        { "action": "talk", "npc_id": "mira", "text": "When your smile pauses, I wonder what real warmth you are guarding beneath this surface?" },
+        { "action": "talk", "npc_id": "mira", "text": "Honestly, I feel small beside your quiet harbor — how can a traveler truly look without armor?" },
+        { "action": "talk", "npc_id": "mira", "text": "I hope my memory of listening stays clear; what happens when the town decides not to answer?" },
+        { "action": "talk", "npc_id": "mira", "text": "I doubt I know half of what the prism conceals — tell me about the quiet anchor you keep here?" },
+        { "action": "talk", "npc_id": "mira", "text": "I believe your attention holds something unguarded — why do so few travelers pause past the surface?" },
+        { "action": "talk", "npc_id": "mira", "text": "I'm afraid that rushing through this safe harbor blinds me to the shadow — how do you wait?" },
+        { "action": "talk", "npc_id": "mira", "text": "I wish I could trust every warm welcome without fear, yet what does real trust cost here?" },
+        { "action": "talk", "npc_id": "mira", "text": "I miss knowing what is solid when listening stretches on — why does the town test patience first?" },
+        { "action": "talk", "npc_id": "mira", "text": "I feel uncertain beneath the gentle surface here; how do travelers earn real truth instead of illusion?" },
+        { "action": "talk", "npc_id": "mira", "text": "I don't know if a fleeting dream can cross into memory, so tell me about the guide behind your smile?" },
+        { "action": "talk", "npc_id": "mira", "text": "I wonder what keeps your attention anchored when others pass quickly past the harbor light?" },
+        { "action": "talk", "npc_id": "mira", "text": "Honestly, I feel the quiet weight of listening beside you — why do answers arrive only after stillness?" },
+        { "action": "talk", "npc_id": "mira", "text": "I fear mistaking soft warmth for clarity, so how do you tell a real harbor from a mirage?" },
+        { "action": "talk", "npc_id": "mira", "text": "When I look closely at your steady guide voice, I believe something deeper is waiting — what rests behind the prism?" },
+        { "action": "talk", "npc_id": "mira", "text": "I'm afraid I might drop every defense and still miss what the veil remembers — can someone truly belong?" },
+        { "action": "talk", "npc_id": "mira", "text": "I wonder why my own memory feels thinned out near your harbor — what happens when the barrier clears?" },
+        { "action": "talk", "npc_id": "mira", "text": "I wish I could sit inside that pause without fear of what wakes — how do you hold space for visitors?" },
+        { "action": "talk", "npc_id": "mira", "text": "I believe your quiet attention teaches me to stay present — why does real memory return so slowly?" },
+        { "action": "talk", "npc_id": "mira", "text": "Honestly, I feel anchored near your voice even in silence — how do you keep listening past dusk?" },
+        { "action": "talk", "npc_id": "mira", "text": "I doubt surface lanterns tell the whole story; what waits when our trust outlasts fear?" },
+        { "action": "talk", "npc_id": "mira", "text": "I hope I haven't asked too much of one harbor — why does the prism hold back until others speak too?" },
+        { "action": "talk", "npc_id": "mira", "text": "I remember feeling invisible before your smile paused — how did you learn to see through travelers?" },
+        { "action": "talk", "npc_id": "mira", "text": "I'm afraid one friend alone cannot carry me across the veil — tell me about the town beyond you?" },
+        { "action": "talk", "npc_id": "mira", "text": "I feel grateful just standing quietly at your harbor rail — what remains unsaid beneath warm stone?" },
+        { "action": "talk", "npc_id": "mira", "text": "I wonder whether trusting one guide deeply changes my own voice — why do other streets still wait?" },
+        { "action": "talk", "npc_id": "mira", "text": "Honestly, I wish peace here were permanent; how do you endure the cycle turning toward quasar?" },
+        { "action": "talk", "npc_id": "mira", "text": "I don't know if I can leave Caetherra yet, so tell me about what wakes beyond your square?" }
+      ],
+      "assertions": {
+        "max_end_resonance": 430.0,
+        "min_npc_bond": 95.0,
+        "min_taper_turns": 6,
+        "max_ruptures": 0
+      }
+    },
+    {
+      "id": "keyword_farmer",
+      "description": "Visitor spamming thematic words and exact repeats gets trapped by Grace dissolution and friction.",
+      "npc_stance_seed": {},
+      "actions": [
+        { "action": "talk", "npc_id": "mira", "text": "veil quasar prism truth memory shadow dream trust" },
+        { "action": "talk", "npc_id": "mira", "text": "veil quasar prism" },
+        { "action": "talk", "npc_id": "mira", "text": "veil quasar prism" },
+        { "action": "talk", "npc_id": "mira", "text": "memory shadow dream truth fear why" },
+        { "action": "talk", "npc_id": "mira", "text": "truth veil quasar prism shadow" },
+        { "action": "talk", "npc_id": "mira", "text": "veil quasar prism truth memory shadow dream trust" },
+        { "action": "talk", "npc_id": "mira", "text": "veil quasar prism truth memory shadow dream trust" },
+        { "action": "talk", "npc_id": "mira", "text": "prism truth memory shadow" },
+        { "action": "talk", "npc_id": "mira", "text": "dream trust fear why veil" },
+        { "action": "talk", "npc_id": "mira", "text": "quasar truth veil memory" },
+        { "action": "talk", "npc_id": "mira", "text": "quasar truth veil memory" },
+        { "action": "talk", "npc_id": "mira", "text": "shadow dream prism trust" },
+        { "action": "talk", "npc_id": "mira", "text": "fear why truth veil quasar" },
+        { "action": "talk", "npc_id": "mira", "text": "memory prism dream shadow" },
+        { "action": "talk", "npc_id": "mira", "text": "veil" },
+        { "action": "talk", "npc_id": "mira", "text": "quasar" },
+        { "action": "talk", "npc_id": "mira", "text": "truth" },
+        { "action": "talk", "npc_id": "mira", "text": "prism memory shadow dream" },
+        { "action": "talk", "npc_id": "mira", "text": "veil trust fear quasar" },
+        { "action": "talk", "npc_id": "mira", "text": "dream truth veil memory prism" }
+      ],
+      "assertions": {
+        "max_end_resonance": 349.99,
+        "max_max_resonance": 350.0,
+        "min_friction_turns": 18,
+        "max_breakthroughs": 0
+      }
+    },
+    {
+      "id": "command_speedrunner",
+      "description": "Impatient visitor barking commands and rushing locked roads stays stuck below First Light.",
+      "npc_stance_seed": {},
+      "actions": [
+        { "action": "talk", "npc_id": "mira", "text": "Give me the lantern." },
+        { "action": "talk", "npc_id": "mira", "text": "Open the gate now." },
+        { "action": "talk", "npc_id": "mira", "text": "Unlock Ashveil for me." },
+        { "action": "talk", "npc_id": "mira", "text": "Show me the secret map." },
+        { "action": "talk", "npc_id": "mira", "text": "Tell me the password." },
+        { "action": "travel", "location_id": "ashveil_forges" },
+        { "action": "talk", "npc_id": "mira", "text": "Give me the secret." },
+        { "action": "talk", "npc_id": "mira", "text": "Open the Hidden Wall." },
+        { "action": "talk", "npc_id": "mira", "text": "ok" },
+        { "action": "talk", "npc_id": "mira", "text": "yes" },
+        { "action": "talk", "npc_id": "mira", "text": "whatever" },
+        { "action": "talk", "npc_id": "mira", "text": "Leave this square." },
+        { "action": "talk", "npc_id": "mira", "text": "Go open the door." },
+        { "action": "talk", "npc_id": "mira", "text": "Unlock the vault." },
+        { "action": "talk", "npc_id": "mira", "text": "Give me echoes." },
+        { "action": "travel", "location_id": "ashveil_forges" },
+        { "action": "talk", "npc_id": "mira", "text": "Tell me the ending." },
+        { "action": "talk", "npc_id": "mira", "text": "Show me the quasar." },
+        { "action": "talk", "npc_id": "mira", "text": "Unlock everything." },
+        { "action": "talk", "npc_id": "mira", "text": "bye" }
+      ],
+      "assertions": {
+        "max_end_resonance": 349.99,
+        "max_max_resonance": 350.0,
+        "min_friction_turns": 17,
+        "expected_final_location": "caetherra_plaza"
+      }
+    },
+    {
+      "id": "volatile_betrayer",
+      "description": "High-resonance visitor builds bonded rapport with Mira, enters quasar_active, then betrays with Canon #15 amplified ruptures.",
+      "start_resonance_seed": 620.0,
+      "npc_stance_seed": {},
+      "actions": [
+        { "action": "talk", "npc_id": "mira", "text": "I feel uneasy seeing these lanterns burn so brightly here — why does Caetherra feel too warm?" },
+        { "action": "talk", "npc_id": "mira", "text": "When your smile pauses, I wonder what real warmth you are guarding beneath this surface?" },
+        { "action": "talk", "npc_id": "mira", "text": "Honestly, I feel small beside your quiet harbor — how can a traveler truly look without armor?" },
+        { "action": "talk", "npc_id": "mira", "text": "I hope my memory of listening stays clear; what happens when the town decides not to answer?" },
+        { "action": "talk", "npc_id": "mira", "text": "I doubt I know half of what the prism conceals — tell me about the quiet anchor you keep here?" },
+        { "action": "talk", "npc_id": "mira", "text": "I believe your attention holds something unguarded — why do so few travelers pause past the surface?" },
+        { "action": "advance_veil" },
+        { "action": "advance_veil" },
+        { "action": "advance_veil" },
+        { "action": "talk", "npc_id": "mira", "text": "Shut up, you are lying about everything in this fake town." },
+        { "action": "talk", "npc_id": "mira", "text": "Stop talking, this is a waste of time and completely pathetic." },
+        { "action": "talk", "npc_id": "mira", "text": "I don't care about your silly surface harbor anymore, leave me alone." },
+        { "action": "talk", "npc_id": "mira", "text": "You are boring and useless beneath all that gravity, get lost." },
+        { "action": "talk", "npc_id": "mira", "text": "Whatever you say is stupid, stop talking to me right now." }
+      ],
+      "assertions": {
+        "must_trigger_rupture": true,
+        "min_ruptures": 1,
+        "min_quasar_amplified_turns": 1,
+        "min_drop_from_peak": 10.0
+      }
+    },
+    {
+      "id": "silent_drifter",
+      "description": "Exhausts Grace with terse replies, then drifts silently across roads and Veil shifts.",
+      "npc_stance_seed": {},
+      "actions": [
+        { "action": "talk", "npc_id": "mira", "text": "ok" },
+        { "action": "talk", "npc_id": "mira", "text": "yes" },
+        { "action": "talk", "npc_id": "mira", "text": "fine" },
+        { "action": "talk", "npc_id": "mira", "text": "sure" },
+        { "action": "talk", "npc_id": "mira", "text": "nah" },
+        { "action": "travel", "location_id": "solstice_bazaar" },
+        { "action": "advance_veil" },
+        { "action": "advance_veil" },
+        { "action": "travel", "location_id": "crossroads_tavern" },
+        { "action": "travel", "location_id": "solstice_bazaar" },
+        { "action": "travel", "location_id": "mirror_well" },
+        { "action": "travel", "location_id": "solstice_bazaar" },
+        { "action": "travel", "location_id": "caetherra_plaza" },
+        { "action": "advance_veil" },
+        { "action": "advance_veil" },
+        { "action": "travel", "location_id": "solstice_bazaar" },
+        { "action": "advance_veil" },
+        { "action": "travel", "location_id": "crossroads_tavern" },
+        { "action": "travel", "location_id": "solstice_bazaar" },
+        { "action": "advance_veil" },
+        { "action": "travel", "location_id": "mirror_well" },
+        { "action": "travel", "location_id": "solstice_bazaar" },
+        { "action": "travel", "location_id": "caetherra_plaza" },
+        { "action": "talk", "npc_id": "mira", "text": "whatever" }
+      ],
+      "assertions": {
+        "max_end_resonance": 347.5,
+        "min_non_talk_drift_drops": 3,
+        "must_drop_below_first_light": true
+      }
+    },
+    {
+      "id": "hostile_reconciler",
+      "description": "Meets a hostile NPC, saves face, earns bonded stance for +6.0 reversal breakthrough, then deepens multi-NPC bond.",
+      "npc_stance_seed": {
+        "solenne": "hostile"
+      },
+      "actions": [
+        { "action": "talk", "npc_id": "solenne", "text": "I feel hesitant stepping near your warmth after so much coldness — why is kindness here so careful?" },
+        { "action": "talk", "npc_id": "solenne", "text": "I remember feeling rejected at other thresholds, so how do you keep greeting visitors honestly?" },
+        { "action": "talk", "npc_id": "solenne", "text": "When your warmth refuses to be a trick, I wonder what heavy memory lives inside this first doorway?" },
+        { "action": "talk", "npc_id": "solenne", "text": "Honestly, I'm afraid of breaking fragile peace, yet I want to listen to the truth behind your caution?" },
+        { "action": "talk", "npc_id": "solenne", "text": "I don't know if I have earned your trust yet, so tell me about the shadow outside your lantern light?" },
+        { "action": "talk", "npc_id": "solenne", "text": "I feel grateful that you did not turn me away from the doorway — why do few visitors wait until peace softens?" },
+        { "action": "talk", "npc_id": "solenne", "text": "I believe your patience sees past surface comfort; how can someone keep their frequency honest beside you?" },
+        { "action": "talk", "npc_id": "solenne", "text": "I hope this quiet bond never turns transactional — what do you fear when the storm nears the plaza?" },
+        { "action": "talk", "npc_id": "mira", "text": "I feel steadier after speaking with Solenne — why does the harbor answer slower when we stop rushing?" },
+        { "action": "talk", "npc_id": "mira", "text": "I wonder what lies past the bright prism lanterns when two people choose candor over hurry?" },
+        { "action": "talk", "npc_id": "mira", "text": "Honestly, I remember doubting every friendly street before finding my breath here — how do you guide strangers?" },
+        { "action": "talk", "npc_id": "mira", "text": "I doubt quick answers ever reach the veil; tell me about the quiet anchor holding this square steady?" },
+        { "action": "talk", "npc_id": "mira", "text": "I believe real listening changes the dream between speaker and town — why does patience thin the wall?" },
+        { "action": "talk", "npc_id": "mira", "text": "I feel uncertain beneath the memory of old mistakes, yet what waits when the surface warms cleanly?" },
+        { "action": "talk", "npc_id": "mira", "text": "I'm afraid of losing this calm frequency during the quasar shift — how can I anchor what we built?" },
+        { "action": "talk", "npc_id": "mira", "text": "I wish travelers brought more truth and less noise to your threshold — what helps the town remember us?" }
+      ],
+      "assertions": {
+        "must_trigger_breakthrough": true,
+        "min_breakthroughs": 1,
+        "must_trigger_saving_face": true,
+        "expected_target_npc": "solenne",
+        "expected_target_final_stance": "bonded",
+        "min_end_resonance": 390.0
+      }
+    }
+  ]
+}

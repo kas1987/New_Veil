@@ -4,7 +4,7 @@
   "surface_function": "A subterranean archive beneath Ashveil's forges. Caskets of condensed belief line the walls. The memory anvil rests at the center.",
   "hidden_function": "The Covenant stores what it burns. Every casket holds a belief archived, not destroyed. Vault Seven belongs to someone else entirely.",
   "unlock_conditions": {
-    "min_resonance": 0.65,
+    "min_resonance": 650.0,
     "min_interactions": 5,
     "required_emotional_tags": ["mystery", "warmth"],
     "veil_states_allowed": ["calm", "still", "storm", "quasar_active"],

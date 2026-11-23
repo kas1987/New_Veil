@@ -1,4 +1,5 @@
 import type { CodexEntry, GameState, ShelfCharacter } from './types'
+import type { CueType, ResonanceSignals } from './lib/resonanceEvaluator'
 
 async function request<T>(url: string, options?: RequestInit): Promise<T> {
   const res = await fetch(url, {
@@ -24,7 +25,16 @@ export const api = {
       method: 'POST',
     }),
   talk: (npc_id: string, message: string) =>
-    request<{ ok: boolean; speaker: string; reply: string; resonance_delta: number; state: GameState }>(
+    request<{
+      ok: boolean
+      speaker: string
+      reply: string
+      resonance_delta: number
+      cue_type?: CueType
+      signals?: ResonanceSignals
+      sealed_out?: boolean
+      state: GameState
+    }>(
       '/api/dialogue/turn',
       { method: 'POST', body: JSON.stringify({ npc_id, message }) },
     ),
@@ -72,5 +82,9 @@ export const api = {
     request<{ ok: boolean; npc_id: string; media_key: string; state: GameState }>('/api/media/bind', {
       method: 'POST',
       body: JSON.stringify({ npc_id, media_key }),
+    }),
+  resetSession: () =>
+    request<{ ok: boolean; message: string; state: GameState }>('/api/game/reset', {
+      method: 'POST',
     }),
 }

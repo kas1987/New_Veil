@@ -116,7 +116,7 @@ def test_district_unlock_engine_works_for_all_districts() -> None:
     for district_id in ("caetherra", "stillward", "ashveil", "ember_vaults", "the_hollow"):
         res = unlock_engine.check_unlock(
             district_id=district_id,
-            resonance=0.9,
+            resonance=900.0,
             interactions=10,
             emotional_tags=["warmth", "mystery", "recognition"],
             veil_state="calm",

@@ -33,10 +33,60 @@
     }
   ],
   "resonance_tiers": [
-    { "tier": 1, "name": "Surface Walker", "min_resonance": 0.0, "description": "Sees only the warm Prism surface." },
-    { "tier": 2, "name": "First Light", "min_resonance": 0.35, "description": "Notices subtle reflections and hidden thresholds." },
-    { "tier": 3, "name": "Veil Listener", "min_resonance": 0.55, "description": "Unlocks Ashveil, Stillward, and echo fragments." },
-    { "tier": 4, "name": "Quasar Tested", "min_resonance": 0.75, "description": "Can enter The Hollow and survive quasar_active." },
-    { "tier": 5, "name": "Awakened", "min_resonance": 0.85, "description": "Eligible for true names and True Ending." }
-  ]
+    { "tier": 1, "name": "Surface Walker", "min_resonance": 0.0, "description": "Draining talk. The town turns away. Below 100.0 the voice fails to cross. At 0.0 the session ends." },
+    { "tier": 2, "name": "First Light", "min_resonance": 350.0, "description": "Polite, guarded contact. A new session starts here. The plaza depth sentence appears at 450.0." },
+    { "tier": 3, "name": "Veil Listener", "min_resonance": 550.0, "description": "Engaged talk: listening, a real question, an observation. Listening Wall still needs storm or quasar." },
+    { "tier": 4, "name": "Quasar Tested", "min_resonance": 750.0, "description": "Vulnerable talk. Mira's name can show at 800.0 during quasar. Other road locks still apply." },
+    { "tier": 5, "name": "Awakened", "min_resonance": 850.0, "description": "Intimate talk. The membrane is clear glass. A surge at or above 800.0 is damped, so this band stays rare. Not an understanding of the Veil." }
+  ],
+  "resonance_talk": {
+    "turn_cap": 2.5,
+    "breakthrough_bonus": 3.5,
+    "breakthrough_ceiling": 6.0,
+    "high_band_from": 800.0,
+    "high_band_ceiling": 4.0,
+    "attuned_min_delta": 1.1,
+    "prior_resistance_turns": 2,
+    "stances": ["hostile", "guarded", "open", "bonded"],
+    "default_stance": "guarded",
+    "one_breakthrough_per_npc_per_session": true
+  },
+  "npc_bond": {
+    "max_bond": 100.0,
+    "soft_cap_town_contribution": 50.0,
+    "taper_multiplier": 0.15,
+    "bond_gain_multiplier": 1.6,
+    "bond_loss_multiplier": 1.5,
+    "breakthrough_bond_bonus": 10.0
+  },
+  "grace_window": {
+    "floor": 350.0,
+    "max_turns": 5,
+    "break_threshold": 450.0
+  },
+  "talk_weights": {
+    "mirror_npc_word": 0.6,
+    "open_inquiry": 0.5,
+    "interiority": 0.6,
+    "thematic_in_sentence": 0.6,
+    "interiority_thematic_cap": 1.2,
+    "sustained_length": 0.3,
+    "sustained_min_chars": 45
+  },
+  "friction_penalties": {
+    "terse_or_filler": -0.8,
+    "terse_max_chars": 14,
+    "command_spam_or_repeat": -1.2,
+    "hostile_dismissal": -1.8,
+    "trust_rupture": -3.0,
+    "quasar_negative_multiplier": 1.25,
+    "regression_consecutive_friction": 2,
+    "keyword_fatigue_turns": 2
+  },
+  "drift": {
+    "interval_turns": 3,
+    "calm_decay": -0.5,
+    "storm_decay": -1.0,
+    "collapse_threshold": 100.0
+  }
 }
