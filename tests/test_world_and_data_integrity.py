@@ -111,4 +111,3 @@ def test_district_unlock_engine_works_for_all_districts() -> None:
             player_state={"unlocked_districts": ["caetherra", "ashveil"], "has_lantern": True, "lantern_used": True},
         )
         assert res.unlocked is True, f"Expected {district_id} to unlock at high resonance: {res.reason}"
-

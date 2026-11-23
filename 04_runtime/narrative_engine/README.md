@@ -11,16 +11,16 @@ The system does not just send raw text to an LLM. It acts as a **State Machine**
 2. **State Mutation (`CharacterState`)**
    The engine updates its internal state trackers (Arousal, Intimacy, Inhibition). These are clamped between 0-100.
 3. **Context Injection (`DesireEngineLLM`)**
-   Instead of a static system prompt, the engine rewrites the prompt every turn using `taxonomy/desire_engine.json`. 
+   Instead of a static system prompt, the engine rewrites the prompt every turn using `taxonomy/desire_engine.json`.
    *Example:* If Arousal hits 85, the prompt injected to Mistral includes `[SYSTEM: Current State - Arousal: 85, Inhibition: 20]`. This forces the LLM's weights to output fragmented, desperate text.
-4. **LLM Inference** 
+4. **LLM Inference**
    The local model (Mistral:7b) reads the injected state and the user prompt, then generates the dialogue.
-5. **Audio SSML Branching (`AudioDirector`)** 
+5. **Audio SSML Branching (`AudioDirector`)**
    Once the text is generated, the engine checks the state against `taxonomy/audio_performance.json`. If Arousal > 80 and Inhibition < 30, it wraps the LLM's text in the `[heavy_breathing]` SSML tag, raising the pitch and altering the breath frequency.
 
 ### Branching to Variations
 
-Branching occurs inherently because the **state dictates the prompt**. 
+Branching occurs inherently because the **state dictates the prompt**.
 * **Branch A (Slow Burn):** If the user chooses gentle actions, Arousal stays low while Intimacy rises. The AudioDirector selects the `[whisper_intimate]` SSML profile. The LLM generates slow, trusting dialogue.
 * **Branch B (Aggressive):** If the user inputs harsh actions early, Inhibition might spike. The LLM shifts to defensive dialogue, and the Audio profile defaults or stutters.
 
@@ -34,7 +34,7 @@ Branching occurs inherently because the **state dictates the prompt**.
 
 ## ⚡ Vocal-First Async Architecture (Best Practice)
 
-In the Meta App, it takes ~15+ seconds for ComfyUI to render an 8k ReActor image, but only ~2 seconds for Ollama to generate a vocal response. 
+In the Meta App, it takes ~15+ seconds for ComfyUI to render an 8k ReActor image, but only ~2 seconds for Ollama to generate a vocal response.
 To preserve immersion, this engine is built using a **Vocal-First Async Architecture**:
 
 1. You type a message.
@@ -42,7 +42,7 @@ To preserve immersion, this engine is built using a **Vocal-First Async Architec
 3. The Engine immediately routes the SSML payload back to the TTS app so the character speaks right away.
 4. Concurrently, the `VisualDirector` spins up a **background thread** (`threading.Thread`) and silently pushes the modified prompt to ComfyUI.
 5. You can continue talking to the character and hearing their voice.
-6. When ComfyUI eventually finishes generating the frame in the background, a WebSocket quietly updates the Meta App UI with the new image. 
+6. When ComfyUI eventually finishes generating the frame in the background, a WebSocket quietly updates the Meta App UI with the new image.
 *The image acts as an atmospheric correlation, but the Voice is the primary driver of real-time interaction.*
 
 ### Running the Test Harness

@@ -141,4 +141,3 @@ describe('The Veil RPG Client', () => {
     expect(screen.getByText('The Nine Sisters')).toBeTruthy()
   })
 })
-

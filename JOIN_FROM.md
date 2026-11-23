@@ -16,12 +16,12 @@ Configure local paths via `90_intake/sources.json` (gitignored). Start from [`90
 
 ## Suggested pull order
 
-1. Canon + metaphysics — done  
-2. Charter / gates — done  
-3. Motif design — done  
-4. Agents + districts — done  
-5. Runtime / memory / alignment — done (selective)  
-6. UI tokens — done (selective)  
+1. Canon + metaphysics — done
+2. Charter / gates — done
+3. Motif design — done
+4. Agents + districts — done
+5. Runtime / memory / alignment — done (selective)
+6. UI tokens — done (selective)
 7. Optional packs / historical docs / `11_world` / `15_voice`
 
 ## Do not bulk-copy into git

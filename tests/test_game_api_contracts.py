@@ -116,4 +116,3 @@ def test_encounter_deterministic_resolution_and_save_restore() -> None:
     assert loaded["ok"] is True
     assert loaded["state"]["world"]["current_location"]["id"] == "caetherra_plaza"
     assert loaded["state"]["player"]["xp"] == 0
-

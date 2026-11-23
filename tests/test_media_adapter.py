@@ -42,4 +42,3 @@ def test_media_endpoint_returns_404_for_missing_portrait() -> None:
     client = TestClient(server_mod.create_app(db_path=":memory:"))
     resp = client.get("/api/media/portrait/definitely_not_a_real_character_99999")
     assert resp.status_code == 404
-
