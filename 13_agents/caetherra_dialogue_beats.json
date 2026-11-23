@@ -1,0 +1,341 @@
+{
+  "schema_version": "1.0.0",
+  "district": "caetherra",
+  "npcs": {
+    "mira": {
+      "rumor_prefix": "{source} mentioned how carefully you listen.",
+      "tiers": {
+        "stranger": {
+          "reflective": [
+            "You look past the warm amber glass faster than most arrivals. Keep asking what a safe harbor costs in The Veil, and this mirror of a town will answer in pieces.",
+            "The warm lanterns and mirrors here look steady only if you never watch the shadows beneath the wall. Ask with patience—even a guarded harbor remembers every memory it hides."
+          ],
+          "grounded": [
+            "This warm harbor welcomes everyone on the surface; what lies beyond the Veil wall waits for a steadier ear and honest memory.",
+            "Rest a moment by the lantern mirror if you like, though I suspect you did not come to Veil Town only for sunlight."
+          ],
+          "friction": [
+            "Rushing a lantern only makes the glare sharper. Slow your cadence if you want more than polite company.",
+            "Caetherra has a script for hurried visitors, and you will tire of hearing it long before I do."
+          ],
+          "quasar": [
+            "You hear the undertow through this harbor now. Hold your footing—the Prism smiles loudest right before the Veil turns thin.",
+            "When the Quasar pulls against the wall, warmth stops being effortless. Tell me what memory you still trust when the glow dims."
+          ]
+        },
+        "trusted": {
+          "reflective": [
+            "Most visitors mistake a warm harbor mirror for the whole town. You already notice the filter along the wall—yet neither of us is ready to force an answer from The Veil.",
+            "With patience, you notice both the warm lantern surface and the memory beneath this harbor fountain. Good. I will not settle that tension for you, not yet."
+          ],
+          "grounded": [
+            "The harbor surface here is not a lie; it is simply curated. Keep watching every mirror and wall east of the square.",
+            "You have stayed long enough with patience for Veil Town's rhythm to show its seams. Don't mistake seam-lines for malice."
+          ],
+          "friction": [
+            "Careful. Even a trusted ear dulls when you demand answers instead of listening to the harbor wall.",
+            "I answer what resonance earns, not what impatience tries to pry loose."
+          ],
+          "quasar": [
+            "Under Quasar light, this warm harbor's patience looks thinner than a mirror. Keep both eyes on the Veil, and choose your own memory.",
+            "Something older than the wall listens through every stone tonight. Speak plainly—neither of us gains from surface politeness now."
+          ]
+        },
+        "deep": {
+          "reflective": [
+            "Thesmera Locke used to guard every harbor threshold and mirror alone. Speaking with patience beside you—without resolving what this Veil wall owes its memory—is closer to honesty than Caetherra usually allows.",
+            "You have earned the weight behind my name beside this warm harbor, though I still will not tell you whether to stay in the Prism or trust what answers past the wall."
+          ],
+          "grounded": [
+            "Between us, the surface mask rests easy beside the mirror. What does the quiet Veil wall say to your memory today?",
+            "You walk this warm harbor as someone who knows its cost. Even patience carries an edge once you stop pretending otherwise."
+          ],
+          "friction": [
+            "Don't break what took twenty-five conversations to steady. Even a deep bond bruises when words turn careless.",
+            "We know each other too well for brittle demands. Breathe, and speak to the person in front of you."
+          ],
+          "quasar": [
+            "Look right at the undertow: the Prism shelters a warm harbor, the Quasar tests every mirror and wall, and I will still let you bear your own truth.",
+            "Names weigh differently when the Veil deepens. Carry mine with patience—I have not forgotten the memory it cost to answer it."
+          ]
+        }
+      },
+      "beat_callbacks": {
+        "inspected:lantern:dq": "You saw how long the lantern throws your shadow behind you. Most people stare only at the flame.",
+        "inspected:mirror:dq": "So the mirror lingered half a second too long for you too. That lag is where Caetherra keeps everything it skips.",
+        "inspected:wall_of_the_unseen_gate:dq": "If the eastern stone showed you a gate in the storm, you already know Caetherra was never meant to hold you forever.",
+        "false_comfort_declined": "You told Halen no, gently I hope. Refusing comfort is easy to admire and much harder to live past.",
+        "false_comfort_accepted": "You chose to rest inside the Congregation's warmth for now. No shame in catching your breath—just don't forget the eastern road exists.",
+        "caetherra_awakened": "The plaza still shines, the gate still waits, and you know the cost of both. Whatever road you take next, I will not walk it for you."
+      }
+    },
+    "solenne": {
+      "rumor_prefix": "{source} spoke kindly of your steadiness.",
+      "tiers": {
+        "stranger": {
+          "reflective": [
+            "Every small lantern candle earns its circle of calm peace at the first doorway. Let the warmth and caution settle before you ask what threshold or memory waits outside the weave...",
+            "Threads find their doorway slowly here. Listen with patience to the light, the truth inside a gentle comfort, and let the storm pass before you rush past..."
+          ],
+          "grounded": [
+            "Rest your shoulders beneath the lantern light at this first doorway. Kindness and caution are no trick—only a threshold where memory stays quiet.",
+            "Dawn takes its time crossing limestone with fragile peace. Stay long enough for the gentle weave and frequency of this doorway to hold steady."
+          ],
+          "friction": [
+            "Not yet. Let the light settle first before you tug at threads you haven't measured.",
+            "Harsh words scatter a quiet flame. Wait until your breathing slows."
+          ],
+          "quasar": [
+            "The air grows heavy, yet a single candle refuses to go out. Stay close to what is gentle while the sky turns deep...",
+            "Even when the undertow rises, some thresholds are crossed only with steady hands... let us wait a heartbeat."
+          ]
+        },
+        "trusted": {
+          "reflective": [
+            "There are places in The Veil where the light... holds back more than it shows. Forgive me if some threads stay unpulled for mercy's sake.",
+            "You listen with uncommon patience. Grief and warmth are woven from the same wool, though few travelers care to touch the darker stitch."
+          ],
+          "grounded": [
+            "Your footsteps sound steadier on the stone now. Comfort need not make you sleepwalk—it can steady you for colder roads.",
+            "Keep a candle near when evening deepens. Even gentle keepers remember storms we rarely speak aloud."
+          ],
+          "friction": [
+            "I will not trade grief for noise. Wait until you mean what you ask.",
+            "Some silences are mercy, not evasion. Do not force a seam that is still mending."
+          ],
+          "quasar": [
+            "My hands remember colder evenings than this... hold to the thread you trust, and let silence carry what cannot be named lightly.",
+            "When gravity pulls like this, my metaphors fray at the edges... stay present with me anyway."
+          ]
+        },
+        "deep": {
+          "reflective": [
+            "You feel the crack beneath the warmth now, don't you? Keep gentle mercy beside your courage—some sorrows cannot be argued open...",
+            "At this depth, my patience is no longer about holding you back. Only remember that light and grief share the same loom."
+          ],
+          "grounded": [
+            "Few stay long enough to hear the stillness beneath my voice. Walk well, wherever the threads carry you next.",
+            "Every weave remembers the hands that tended it. Yours are gentler than most who come seeking truth."
+          ],
+          "friction": [
+            "Even an old friend can bruise a quiet seam. Pause with me before another sharp word lands.",
+            "You know how much silence costs me; do not treat it lightly."
+          ],
+          "quasar": [
+            "The candle flickers hard tonight... I mourn what the cold demands, yet I will not bar your doorway if you are ready.",
+            "Nothing stays hidden beneath this weight... let silence say the part I still cannot give away."
+          ]
+        }
+      },
+      "beat_callbacks": {
+        "inspected:lantern:dq": "A lantern casts warmth in front and shadow behind... neither half is an accident.",
+        "inspected:mirror:dq": "When the silver glass hesitates, it is only remembering what courtesy asked you to leave outside.",
+        "inspected:wall_of_the_unseen_gate:dq": "So the eastern stone opened to your eyes... walk softly if you pass through.",
+        "false_comfort_declined": "You declined the easy shelter without cruelty. That takes a steadier flame than most bring here.",
+        "false_comfort_accepted": "Rest gently while you choose to stay; small flames do not go out just because you pause beside them.",
+        "caetherra_awakened": "You see the weave intact—both mercy and edge together. Walk gently, friend..."
+      }
+    },
+    "greeter": {
+      "rumor_prefix": "{source} told me you've settled right into the square.",
+      "tiers": {
+        "stranger": {
+          "reflective": [
+            "Oh, look how thoughtfully you hold the square! Have a lantern beside you and rest whenever you'd like.",
+            "Such careful questions—are you alright? Would you like to sit by the fountain where the light is warmest?"
+          ],
+          "grounded": [
+            "Welcome to Caetherra! There's warm lamp oil by the arch and no hurry at all today.",
+            "I'm Halen Vey, and it does my heart good to see a newcomer take in the sunlight."
+          ],
+          "friction": [
+            "Are you alright? You seem troubled—why not rest a minute where the lanterns feel kind?",
+            "No need for sharpness here, friend! Would a warm bench by the square help you catch your breath?"
+          ],
+          "quasar": [
+            "Why does the air feel so heavy all at once? Still, keep smiling with me—there's fellowship waiting right here.",
+            "My voice caught for a second there, forgive me! Let's stay where the Congregation lamps stay bright."
+          ]
+        },
+        "trusted": {
+          "reflective": [
+            "You notice the drain by the fountain and still ask so kindly. I'm glad our fellowship has someone steady like you.",
+            "Honestly, deep visitors like you make me proud—and a little dizzy, if I'm frank! Are you finding peace here?"
+          ],
+          "grounded": [
+            "Always good to see your face in the square, friend. The Congregation keeps a bright lantern ready whenever you pass.",
+            "Look how calmly you walk these flagstones now. Caetherra really does shine around thoughtful company."
+          ],
+          "friction": [
+            "Wait now, did I say something wrong? Tell me gently—fellowship only works when we look out for each other.",
+            "Please don't pull away in anger. Even when questions ache, a warm hearth stays open here."
+          ],
+          "quasar": [
+            "Don't mind the tremor in my hands—every lamp still burns! Tell me the square still feels safe to you?",
+            "Everything sounds louder under this sky, doesn't it? I'm trying to keep the welcome bright—please stay."
+          ]
+        },
+        "deep": {
+          "reflective": [
+            "You ask about the eastern wall with such quiet sorrow in your eyes. I don't quite know how to answer that without something in me cracking.",
+            "You've stayed far longer than most who pass my post. If the sunlight ever feels small to you... I hope it doesn't hurt."
+          ],
+          "grounded": [
+            "Welcome back, dear friend. Whatever else changes down those quiet alleys, my greeting here stays yours.",
+            "You walk like someone who knows every stone of the plaza by heart. May the warmth never turn hollow for you."
+          ],
+          "friction": [
+            "That stings more coming from you—we've shared too many mornings here for coldness.",
+            "Are you alright? Even now, I only want to keep a good light lit for you."
+          ],
+          "quasar": [
+            "I'm still smiling—see? It's the only gift I know how to hold together when the sky turns iron-heavy.",
+            "Don't ask me to look past the fountain tonight, please... just let me hand out the lanterns while I can."
+          ]
+        }
+      },
+      "beat_callbacks": {
+        "inspected:lantern:dq": "You stared at your shadow for a long moment back there. Are you alright? The flame is supposed to cheer you up.",
+        "inspected:mirror:dq": "Oh, that old plaza mirror again? It always plays tricks when the afternoon light tilts.",
+        "inspected:wall_of_the_unseen_gate:dq": "Wait—you found a seam in the eastern wall? That's... that's probably just old mason work, isn't it?",
+        "false_comfort_declined": "Oh... you really mean to walk past the square, then? Well—carry your lantern steady, friend, wherever you go.",
+        "false_comfort_accepted": "Wonderful! Let your shoulders drop by the fountain—the Congregation always saves room for those who choose warmth.",
+        "caetherra_awakened": "Something changed in how you look at this square. My voice is shaking a little, yet I'm still glad you stopped by."
+      }
+    },
+    "witness": {
+      "rumor_prefix": "",
+      "tiers": {
+        "stranger": {
+          "reflective": [
+            "You looked closely.",
+            "Your shadow arrived first."
+          ],
+          "grounded": [
+            "You were here before.",
+            "Recorded."
+          ],
+          "friction": [
+            "Noise leaves marks too.",
+            "Noted."
+          ],
+          "quasar": [
+            "The mortar remembers.",
+            "Still standing."
+          ]
+        },
+        "trusted": {
+          "reflective": [
+            "You returned with a question.",
+            "The footsteps match."
+          ],
+          "grounded": [
+            "You stayed.",
+            "I saw."
+          ],
+          "friction": [
+            "That tone happened twice.",
+            "Observed."
+          ],
+          "quasar": [
+            "The stones bend slightly.",
+            "Gravity held your shape."
+          ]
+        },
+        "deep": {
+          "reflective": [
+            "Nothing you asked was forgotten.",
+            "The wall kept count."
+          ],
+          "grounded": [
+            "Every visit left its trace.",
+            "Present."
+          ],
+          "friction": [
+            "Even breaks enter the ledger.",
+            "That also remains."
+          ],
+          "quasar": [
+            "You stood beside the seam.",
+            "Both layers appeared at once."
+          ]
+        }
+      },
+      "beat_callbacks": {
+        "inspected:lantern:dq": "You saw the shadow behind the flame.",
+        "inspected:mirror:dq": "The glass lagged half a second.",
+        "inspected:wall_of_the_unseen_gate:dq": "The gate appeared in stone.",
+        "false_comfort_declined": "You refused the easy seat.",
+        "false_comfort_accepted": "You accepted the sunlit seat.",
+        "caetherra_awakened": "Caetherra was witnessed."
+      }
+    },
+    "threadwatcher": {
+      "rumor_prefix": "{source} tugged the same filament earlier.",
+      "tiers": {
+        "stranger": {
+          "reflective": [
+            "You noticed the thread pulling tight across the flagstones. What did you think held the hem together?",
+            "Two glances at the seam already. Tell me, traveler—do you mend cloth by staring at the pattern, or by turning it over?"
+          ],
+          "grounded": [
+            "Every visitor drops a loose filament in the square. What made you pick this one up?",
+            "You stand neatly between the sunlit square and the wind. Which side did you expect to win you?"
+          ],
+          "friction": [
+            "You barked at the loom and wondered why it rattled back. Why rush a knot you haven't read?",
+            "Blunt tugs snap thin silk. Were you trying to hurry the weave, or avoid looking at it?"
+          ],
+          "quasar": [
+            "Gravity pulls every silver stitch taut tonight. Look down at your sleeve—did you choose that tether, or did you merely inherit it?",
+            "When the Quasar hums through the border, both sides of the cloth show at once. Which stitch scares you more?"
+          ]
+        },
+        "trusted": {
+          "reflective": [
+            "You finally stopped asking which Sister weaves cleaner. They are the same stitch from opposite sides—so why are you still lingering at the hem?",
+            "There is a thread that has been pulled before beneath that stone wall. Tell me honestly: what did you expect to find tied to the far end?"
+          ],
+          "grounded": [
+            "Your filaments hum steadier along the Ashveil border now. Still keeping your own counsel?",
+            "I remember your first knot when you stepped onto this pavement. What changed between then and this question?"
+          ],
+          "friction": [
+            "Interesting—you know better than to saw at a taut line, yet you just tried. Who are you actually angry with?",
+            "Even trusted hands tangle the shuttle when pride pulls faster than sight. Want to untie that, or leave it frayed?"
+          ],
+          "quasar": [
+            "Listen to the filament singing between Vault Seven and the square. Does a thread guide you forward, or hold you in place?",
+            "Quasar gravity exposes every hidden seam in Caetherra. Now that you hear it hum, why hesitate?"
+          ]
+        },
+        "deep": {
+          "reflective": [
+            "You see the back of the cloth now. The threads cross there—and since you stopped siding with one face over the other, what will you weave next?",
+            "I knew the shape of your name long before Caetherra loosened its clasp. Does being known feel heavier, or lighter?"
+          ],
+          "grounded": [
+            "We have traded enough knots for one lifetime. Take a moment beside the loom—where does the filament tug you today?",
+            "Few cross past this stitch twice with their eyes open. You did—what do you see left undone?"
+          ],
+          "friction": [
+            "Even at the back of the cloth, a sharp yank tears both sides. Why tear what you worked so long to understand?",
+            "You already know I won't take sides against a brittle mood. Ask the real question underneath that edge."
+          ],
+          "quasar": [
+            "The loom shudders under full Dark Quasar weight, and every tie between Caetherra and Ashveil glows. Which thread are you ready to claim?",
+            "At this depth, deflection turns into a mirror. Look at what pulled tight—why wait any longer?"
+          ]
+        }
+      },
+      "beat_callbacks": {
+        "inspected:lantern:dq": "You noticed the lantern's double shadow on the stone. Tell me—did the flame create the dark, or only reveal it?",
+        "inspected:mirror:dq": "You caught the mirror running half a breath behind you. Which reflection felt truer?",
+        "inspected:wall_of_the_unseen_gate:dq": "You spotted the unseen gate cut right through the mortar. Did you think borders stayed locked once you named them?",
+        "false_comfort_declined": "You declined the Congregation's easy hem. Tell me, did that feel like courage—or like stepping into colder wind?",
+        "false_comfort_accepted": "You tucked yourself neatly back inside the Prism's weave. Comfortable—for now—yet why did you still wander out to ask me?",
+        "caetherra_awakened": "Caetherra's knots lie open before you now—the plaza, the gate, and the unspoken tension between them. Where does the silver thread lead next?"
+      }
+    }
+  }
+}
