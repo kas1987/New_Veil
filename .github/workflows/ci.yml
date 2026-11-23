@@ -48,7 +48,7 @@ jobs:
       - name: Run hooks
         run: pre-commit run --all-files
 
-  alignment-tests:
+  python-tests:
     name: alignment unit tests
     runs-on: ubuntu-latest
     steps:
@@ -59,9 +59,39 @@ jobs:
         uses: actions/setup-python@v6
         with:
           python-version: "3.11"
+          cache: pip
 
-      - name: Install pytest
-        run: pip install pytest
+      - name: Install package and dev dependencies
+        run: pip install -e ".[dev]"
 
-      - name: Run alignment tests
-        run: python -m pytest 05_alignment/tests -q
+      - name: Run full pytest suite
+        run: python -m pytest -q
+
+  frontend-ci:
+    name: frontend UI (typecheck · vitest · build)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: 07_ui/game_client
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: 07_ui/game_client/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: TypeScript typecheck
+        run: npm run typecheck
+
+      - name: Run Vitest suite
+        run: npm test
+
+      - name: Production Vite build
+        run: npm run build

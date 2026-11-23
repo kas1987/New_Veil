@@ -69,3 +69,98 @@ CREATE TABLE IF NOT EXISTS player_state (
     veil_state TEXT DEFAULT 'calm',
     last_updated TEXT DEFAULT CURRENT_TIMESTAMP
 );
+
+-- RPG World State: active location, time of day, Veil cycle tick, echo currency.
+CREATE TABLE IF NOT EXISTS world_state (
+    player_id TEXT PRIMARY KEY DEFAULT 'player',
+    current_region TEXT DEFAULT 'veil_heartlands',
+    current_settlement TEXT DEFAULT 'veil_town',
+    current_district TEXT DEFAULT 'caetherra',
+    current_location TEXT DEFAULT 'caetherra_plaza',
+    day_count INTEGER DEFAULT 1,
+    time_of_day TEXT DEFAULT 'dusk' CHECK(time_of_day IN ('dawn', 'day', 'dusk', 'night')),
+    veil_state TEXT DEFAULT 'calm' CHECK(veil_state IN ('calm', 'still', 'storm', 'quasar_active')),
+    echoes INTEGER DEFAULT 12,
+    discovered_locations TEXT DEFAULT '["caetherra_plaza"]',
+    active_party TEXT DEFAULT '["mira"]',
+    updated_at TEXT DEFAULT CURRENT_TIMESTAMP
+);
+
+-- RPG Player Psychometric & Resonance Stats.
+CREATE TABLE IF NOT EXISTS player_stats (
+    player_id TEXT PRIMARY KEY DEFAULT 'player',
+    level INTEGER DEFAULT 1,
+    xp INTEGER DEFAULT 0,
+    resonance REAL DEFAULT 350.0,
+    clarity REAL DEFAULT 10,
+    empathy REAL DEFAULT 10,
+    resolve REAL DEFAULT 10,
+    perception REAL DEFAULT 10,
+    veil_attunement REAL DEFAULT 10,
+    emotional_tags TEXT DEFAULT '["warmth", "curiosity"]',
+    has_crossed_first_threshold INTEGER DEFAULT 0,
+    recent_keywords TEXT DEFAULT '[]',
+    drift_count INTEGER DEFAULT 0,
+    last_npc_lines TEXT DEFAULT '{}',
+    encounter_arcs TEXT DEFAULT '{}',
+    updated_at TEXT DEFAULT CURRENT_TIMESTAMP
+);
+
+-- RPG Inventory & Symbolic Objects.
+CREATE TABLE IF NOT EXISTS inventory (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    player_id TEXT DEFAULT 'player',
+    item_id TEXT NOT NULL,
+    quantity INTEGER DEFAULT 1,
+    equipped INTEGER DEFAULT 0,
+    metadata TEXT DEFAULT '{}',
+    acquired_at TEXT DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(player_id, item_id)
+);
+
+-- RPG Quest & Narrative Arc Progress.
+CREATE TABLE IF NOT EXISTS quest_progress (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    player_id TEXT DEFAULT 'player',
+    quest_id TEXT NOT NULL,
+    status TEXT DEFAULT 'active' CHECK(status IN ('locked', 'available', 'active', 'completed', 'failed')),
+    stage_index INTEGER DEFAULT 0,
+    flags TEXT DEFAULT '{}',
+    updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(player_id, quest_id)
+);
+
+-- RPG Faction Reputation (-100 to +100).
+CREATE TABLE IF NOT EXISTS faction_reputation (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    player_id TEXT DEFAULT 'player',
+    faction_id TEXT NOT NULL,
+    reputation INTEGER DEFAULT 0,
+    rank TEXT DEFAULT 'stranger',
+    updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(player_id, faction_id)
+);
+
+-- RPG Save Slots (JSON snapshots for quick save/load).
+CREATE TABLE IF NOT EXISTS save_slots (
+    slot_id TEXT PRIMARY KEY,
+    label TEXT NOT NULL,
+    snapshot_json TEXT NOT NULL,
+    created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+    updated_at TEXT DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Optional local portrait bindings (maps RPG npc_id -> local media key).
+CREATE TABLE IF NOT EXISTS portrait_bindings (
+    npc_id TEXT PRIMARY KEY,
+    media_key TEXT NOT NULL,
+    updated_at TEXT DEFAULT CURRENT_TIMESTAMP
+);
+
+-- One-shot Resonance Trial / Encounter completions.
+CREATE TABLE IF NOT EXISTS completed_encounters (
+    player_id TEXT DEFAULT 'player',
+    encounter_id TEXT NOT NULL,
+    completed_at TEXT DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (player_id, encounter_id)
+);

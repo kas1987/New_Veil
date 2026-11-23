@@ -3,40 +3,42 @@
 > Canon ref: VEIL-001 — The Veil has a Prism surface and Dark Quasar depth.
 > Canon ref: MIRA-001 — Mira / Thesmera Locke is the first awakening point for most players.
 
----
+The player number this district uses is **resonance**. The definition is `12_metaphysics/RESONANCE.md`. It starts at 350.0. Talk, a consumed shard, and a won trial raise it. Travel locks and the depth line on the plaza read it.
 
-```yaml
-name: Caetherra
-mood: warm, deceptively welcoming
-prism_score: 0.8
-dq_score: 0.3  # hidden beneath surface
-unlock_condition: default — always accessible
-symbolic_objects:
-  - wall_of_the_unseen_gate
-  - lantern
-  - cobblestones
-  - the fountain at the center
-hidden_layer: >
-  Below the warm surface, the fountain drains into the Ashen tunnels.
-  Those with emotional_depth > 0.6 perceive it as warmth underfoot rather than comfort.
-faction_presence:
-  public: Prism Congregation
-  hidden: Ashen Covenant
-```
+`emotional_depth` is not a Caetherra mechanic. The session copies resonance into a column with that name and never reads the column back. Do not gate this district on it.
 
 ---
 
-Caetherra is the first thing a visitor sees — and for many, the last. It presents as a warm market town under permanent gold light. The cobblestones are even. The fountain at the center runs clean. A lantern is offered at the edge of the square; most visitors accept it without noticing they never asked for it.
+## What the session does
 
-The Prism Congregation maintains Caetherra's welcome. They are not performing warmth — it is real. But warmth sustained against a counterpressure is not the same as warmth freely given, and those who stay long enough begin to feel the effort behind it. The cobblestones near the fountain are slightly warm underfoot. In the early morning, when the square empties, the fountain sound changes — something in the drain, something pulling downward.
+The session starts in Caetherra Sunlit Plaza. The road here has no lock. Mira is the first person selected. Her greeting is the first line in the feed. Solenne and the Greeter are also in the plaza. The Greeter cannot join the party.
 
-Thesmera Locke (Mira) is the most common first contact. She lives at the district's threshold in both the literal and symbolic sense — she knows the filter the Congregation runs, and she knows the tunnels beneath the fountain, and she has not decided what to do with either piece of knowledge. Her ambivalence is the district's first real invitation: she will answer direct questions with unexpected honesty if the player earns it.
+The surface description is always on screen. At resonance **450.0** the client also shows the location's depth sentence: the cobblestones and the counted footsteps.
 
-**On depth:** Visitors with `emotional_depth > 0.6` begin to perceive Caetherra's second register. The fountain's drain becomes visible. The warmth underfoot reads as heat. The Congregation's smiles acquire a slight evaluative quality. Nothing bad happens — the district does not punish depth — but it changes. Caetherra at depth is a more honest, more uncomfortable, more interesting place.
+Two hidden places open off the plaza. The thresholds are the ones in `11_world/world_manifest.json`.
+
+| Place | Opens when |
+|---|---|
+| The Listening Wall | Resonance **550.0**, and the veil is **storm** or **quasar_active** |
+| Mira's Garden | Resonance **650.0**, and **turns taken** is at least **5** |
+
+Turns taken increases by one each time the player talks. The garden check uses that counter. It does not count talks with Mira alone, and it does not require her true name.
+
+Ashveil, east of the plaza, opens at resonance **500.0**. That is a different district.
+
+The lantern is not handed over in the square. It costs 15 Echoes at Lanternwright's Bazaar. Buying it advances The First Light.
 
 ---
 
-## Discoveries
+## Written, not a mechanic yet
 
-- Caetherra's physical transition to Ashveil occurs at the eastern wall. This wall should carry its own symbolic identifier in runtime (`wall_of_the_unseen_gate`) — it does not appear to have a gate until `emotional_depth >= 0.5`.
-- Mira's positioning here (aware of the filter, ambivalent) creates her central tension. Agent workers must not resolve this tension in her default state — her arc is the resolution.
+These stay in the prose until a session rule exists for them.
+
+- The fountain, the drain into the Ashen tunnels, and warmth underfoot.
+- A lantern offered at the edge of the square without asking.
+- The Prism Congregation as a filter. The Greeter is present. The Congregation does not act.
+- Mira knowing the filter and the tunnels, and refusing to resolve that. Her prompt says this. Her replies use the shared talk template.
+- The eastern wall as `wall_of_the_unseen_gate`, appearing at a depth threshold. The object name sits on the Listening Wall. Nothing interacts with it.
+- The Echo Corridor. It is not a place in the world manifest.
+
+Mira's central tension stays unresolved in her default state. That is a writing rule for anyone speaking as her, not a travel lock.

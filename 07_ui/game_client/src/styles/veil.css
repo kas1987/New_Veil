@@ -1,0 +1,718 @@
+:root {
+  --void: #030008;
+  --void-light: #0a0518;
+  --veil: #7c3aed;
+  --veil-bright: #a855f7;
+  --veil-glow: rgba(124, 58, 237, 0.45);
+  --quasar: #06b6d4;
+  --quasar-bright: #22d3ee;
+  --quasar-glow: rgba(6, 182, 212, 0.45);
+  --bloom: #e879f9;
+  --bloom-glow: rgba(232, 121, 249, 0.45);
+  --star: #fde68a;
+  --emerald: #34d399;
+  --ember: #f97316;
+  --text: #e2e8f0;
+  --text-dim: #94a3b8;
+  --text-muted: #64748b;
+  --glass-bg: rgba(8, 3, 20, 0.78);
+  --glass-bg-heavy: rgba(6, 2, 16, 0.92);
+  --glass-border: rgba(124, 58, 237, 0.24);
+  --card-shadow: 0 8px 32px rgba(0, 0, 0, 0.55), 0 0 28px rgba(124, 58, 237, 0.14);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+  background: var(--void);
+  color: var(--text);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+/* ── Full-bleed viewport shell ────────────────────────────────────────────── */
+
+.veil-stage-shell {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  background: var(--void);
+}
+
+/* Layer 0: Atmospheric backdrop reacting to Veil state & district */
+.backdrop-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  transition: background 1s ease;
+}
+
+.backdrop-layer.veil-calm {
+  background:
+    radial-gradient(ellipse at 50% 24%, rgba(124, 58, 237, 0.26) 0%, transparent 58%),
+    radial-gradient(ellipse at 20% 80%, rgba(253, 230, 138, 0.08) 0%, transparent 50%),
+    linear-gradient(180deg, #070214 0%, var(--void) 100%);
+}
+
+.backdrop-layer.veil-still {
+  background:
+    radial-gradient(ellipse at 50% 26%, rgba(6, 182, 212, 0.24) 0%, transparent 60%),
+    radial-gradient(ellipse at 80% 75%, rgba(124, 58, 237, 0.14) 0%, transparent 52%),
+    linear-gradient(180deg, #030916 0%, var(--void) 100%);
+}
+
+.backdrop-layer.veil-storm {
+  background:
+    radial-gradient(ellipse at 50% 25%, rgba(249, 115, 22, 0.26) 0%, rgba(124, 58, 237, 0.18) 42%, transparent 70%),
+    linear-gradient(180deg, #110412 0%, var(--void) 100%);
+}
+
+.backdrop-layer.veil-quasar_active {
+  background:
+    radial-gradient(ellipse at 50% 30%, rgba(232, 121, 249, 0.34) 0%, rgba(6, 182, 212, 0.22) 38%, transparent 72%),
+    radial-gradient(circle at 50% 44%, rgba(124, 58, 237, 0.22) 0%, transparent 45%),
+    linear-gradient(180deg, #090118 0%, var(--void) 100%);
+}
+
+.backdrop-grid {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.18;
+  background-image: radial-gradient(rgba(255, 255, 255, 0.24) 1px, transparent 1px);
+  background-size: 36px 36px;
+}
+
+/* ── Ghost HUD Chrome (VEIL Design System: 0.45s ease reveal) ─────────────── */
+
+.ghost-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 30;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 12px 22px;
+  background: linear-gradient(180deg, rgba(3, 0, 8, 0.88) 0%, rgba(3, 0, 8, 0.35) 100%);
+  border-bottom: 1px solid rgba(124, 58, 237, 0.16);
+  opacity: 0.26;
+  transition: opacity 0.45s ease, background 0.45s ease;
+}
+
+.ghost-header:hover,
+.ghost-header:focus-within,
+.ghost-header.pinned {
+  opacity: 1;
+  background: rgba(5, 1, 14, 0.90);
+  backdrop-filter: blur(12px);
+}
+
+.brand {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+}
+
+.brand-title {
+  font-family: 'Cinzel Decorative', serif;
+  font-size: 19px;
+  letter-spacing: 0.14em;
+  color: var(--text);
+  text-shadow: 0 0 18px var(--veil-glow);
+}
+
+.brand-loc {
+  font-family: 'Cinzel', serif;
+  font-size: 10px;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--quasar-bright);
+}
+
+.hud-pills {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  font-size: 11px;
+  color: var(--text-dim);
+}
+
+.pill strong {
+  color: var(--text);
+  font-weight: 600;
+}
+
+.pill.veil-pill {
+  border-color: var(--bloom);
+  color: var(--bloom);
+  cursor: pointer;
+  transition: box-shadow 0.25s ease, background 0.25s ease;
+}
+
+.pill.veil-pill:hover {
+  box-shadow: 0 0 14px var(--bloom-glow);
+  background: rgba(232, 121, 249, 0.14);
+}
+
+/* Right Ghost Navigation Rail */
+.ghost-rail {
+  position: fixed;
+  top: 50%;
+  right: 16px;
+  transform: translateY(-50%);
+  z-index: 30;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px 8px;
+  border-radius: 12px;
+  background: transparent;
+  opacity: 0.16;
+  transition: opacity 0.45s ease, background 0.45s ease, backdrop-filter 0.45s ease;
+}
+
+.ghost-rail:hover,
+.ghost-rail:focus-within,
+.ghost-rail.pinned {
+  opacity: 1;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  backdrop-filter: blur(12px);
+  box-shadow: var(--card-shadow);
+}
+
+.rail-btn {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  min-width: 144px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--text-dim);
+  font-family: 'Cinzel', serif;
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.rail-btn:hover,
+.rail-btn.active {
+  color: var(--text);
+  border-color: var(--veil-bright);
+  background: rgba(124, 58, 237, 0.22);
+}
+
+.hotkey {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px;
+  padding: 1px 5px;
+  border-radius: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  color: var(--quasar-bright);
+}
+
+/* ── Layer 1: Center Character & Location Stage ───────────────────────────── */
+
+.scene-stage {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  padding: 72px 24px 20px;
+}
+
+.location-title-plate {
+  position: fixed;
+  top: 66px;
+  left: 24px;
+  z-index: 10;
+  max-width: 440px;
+  pointer-events: auto;
+}
+
+.location-title-plate h1 {
+  font-family: 'Cinzel Decorative', serif;
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: var(--text);
+  text-shadow: 0 2px 20px rgba(0, 0, 0, 0.85);
+}
+
+.location-subtitle {
+  font-size: 12px;
+  color: var(--text-dim);
+  margin-top: 4px;
+  text-shadow: 0 1px 10px rgba(0, 0, 0, 0.9);
+}
+
+.depth-whisper {
+  margin-top: 8px;
+  padding: 7px 10px;
+  border-radius: 6px;
+  background: rgba(6, 182, 212, 0.10);
+  border: 1px dashed rgba(6, 182, 212, 0.38);
+  color: var(--quasar-bright);
+  font-size: 11px;
+  backdrop-filter: blur(6px);
+}
+
+/* Center-stage hero character portrait (never ghosted!) */
+.hero-portrait-stage {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -62%);
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  pointer-events: none;
+}
+
+.hero-portrait-frame {
+  width: 240px;
+  height: 300px;
+  border-radius: 16px;
+  overflow: hidden;
+  border: 1px solid var(--glass-border);
+  box-shadow: 0 0 48px rgba(124, 58, 237, 0.26), 0 18px 48px rgba(0, 0, 0, 0.72);
+  background: radial-gradient(circle at 50% 35%, rgba(124, 58, 237, 0.24), rgba(5, 1, 14, 0.92));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.hero-portrait-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.hero-sigil-fallback {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  text-align: center;
+  padding: 20px;
+}
+
+.hero-sigil-glyph {
+  width: 92px;
+  height: 92px;
+  border-radius: 50%;
+  border: 2px solid var(--bloom);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Cinzel Decorative', serif;
+  font-size: 38px;
+  box-shadow: 0 0 28px var(--bloom-glow);
+}
+
+/* ── Layer 2: Bottom Cinematic Dialogue & Action Dock ─────────────────────── */
+
+.dialogue-dock {
+  position: relative;
+  z-index: 15;
+  width: 100%;
+  max-width: 920px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.presence-strip {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.npc-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.npc-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 11px;
+  border-radius: 999px;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  color: var(--text-dim);
+  font-size: 12px;
+  cursor: pointer;
+  backdrop-filter: blur(10px);
+  transition: all 0.2s ease;
+}
+
+.npc-chip:hover,
+.npc-chip.active {
+  color: var(--text);
+  border-color: var(--bloom);
+  box-shadow: 0 0 16px rgba(232, 121, 249, 0.24);
+}
+
+.dock-card {
+  background: var(--glass-bg-heavy);
+  border: 1px solid var(--glass-border);
+  border-radius: 12px;
+  box-shadow: var(--card-shadow);
+  padding: 14px 16px;
+  backdrop-filter: blur(16px);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  transition: box-shadow 0.45s ease, border-color 0.45s ease, filter 0.45s ease;
+}
+
+/* Subconscious Resonance sensory cues */
+.dock-card.cue-mirror {
+  box-shadow: 0 0 24px rgba(6, 182, 212, 0.28), var(--card-shadow);
+}
+.dock-card.cue-vulnerable {
+  box-shadow: 0 0 28px rgba(232, 121, 249, 0.34), var(--card-shadow);
+}
+.dock-card.cue-cap {
+  box-shadow: 0 0 34px rgba(34, 211, 238, 0.42), 0 0 22px rgba(253, 230, 138, 0.34);
+}
+.dock-card.cue-friction {
+  filter: saturate(0.55);
+  box-shadow: 0 0 18px rgba(100, 116, 139, 0.25);
+}
+.dock-card.cue-breakthrough {
+  box-shadow: 0 0 42px rgba(232, 121, 249, 0.52), 0 0 28px rgba(253, 230, 138, 0.42);
+}
+.dock-card.cue-stabilized {
+  box-shadow: 0 0 22px rgba(6, 182, 212, 0.26);
+}
+.dock-card.cue-collapse {
+  filter: grayscale(0.75) brightness(0.7);
+}
+.dock-card.cue-rupture {
+  border-color: #ef4444;
+  box-shadow: 0 0 32px rgba(239, 68, 68, 0.45), var(--card-shadow);
+}
+
+.veil-stage-shell.veil-suffocating .backdrop-layer {
+  filter: grayscale(0.8) brightness(0.45);
+}
+.veil-stage-shell.veil-suffocating::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 4;
+  pointer-events: none;
+  box-shadow: inset 0 0 140px 45px rgba(0, 0, 0, 0.92);
+}
+
+.dock-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+  padding-bottom: 8px;
+}
+
+.speaker-name {
+  font-family: 'Cinzel Decorative', serif;
+  font-size: 16px;
+}
+
+.speaker-role {
+  font-family: 'Cinzel', serif;
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  margin-left: 10px;
+}
+
+.dialogue-feed {
+  max-height: 150px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-right: 4px;
+}
+
+.msg-bubble {
+  padding: 7px 10px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  font-size: 12.5px;
+}
+
+.msg-bubble.player {
+  border-color: rgba(6, 182, 212, 0.30);
+  background: rgba(6, 182, 212, 0.08);
+}
+
+.dialogue-choices {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.dialogue-form {
+  display: flex;
+  gap: 8px;
+}
+
+.text-input {
+  flex: 1;
+  background: rgba(3, 0, 8, 0.85);
+  border: 1px solid var(--glass-border);
+  border-radius: 7px;
+  padding: 8px 10px;
+  color: var(--text);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+}
+
+.text-input:focus {
+  outline: none;
+  border-color: var(--quasar-bright);
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 7px 12px;
+  border-radius: 7px;
+  border: 1px solid var(--veil);
+  background: rgba(124, 58, 237, 0.20);
+  color: var(--text);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn:hover:not(:disabled) {
+  background: rgba(124, 58, 237, 0.38);
+  box-shadow: 0 0 14px var(--veil-glow);
+}
+
+.btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.btn-quasar {
+  border-color: var(--quasar);
+  background: rgba(6, 182, 212, 0.16);
+}
+
+.btn-quasar:hover:not(:disabled) {
+  background: rgba(6, 182, 212, 0.32);
+  box-shadow: 0 0 14px var(--quasar-glow);
+}
+
+.btn-bloom {
+  border-color: var(--bloom);
+  background: rgba(232, 121, 249, 0.18);
+}
+
+.btn-bloom:hover:not(:disabled) {
+  background: rgba(232, 121, 249, 0.34);
+  box-shadow: 0 0 14px var(--bloom-glow);
+}
+
+/* ── Layer 4: Slide-Over Drawers ──────────────────────────────────────────── */
+
+.drawer-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  background: rgba(3, 0, 8, 0.62);
+  backdrop-filter: blur(4px);
+  display: flex;
+  justify-content: flex-end;
+}
+
+.drawer-panel {
+  width: min(680px, 94vw);
+  height: 100vh;
+  overflow-y: auto;
+  background: var(--glass-bg-heavy);
+  border-left: 1px solid var(--veil-bright);
+  box-shadow: -12px 0 48px rgba(0, 0, 0, 0.75);
+  padding: 20px 22px 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.drawer-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--glass-border);
+  padding-bottom: 10px;
+}
+
+.drawer-title {
+  font-family: 'Cinzel Decorative', serif;
+  font-size: 18px;
+  color: var(--text);
+}
+
+.card {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: 10px;
+  padding: 12px;
+}
+
+.section-label {
+  font-family: 'Cinzel', serif;
+  font-size: 10px;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  margin-bottom: 8px;
+}
+
+.scene-sub {
+  color: var(--text-dim);
+  font-size: 12px;
+}
+
+.grid-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 10px;
+}
+
+.map-canvas {
+  position: relative;
+  width: 100%;
+  height: 360px;
+  border-radius: 10px;
+  background: radial-gradient(circle at 50% 50%, rgba(124, 58, 237, 0.16), rgba(3, 0, 8, 0.96));
+  border: 1px solid var(--glass-border);
+  overflow: hidden;
+}
+
+.map-node {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  padding: 5px 9px;
+  border-radius: 8px;
+  background: rgba(10, 3, 24, 0.94);
+  border: 1px solid var(--glass-border);
+  color: var(--text);
+  font-size: 10px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+}
+
+.map-node.current {
+  border-color: var(--emerald);
+  box-shadow: 0 0 16px rgba(52, 211, 153, 0.45);
+}
+
+.map-node.locked {
+  opacity: 0.42;
+  border-style: dashed;
+}
+
+.map-node:hover:not(.locked) {
+  border-color: var(--bloom);
+  transform: translate(-50%, -55%);
+}
+
+.log-item {
+  font-size: 11px;
+  padding: 7px 9px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.03);
+  border-left: 2px solid var(--veil);
+  color: var(--text-dim);
+}
+
+.toast {
+  position: fixed;
+  top: 66px;
+  right: 22px;
+  z-index: 9999;
+  padding: 9px 14px;
+  border-radius: 8px;
+  background: rgba(10, 3, 24, 0.96);
+  border: 1px solid var(--quasar-bright);
+  color: var(--text);
+  box-shadow: 0 0 22px var(--quasar-glow);
+  font-size: 12px;
+}
+
+@media (max-width: 820px) {
+  .ghost-rail {
+    top: auto;
+    bottom: 10px;
+    right: 10px;
+    transform: none;
+    flex-direction: row;
+    flex-wrap: wrap;
+    opacity: 0.85;
+  }
+
+  .rail-btn {
+    min-width: auto;
+  }
+
+  .hero-portrait-frame {
+    width: 170px;
+    height: 210px;
+  }
+}

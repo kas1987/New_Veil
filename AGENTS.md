@@ -16,3 +16,17 @@
 ```text
 JOIN_FROM → 90_intake (local) → review → numbered plane → PR → CI → merge
 ```
+
+## Agent skills
+
+### Issue tracker
+
+Issues and specs live as GitHub issues on `kas1987/New_Veil`. See `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+Five default roles: `needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, `wontfix`. See `docs/agents/triage-labels.md`.
+
+### Domain docs
+
+Single-context: root `CONTEXT.md` plus `docs/adr/`. See `docs/agents/domain.md`.

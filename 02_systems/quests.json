@@ -1,0 +1,76 @@
+{
+  "schema_version": "1.0.0",
+  "quests": [
+    {
+      "id": "q_first_awakening",
+      "title": "The First Light",
+      "arc": "main",
+      "giver": "mira",
+      "district": "caetherra",
+      "summary": "Mira welcomes you to Caetherra Sunlit Plaza. Look past the Prism's warmth and earn your first true resonance.",
+      "stages": [
+        { "index": 0, "objective": "Speak with Mira in Caetherra Sunlit Plaza.", "hint": "Select Mira and send a thoughtful message." },
+        { "index": 1, "objective": "Acquire a Prism Lantern from Solstice Crossing or Caetherra.", "hint": "Visit Lanternwright's Bazaar or earn it through dialogue." },
+        { "index": 2, "objective": "Reach 450.0 Resonance and witness a Veil state shift.", "hint": "Deepen bonds or advance the Veil cycle." }
+      ],
+      "rewards": { "xp": 100, "echoes": 15, "items": ["mirror"], "faction": { "nine_sisters": 10 } }
+    },
+    {
+      "id": "q_solstice_trade",
+      "title": "Lanterns on the Rim",
+      "arc": "side",
+      "giver": "kaelen_lanternwright",
+      "district": "solstice_market",
+      "summary": "Travel west to Solstice Crossing and learn how the Lanternwrights measure Echoes along the Prism Marches.",
+      "stages": [
+        { "index": 0, "objective": "Travel to Solstice Crossing (Lanternwright's Bazaar).", "hint": "Use the World Map to travel from Caetherra." },
+        { "index": 1, "objective": "Speak with Kaelen the Lanternwright and purchase or inspect a relic.", "hint": "Open the Market or talk with Kaelen." }
+      ],
+      "rewards": { "xp": 60, "echoes": 10, "items": ["echo_shard"], "faction": { "lantern_guild": 15 } }
+    },
+    {
+      "id": "q_stilling_bell",
+      "title": "Curated Peace",
+      "arc": "main",
+      "giver": "warden",
+      "district": "stillward",
+      "summary": "The Stillward's serenity feels timeless—perhaps too timeless. Carry your lantern north and uncover what lies beneath the cloister.",
+      "prerequisites": { "min_resonance": 400.0, "requires_item": "lantern" },
+      "stages": [
+        { "index": 0, "objective": "Unlock and enter The Stillward Cloister.", "hint": "Equip or carry the Prism Lantern with >= 400.0 resonance." },
+        { "index": 1, "objective": "Question the Warden about the Stilling Bell.", "hint": "Engage the Warden in deep dialogue." },
+        { "index": 2, "objective": "Pass the Stillward Resonance Trial during a Storm or Quasar state.", "hint": "Trigger the encounter in The Stillward." }
+      ],
+      "rewards": { "xp": 150, "echoes": 25, "items": ["stilling_charm"], "faction": { "prism_wardens": 15 } }
+    },
+    {
+      "id": "q_ashes_of_belief",
+      "title": "What the Forges Keep",
+      "arc": "main",
+      "giver": "vael",
+      "district": "ashveil",
+      "summary": "Vael tests those who cross into Ashveil. Earn passage into the Ember Vaults and confront Vault Seven.",
+      "prerequisites": { "min_resonance": 500.0 },
+      "stages": [
+        { "index": 0, "objective": "Travel to Ashveil Furnaces and speak with Vael.", "hint": "Reach 500.0 resonance to enter Ashveil." },
+        { "index": 1, "objective": "Descend to The Memory Anvil in the Ember Vaults.", "hint": "Reach 650.0 resonance after visiting Ashveil." },
+        { "index": 2, "objective": "Speak with The Rendered about Vault Seven.", "hint": "Engage The Rendered in the Ember Vaults." }
+      ],
+      "rewards": { "xp": 200, "echoes": 35, "items": ["key"], "faction": { "ashen_covenant": 20 } }
+    },
+    {
+      "id": "q_nine_sisters",
+      "title": "Echoes of the Nine",
+      "arc": "endgame",
+      "giver": "lyra",
+      "district": "the_hollow",
+      "summary": "Step beyond surface comfort into The Hollow and survive the Dark Quasar with your trust intact.",
+      "prerequisites": { "min_resonance": 750.0 },
+      "stages": [
+        { "index": 0, "objective": "Enter The Hollow Clearing.", "hint": "Requires 750.0 resonance." },
+        { "index": 1, "objective": "Survive a Quasar Gravity Trial at Obsidian Reach.", "hint": "Prove your trust was earned, not gifted." }
+      ],
+      "rewards": { "xp": 350, "echoes": 60, "items": ["quasar_lens"], "faction": { "nine_sisters": 30, "unbound_echoes": 25 } }
+    }
+  ]
+}

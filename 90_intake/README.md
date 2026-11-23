@@ -9,6 +9,7 @@ Local-only staging for selective copies from legacy sources. **Bucket contents a
 | `from_veil_core/` | local production package |
 | `from_center_mass/` | local docs / thin game tree |
 | `from_zelex_pack/` | local sigil pack |
+| `from_rly_shelf/` | frozen RLY Civitai metadata from the Krea2 character shelf. Local only. |
 
 1. Copy [`sources.example.json`](sources.example.json) → `sources.json` (gitignored).
 2. Fill local paths.

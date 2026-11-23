@@ -1,0 +1,32 @@
+{
+  "schema_version": "1.0.0",
+  "currency": {
+    "id": "echoes",
+    "display_name": "Echoes",
+    "symbol": "◈",
+    "description": "Crystallized moments of resonance traded across Solstice Crossing and Veil Town."
+  },
+  "merchants": [
+    {
+      "id": "lantern_bazaar",
+      "name": "Kaelen's Lanternwright Stall",
+      "npc_id": "kaelen_lanternwright",
+      "location_id": "solstice_bazaar",
+      "stock": ["lantern", "echo_shard", "mirror", "thread"]
+    },
+    {
+      "id": "ashveil_forge_shop",
+      "name": "Covenant Cinder Exchange",
+      "npc_id": "vael",
+      "location_id": "ashveil_forges",
+      "stock": ["ash", "key", "echo_shard"]
+    },
+    {
+      "id": "stillward_reliquary",
+      "name": "Stillward Reliquary",
+      "npc_id": "warden",
+      "location_id": "stillward_cloister",
+      "stock": ["stilling_charm", "mirror"]
+    }
+  ]
+}

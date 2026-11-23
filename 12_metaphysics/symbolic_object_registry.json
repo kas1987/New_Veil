@@ -9,7 +9,7 @@
       "trigger_type": "interaction",
       "depth_required": 0.0,
       "event_type": "vision",
-      "depth_reveal_threshold": 0.5,
+      "depth_reveal_threshold": 500.0,
       "prism_description": "A warm reflection that shows you at your best.",
       "dq_description": "The reflection lingers a half-second too long. It shows something you recognize."
     },
@@ -21,7 +21,7 @@
       "trigger_type": "interaction",
       "depth_required": 0.0,
       "event_type": "convergence",
-      "depth_reveal_threshold": 0.6,
+      "depth_reveal_threshold": 600.0,
       "prism_description": "A key that opens a door you were meant to find.",
       "dq_description": "The key is warm. It has been held before, by someone who did not return."
     },
@@ -33,7 +33,7 @@
       "trigger_type": "proximity",
       "depth_required": 0.0,
       "event_type": "memory_echo",
-      "depth_reveal_threshold": 0.4,
+      "depth_reveal_threshold": 400.0,
       "prism_description": "Soft grey ash drifts through the air. Something ended here.",
       "dq_description": "The ash is composed of erased memories. Walking through it exposes fragments of what was taken."
     },
@@ -45,7 +45,7 @@
       "trigger_type": "agent_reference",
       "depth_required": 0.0,
       "event_type": "echo",
-      "depth_reveal_threshold": 0.5,
+      "depth_reveal_threshold": 500.0,
       "prism_description": "A silver thread, barely visible, leading somewhere warm.",
       "dq_description": "The thread is attached to you. You did not choose this."
     },
@@ -57,7 +57,7 @@
       "trigger_type": "proximity",
       "depth_required": 0.0,
       "event_type": "vision",
-      "depth_reveal_threshold": 0.65,
+      "depth_reveal_threshold": 650.0,
       "prism_description": "A warm lantern lights the path. You feel safe here.",
       "dq_description": "You notice the lantern casts your shadow long behind you. Something moves in it."
     },
@@ -67,9 +67,9 @@
       "prism_meaning": null,
       "dq_meaning": "The threshold — what is on the other side",
       "trigger_type": "proximity",
-      "depth_required": 0.75,
+      "depth_required": 750.0,
       "event_type": "convergence",
-      "depth_reveal_threshold": 0.75,
+      "depth_reveal_threshold": 750.0,
       "render_rule": "ABSENT_BELOW_THRESHOLD",
       "prism_description": null,
       "dq_description": "A door with no wall. You can see through it, but the other side is not the same place."
@@ -80,9 +80,9 @@
       "prism_meaning": "Eastern boundary of Caetherra; passage toward Ashveil",
       "dq_meaning": "A gate that is not there until depth reveals it",
       "trigger_type": "proximity",
-      "depth_required": 0.5,
+      "depth_required": 500.0,
       "event_type": "threshold",
-      "depth_reveal_threshold": 0.5,
+      "depth_reveal_threshold": 500.0,
       "prism_description": "A warm stone wall at the edge of the market square.",
       "dq_description": "At sufficient depth, the wall shows a gate that was never visible before.",
       "district": "caetherra"

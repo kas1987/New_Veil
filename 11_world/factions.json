@@ -1,0 +1,45 @@
+{
+  "schema_version": "1.0.0",
+  "factions": [
+    {
+      "id": "nine_sisters",
+      "name": "The Nine Sisters",
+      "alignment": "Veil Sovereign",
+      "home_district": "the_hollow",
+      "description": "The nine archetypal forces governing warmth, testing, memory, gravity, dreams, paths, silence, awakening, and observation.",
+      "ranks": ["Unnoticed", "Echoed", "Resonant", "Trusted", "Awakened"]
+    },
+    {
+      "id": "prism_wardens",
+      "name": "The Stillward Congregation",
+      "alignment": "Prism Surface",
+      "home_district": "stillward",
+      "description": "Keepers of the Stilling Bell and curated serenity. Once united with the Ashen Covenant before the Great Schism.",
+      "ranks": ["Outsider", "Pilgrim", "Listener", "Keeper", "Bellbearer"]
+    },
+    {
+      "id": "ashen_covenant",
+      "name": "The Ashen Covenant",
+      "alignment": "Dark Quasar",
+      "home_district": "ashveil",
+      "description": "Forge-tenders and archivists who burn away shallow certainties and preserve distilled belief in the Ember Vaults.",
+      "ranks": ["Unfired", "Cinder", "Tempered", "Vaultwalker", "Ashwright"]
+    },
+    {
+      "id": "lantern_guild",
+      "name": "The Lanternwrights",
+      "alignment": "Neutral / Mercantile",
+      "home_district": "solstice_market",
+      "description": "Artisans and caravan brokers of Solstice Crossing who craft prism lamps, chart shifting roads, and trade in Echoes.",
+      "ranks": ["Traveler", "Patron", "Wayfarer", "Factor", "Master Lanternwright"]
+    },
+    {
+      "id": "unbound_echoes",
+      "name": "The Unbound",
+      "alignment": "Liminal",
+      "home_district": "the_hollow",
+      "description": "Dream-walkers and memory-remnants who navigate the Veil without pledging to Prism or Quasar.",
+      "ranks": ["Drifter", "Whisperer", "Dreamer", "Threshold-Walker", "Unbound"]
+    }
+  ]
+}
