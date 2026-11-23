@@ -21,11 +21,11 @@
 
 - `02_systems/` — RPG quests, items/symbolic objects, Resonance Trials, Echo economy
 - `11_world/` — World hierarchy (regions, cities, towns, districts, POIs, travel graph, factions)
-- `13_agents/` — Unified 15-character roster (`roster_index.json`), completed Nine Sisters (`ashara`, `nyth`, `thessa`) + Solstice Crossing merchant
+- `13_agents/` — Unified 15-character roster (`roster_index.json`) with full parity (`profile.json`, `system_prompt.md`, `relationships.json`, `personality_weights`)
 - `14_psychometrics/` — RPG attributes (`Clarity`, `Empathy`, `Resolve`, `Perception`, `Veil Attunement`) & Resonance tiers
-- `15_voice/` — Character voice & mood cue registry
+- `15_voice/` — Character voice registry (`voice_registry.json`) + local-first TTS synthesis adapter (`tts_adapter.py` with offline WAV fallback & `VEIL_TTS_URL` bridge)
 - `03_memory/schema.sql` — Extended with RPG world, stats, inventory, quests, factions, and save slots
-- `04_runtime/game_api/` — Unified FastAPI RPG engine + optional local media/portrait adapter
+- `04_runtime/game_api/` — Unified FastAPI RPG engine + media/voice/live-LLM bridge (`/api/voice/*`, `/api/llm/status`, `/api/dialogue/llm-preview`, `VEIL_USE_LIVE_LLM=1`)
 - `07_ui/game_client/` — Interactive Vite + React + TypeScript RPG client built on VEIL Design System
 - `pyproject.toml` & `tests/` — Unified Python packaging and end-to-end RPG vertical slice tests
 
@@ -55,10 +55,10 @@
 
 ## Not yet
 
-- Hosted TTS audio generation in `15_voice/` (voice registry & mood cues are promoted; local TTS engine wiring pending)
-- Public deployment / auth beyond local single-player SQLite state
+- Public deployment / multiplayer auth beyond local single-player SQLite state
+- Hosted cloud GPU TTS/LLM inference (local Ollama `VEIL_USE_LIVE_LLM=1` & `VEIL_TTS_URL` bridges are wired with offline fallbacks)
 
 ## Next
 
-1. Complete `relationships.json` and `system_prompt.md` parity across all `13_agents/` entries.
-2. Wire optional TTS synthesis adapter under `15_voice/` (keep machine-local forwarders out of repo).
+1. Author bespoke `caetherra_dialogue_beats.json` tier coverage for outer-district NPCs (Hollow, Ashveil, Stillward).
+2. Expand Playwright E2E scenarios to cover cross-district travel, Resonance Trials, and True/False Ending closure paths.

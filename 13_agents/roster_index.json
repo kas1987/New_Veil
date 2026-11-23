@@ -64,6 +64,7 @@
       "is_merchant": false,
       "accent": "#22d3ee",
       "portrait_hint": "lyra",
+      "personality_weights": { "mirror": 1.1, "inquiry": 1.0, "interiority": 1.2, "thematic": 1.2, "cadence": 1.1 },
       "greeting": "You walked past this reflection twice in your sleep before you found the road."
     },
     {
@@ -95,6 +96,7 @@
       "is_merchant": false,
       "accent": "#a855f7",
       "portrait_hint": "ashara",
+      "personality_weights": { "mirror": 1.2, "inquiry": 1.1, "interiority": 1.2, "thematic": 1.15, "cadence": 1.0 },
       "greeting": "Every mirror remembers the last face that lied to it. Which face did you bring?"
     },
     {
@@ -126,6 +128,7 @@
       "is_merchant": false,
       "accent": "#34d399",
       "portrait_hint": "thessa",
+      "personality_weights": { "mirror": 1.0, "inquiry": 1.15, "interiority": 1.0, "thematic": 1.2, "cadence": 1.1 },
       "greeting": "Roads in the Veil do not stay still for tourists. Earn your bearings and the doors will remember you."
     },
     {
@@ -141,6 +144,7 @@
       "is_merchant": false,
       "accent": "#94a3b8",
       "portrait_hint": "witness",
+      "personality_weights": { "mirror": 0.95, "inquiry": 1.0, "interiority": 1.25, "thematic": 1.2, "cadence": 1.05 },
       "greeting": "The town has already noticed how you listen. Continue."
     },
     {
@@ -156,6 +160,7 @@
       "is_merchant": true,
       "accent": "#e2e8f0",
       "portrait_hint": "warden",
+      "personality_weights": { "mirror": 1.05, "inquiry": 0.95, "interiority": 1.05, "thematic": 1.0, "cadence": 1.15 },
       "greeting": "Keep your voice low beneath the bell. Peace here is hard-won and easily bruised."
     },
     {
@@ -171,6 +176,7 @@
       "is_merchant": false,
       "accent": "#a78bfa",
       "portrait_hint": "archivist",
+      "personality_weights": { "mirror": 1.0, "inquiry": 1.2, "interiority": 1.0, "thematic": 1.2, "cadence": 1.0 },
       "greeting": "Pages go missing whenever the Veil shifts to storm. Curious what you remember that I do not."
     },
     {
@@ -186,6 +192,7 @@
       "is_merchant": false,
       "accent": "#fb923c",
       "portrait_hint": "rendered",
+      "personality_weights": { "mirror": 0.9, "inquiry": 0.95, "interiority": 1.2, "thematic": 1.15, "cadence": 0.95 },
       "greeting": "Belief does not vanish when burned. It settles into caskets. Do not touch Vault Seven unprepared."
     },
     {
@@ -201,6 +208,7 @@
       "is_merchant": false,
       "accent": "#c084fc",
       "portrait_hint": "threadwatcher",
+      "personality_weights": { "mirror": 1.05, "inquiry": 1.15, "interiority": 1.05, "thematic": 1.1, "cadence": 1.0 },
       "greeting": "Every bond leaves a filament in the air. Yours is already humming."
     },
     {
@@ -216,6 +224,7 @@
       "is_merchant": false,
       "accent": "#fde68a",
       "portrait_hint": "greeter",
+      "personality_weights": { "mirror": 1.0, "inquiry": 1.0, "interiority": 1.0, "thematic": 1.0, "cadence": 1.0 },
       "greeting": "Welcome to Caetherra! Stay as long as you like—there's really no reason to wander past the sunlit square."
     },
     {
@@ -231,6 +240,7 @@
       "is_merchant": true,
       "accent": "#34d399",
       "portrait_hint": "kaelen",
+      "personality_weights": { "mirror": 1.0, "inquiry": 1.0, "interiority": 1.0, "thematic": 1.0, "cadence": 1.0 },
       "greeting": "Step under the awning, traveler. If you're heading north into the Stillward, you'll want a true Prism Lantern."
     }
   ]

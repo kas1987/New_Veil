@@ -8,6 +8,8 @@ Run from repository root:
 
 from __future__ import annotations
 
+import json
+import os
 import sys
 from pathlib import Path
 
@@ -38,6 +40,14 @@ from engine import (
     VeilGameEngine,
 )
 from media_adapter import MediaAdapter
+
+from veil_loader import load_module
+
+_VOICE_MOD = load_module("veil_server_dialogue_voice", _HERE / "dialogue_voice.py")
+_TTS_MOD = load_module("veil_tts_adapter", _ROOT / "15_voice" / "tts_adapter.py")
+_LLM_MOD = load_module("veil_server_llm_provider", _ROOT / "04_runtime" / "llm_provider.py")
+_SCORER_MOD = load_module("veil_server_scorer", _ROOT / "05_alignment" / "scorer.py")
+_QUARANTINE_MOD = load_module("veil_server_quarantine", _ROOT / "05_alignment" / "quarantine.py")
 
 
 class TravelRequest(BaseModel):
@@ -81,6 +91,20 @@ class BeatChoiceRequest(BaseModel):
     choice: str
 
 
+class VoiceSynthesizeRequest(BaseModel):
+    npc_id: str
+    text: str
+    veil_state: str | None = None
+    emotion: str | None = None
+    queue: bool = False
+
+
+class LLMPreviewRequest(BaseModel):
+    npc_id: str
+    message: str
+    execute_live: bool = False
+
+
 def create_app(db_path: Path | str | None = None) -> FastAPI:
     app = FastAPI(title="The Veil — RPG Game API", version="0.4.0")
     app.add_middleware(
@@ -98,8 +122,10 @@ def create_app(db_path: Path | str | None = None) -> FastAPI:
 
     engine = VeilGameEngine(repo_root=_ROOT, db_path=db_path)
     media = MediaAdapter(repo_root=_ROOT)
+    tts = _TTS_MOD.VeilTTSAdapter()
     app.state.engine = engine
     app.state.media = media
+    app.state.tts = tts
 
     @app.get("/api/health")
     def health() -> dict:
@@ -258,6 +284,87 @@ def create_app(db_path: Path | str | None = None) -> FastAPI:
     def reset_game() -> dict:
         result = engine.reset_session()
         return {"ok": result.ok, "message": result.message, "state": result.scene}
+
+    @app.get("/api/voice/profiles")
+    def list_voice_profiles() -> dict:
+        veil_state = engine.scene()["world"]["veil_state"]
+        return {"voices": tts.list_profiles(veil_state=veil_state)}
+
+    @app.post("/api/voice/synthesize")
+    def synthesize_voice(req: VoiceSynthesizeRequest) -> dict:
+        if req.npc_id not in engine.characters:
+            raise HTTPException(status_code=404, detail=f"Unknown NPC: {req.npc_id}")
+        veil_state = req.veil_state or engine.scene()["world"]["veil_state"]
+        return tts.synthesize(
+            agent_id=req.npc_id,
+            text=req.text,
+            veil_state=veil_state,
+            emotion=req.emotion,
+            queue=req.queue,
+        )
+
+    @app.get("/api/llm/status")
+    def llm_status() -> dict:
+        return {
+            "live_llm_enabled": os.environ.get("VEIL_USE_LIVE_LLM") == "1",
+            "model": _LLM_MOD.DEFAULT_MODEL,
+            "base_url": _LLM_MOD.OLLAMA_BASE_URL,
+            "agents_with_prompts": [
+                cid for cid in engine.characters if bool(_LLM_MOD.load_system_prompt(cid))
+            ],
+        }
+
+    @app.post("/api/dialogue/llm-preview")
+    def preview_llm_dialogue(req: LLMPreviewRequest) -> dict:
+        if req.npc_id not in engine.characters:
+            raise HTTPException(status_code=404, detail=f"Unknown NPC: {req.npc_id}")
+        scene = engine.scene()
+        veil_state = str(scene["world"]["veil_state"])
+        resonance = float(scene["player"]["resonance"])
+        arcs_row = engine._row_dict("SELECT encounter_arcs FROM player_stats WHERE player_id='player'")
+        arcs = json.loads(arcs_row.get("encounter_arcs") or "{}")
+        npc_arcs = arcs.get("npcs") or {}
+        enc = ((npc_arcs.get(req.npc_id) or {}).get("encounter")) or {}
+        npc_bond = float(enc.get("npcBond", 0.0))
+        stance = str(enc.get("currentStance") or "guarded")
+        memory_ctx = _VOICE_MOD.collect_bounded_memory(engine._conn, req.npc_id, npc_arcs)
+        user_prompt = _VOICE_MOD.build_live_llm_prompt(
+            beats_pack=engine.dialogue_beats,
+            npc_id=req.npc_id,
+            location_name=scene["world"]["current_location"]["name"],
+            veil_state=veil_state,
+            resonance=resonance,
+            npc_bond=npc_bond,
+            stance=stance,
+            cue_type="preview",
+            memory_ctx=memory_ctx,
+            player_text=req.message,
+        )
+        system_prompt = _LLM_MOD.load_system_prompt(req.npc_id)
+        live_result: dict | None = None
+        if req.execute_live:
+            candidate = _LLM_MOD.generate_agent_output(req.npc_id, user_prompt=user_prompt)
+            text = str(candidate.get("output") or "").strip() if isinstance(candidate, dict) else ""
+            score_dict = _SCORER_MOD.score_text(
+                text, canon_refs=["VEIL-001"], agent_id=req.npc_id
+            ).to_dict()
+            quarantined, reason = _QUARANTINE_MOD.should_quarantine(
+                score_dict, veil_state=veil_state
+            )
+            live_result = {
+                **candidate,
+                "quarantined": quarantined,
+                "quarantine_reason": reason,
+                "alignment": score_dict,
+            }
+        return {
+            "ok": True,
+            "npc_id": req.npc_id,
+            "system_prompt_loaded": bool(system_prompt),
+            "system_prompt_excerpt": system_prompt[:240],
+            "user_prompt": user_prompt,
+            "live_result": live_result,
+        }
 
     # Serve built Vite client if present
     dist_dir = _ROOT / "07_ui" / "game_client" / "dist"
