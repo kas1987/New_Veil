@@ -32,7 +32,7 @@
       "id": "trial_stillward_mirror",
       "title": "The Unblinking Cloister",
       "location_id": "stillward_cloister",
-      "veil_states": ["still", "storm", "quasar_active"],
+      "veil_states": ["storm", "quasar_active"],
       "description": "Three prayer mirrors line the white archway. As the Stilling Bell tolls, one mirror shows an iron confessional instead of your face.",
       "choices": [
         {

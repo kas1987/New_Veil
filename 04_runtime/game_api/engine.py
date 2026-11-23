@@ -974,6 +974,10 @@ class VeilGameEngine:
                 q_st = self._row_dict("SELECT stage_index FROM quest_progress WHERE player_id='player' AND quest_id='q_stilling_bell'")
                 if q_st and int(q_st["stage_index"]) >= 1:
                     self._advance_quest_stage("q_stilling_bell", 2)
+                    if self._row_dict(
+                        "SELECT 1 AS done FROM completed_encounters WHERE player_id='player' AND encounter_id='trial_stillward_mirror'"
+                    ):
+                        self._advance_quest_stage("q_stilling_bell", 3)
             elif npc_id == "vael" and ws["current_location"] == "ashveil_forges":
                 self._advance_quest_stage("q_ashes_of_belief", 1)
             elif npc_id == "rendered":
@@ -1378,44 +1382,46 @@ class VeilGameEngine:
             fh.write(json.dumps(payload) + "\n")
 
     def _toggle_party(self, character_id: str) -> dict[str, Any]:
-        char = self.characters.get(character_id)
-        if not char:
-            raise ValueError(f"Unknown character: {character_id}")
-        if not char.get("can_join_party"):
-            return {"ok": False, "message": f"{char['display_name']} walks their own path and cannot join your party.", "state": self._snapshot()}
+        with self._lock:
+            char = self.characters.get(character_id)
+            if not char:
+                raise ValueError(f"Unknown character: {character_id}")
+            if not char.get("can_join_party"):
+                return {"ok": False, "message": f"{char['display_name']} walks their own path and cannot join your party.", "state": self._snapshot()}
 
-        ws = self._row_dict("SELECT active_party FROM world_state WHERE player_id='player'")
-        party: list[str] = json.loads(ws.get("active_party") or "[]")
-        if character_id in party:
-            party.remove(character_id)
-            msg = f"{char['display_name']} left your active party."
-        else:
-            if len(party) >= 3:
-                return {"ok": False, "message": "Party is full (max 3 companions).", "state": self._snapshot()}
-            party.append(character_id)
-            msg = f"{char['display_name']} joined your party."
+            ws = self._row_dict("SELECT active_party FROM world_state WHERE player_id='player'")
+            party: list[str] = json.loads(ws.get("active_party") or "[]")
+            if character_id in party:
+                party.remove(character_id)
+                msg = f"{char['display_name']} left your active party."
+            else:
+                if len(party) >= 3:
+                    return {"ok": False, "message": "Party is full (max 3 companions).", "state": self._snapshot()}
+                party.append(character_id)
+                msg = f"{char['display_name']} joined your party."
 
-        self._conn.execute(
-            "UPDATE world_state SET active_party=?, updated_at=CURRENT_TIMESTAMP WHERE player_id='player'",
-            (json.dumps(party),),
-        )
-        self._tick_drift()
-        self._conn.commit()
-        return {"ok": True, "message": msg, "party": party, "state": self._snapshot()}
+            self._conn.execute(
+                "UPDATE world_state SET active_party=?, updated_at=CURRENT_TIMESTAMP WHERE player_id='player'",
+                (json.dumps(party),),
+            )
+            self._tick_drift()
+            self._conn.commit()
+            return {"ok": True, "message": msg, "party": party, "state": self._snapshot()}
 
     def _bind_portrait(self, npc_id: str, media_key: str) -> dict[str, Any]:
-        if npc_id not in self.characters:
-            raise ValueError(f"Unknown character: {npc_id}")
-        clean_key = "".join(ch for ch in media_key.lower() if ch.isalnum() or ch in ("_", "-"))
-        if not clean_key:
-            raise ValueError("Invalid media_key")
-        self._conn.execute(
-            "INSERT INTO portrait_bindings (npc_id, media_key, updated_at) VALUES (?, ?, CURRENT_TIMESTAMP) "
-            "ON CONFLICT(npc_id) DO UPDATE SET media_key=excluded.media_key, updated_at=CURRENT_TIMESTAMP",
-            (npc_id, clean_key),
-        )
-        self._conn.commit()
-        return {"ok": True, "npc_id": npc_id, "media_key": clean_key, "state": self._snapshot()}
+        with self._lock:
+            if npc_id not in self.characters:
+                raise ValueError(f"Unknown character: {npc_id}")
+            clean_key = "".join(ch for ch in media_key.lower() if ch.isalnum() or ch in ("_", "-"))
+            if not clean_key:
+                raise ValueError("Invalid media_key")
+            self._conn.execute(
+                "INSERT INTO portrait_bindings (npc_id, media_key, updated_at) VALUES (?, ?, CURRENT_TIMESTAMP) "
+                "ON CONFLICT(npc_id) DO UPDATE SET media_key=excluded.media_key, updated_at=CURRENT_TIMESTAMP",
+                (npc_id, clean_key),
+            )
+            self._conn.commit()
+            return {"ok": True, "npc_id": npc_id, "media_key": clean_key, "state": self._snapshot()}
 
     def _revealed_tokens(self, resonance: float) -> list[str]:
         """Content words from earned item depth lines and earned codex titles (min_resonance >= 450.0)."""

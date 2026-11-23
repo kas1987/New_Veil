@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import sqlite3
 import sys
+import threading
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -436,3 +437,55 @@ def test_checkpoint_load_restores_memories_and_ending_quasar_predicate() -> None
         "quasar active" in row["content"].lower()
         for row in engine._rows_list("SELECT content FROM memories")
     )
+
+
+def test_stillward_trial_rejects_still_and_completes_stilling_bell_in_storm() -> None:
+    engine = _engine()
+    assert engine.play(Resolve("trial_prism_surface", "accept_warmth", seed=0)).ok is True
+    _raise_resonance(engine, 420.0)
+    assert engine.play(Travel("solstice_bazaar")).ok is True
+    assert engine.play(Buy("lantern")).ok is True
+    assert engine.play(Travel("caetherra_plaza")).ok is True
+    assert engine.play(Travel("stillward_cloister")).ok is True
+
+    still_turn = engine.play(AdvanceVeil())
+    assert still_turn.scene["world"]["veil_state"] == "still"
+    early = engine.play(Resolve("trial_stillward_mirror", "attune_bell", seed=0))
+    assert early.ok is False
+    assert engine._row_dict(
+        "SELECT 1 AS done FROM completed_encounters WHERE player_id='player' AND encounter_id='trial_stillward_mirror'"
+    ) == {}
+
+    storm_turn = engine.play(AdvanceVeil())
+    assert storm_turn.scene["world"]["veil_state"] == "storm"
+    assert _talk(engine, "warden", "Why does the Stilling Bell ring when storms arrive?").ok is True
+    trial = engine.play(Resolve("trial_stillward_mirror", "attune_bell", seed=0))
+    assert trial.ok is True
+    assert trial.check is not None and trial.check.success is True
+    q_st = next(q for q in trial.scene["quests"] if q["id"] == "q_stilling_bell")
+    assert q_st["status"] == "completed"
+
+
+def test_concurrent_party_toggles_preserve_all_companions() -> None:
+    engine = _engine()
+    barrier = threading.Barrier(2)
+    errors: list[BaseException] = []
+
+    def _join(cid: str) -> None:
+        try:
+            barrier.wait(timeout=5)
+            res = engine.play(ToggleParty(cid))
+            assert res.ok is True
+        except BaseException as exc:  # pragma: no cover - assertion helper
+            errors.append(exc)
+
+    t1 = threading.Thread(target=_join, args=("solenne",))
+    t2 = threading.Thread(target=_join, args=("vael",))
+    t1.start()
+    t2.start()
+    t1.join(timeout=5)
+    t2.join(timeout=5)
+    assert not errors
+
+    party = engine.scene()["world"]["active_party"]
+    assert set(party) == {"mira", "solenne", "vael"}
