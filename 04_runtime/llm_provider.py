@@ -37,6 +37,7 @@ def find_agent_dir(agent_id: str) -> Path | None:
     """Return the directory containing an agent's profile/prompt files."""
     candidates = [
         _ROOT / "02_agents" / agent_id,
+        _ROOT / "13_agents" / agent_id,
         _ROOT / "13_agents" / "sisters" / agent_id,
         _ROOT / "13_agents" / "supporting" / agent_id,
     ]
@@ -71,6 +72,20 @@ def load_profile(agent_id: str) -> dict:
     if d is None:
         return {}
     f = d / "profile.json"
+    if not f.exists():
+        return {}
+    try:
+        return json.loads(f.read_text(encoding="utf-8"))
+    except json.JSONDecodeError:
+        return {}
+
+
+def load_relationships(agent_id: str) -> dict:
+    """Read relationships.json for an agent. Returns empty dict if missing."""
+    d = find_agent_dir(agent_id)
+    if d is None:
+        return {}
+    f = d / "relationships.json"
     if not f.exists():
         return {}
     try:

@@ -66,17 +66,23 @@ def test_character_roster_and_nine_sisters_complete() -> None:
         for npc_id in loc.get("npcs", []):
             assert npc_id in char_ids, f"Location {loc['id']} references unknown NPC {npc_id}"
 
-    # Verify newly completed agent dossiers have profile, prompt, and relationships
-    for rel_dir in (
-        "13_agents/sisters/ashara",
-        "13_agents/sisters/nyth",
-        "13_agents/sisters/thessa",
-        "13_agents/supporting/kaelen_lanternwright",
-    ):
-        d = ROOT / rel_dir
-        assert (d / "profile.json").is_file(), f"Missing profile.json in {rel_dir}"
-        assert (d / "system_prompt.md").is_file(), f"Missing system_prompt.md in {rel_dir}"
-        assert (d / "relationships.json").is_file(), f"Missing relationships.json in {rel_dir}"
+    # Verify full 15-character dossier parity (profile, prompt, relationships, weights)
+    llm_mod = load_module("veil_llm_provider_integrity", ROOT / "04_runtime" / "llm_provider.py")
+    expected_weight_keys = {"mirror", "inquiry", "interiority", "thematic", "cadence"}
+    for char in roster:
+        cid = char["id"]
+        weights = char.get("personality_weights")
+        assert isinstance(weights, dict), f"{cid} missing personality_weights in roster_index.json"
+        assert expected_weight_keys.issubset(weights.keys()), (
+            f"{cid} personality_weights missing keys: {expected_weight_keys - set(weights.keys())}"
+        )
+        d = llm_mod.find_agent_dir(cid)
+        assert d is not None, f"Could not resolve agent directory for {cid}"
+        if char["category"] == "sister" and cid != "mira":
+            assert d.parent.name == "sisters", f"Sister {cid} expected under 13_agents/sisters/, found {d}"
+        assert (d / "profile.json").is_file(), f"Missing profile.json for {cid}"
+        assert (d / "system_prompt.md").is_file(), f"Missing system_prompt.md for {cid}"
+        assert (d / "relationships.json").is_file(), f"Missing relationships.json for {cid}"
 
 
 def test_quests_economy_and_encounters_integrity() -> None:

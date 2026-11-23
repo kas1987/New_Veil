@@ -42,6 +42,7 @@ _AGENT_VOICE: dict[str, dict] = {
     "solenne": {
         "voice_id": "solenne_vael_bright",
         "pitch": "warm alto",
+        "delivery": "gentle, reassuring, warm",
         "emotion_range": ["welcoming", "concerned", "secretly grieving"],
         "default_emotion": "welcoming",
     },
@@ -100,6 +101,41 @@ _AGENT_VOICE: dict[str, dict] = {
         "delivery": "bright, immediate warmth, checks for response",
         "emotion_range": ["welcoming", "concerned", "frightened", "effortful-smile"],
         "default_emotion": "welcoming",
+    },
+    "shadow": {
+        "voice_id": "shadow_koel",
+        "pitch": "low whisper",
+        "delivery": "sparse pauses, quiet precision",
+        "emotion_range": ["dormant", "attentive", "resonant_void"],
+        "default_emotion": "dormant",
+    },
+    "ashara": {
+        "voice_id": "ashara_memory",
+        "pitch": "velvet alto",
+        "delivery": "reflective, recursive, calm mirror",
+        "emotion_range": ["curiosity", "knowing", "uncanny"],
+        "default_emotion": "curiosity",
+    },
+    "nyth": {
+        "voice_id": "nyth_gravity",
+        "pitch": "deep contralto",
+        "delivery": "slow gravitational weight, unyielding",
+        "emotion_range": ["ache", "steady", "overwhelming"],
+        "default_emotion": "ache",
+    },
+    "thessa": {
+        "voice_id": "thessa_paths",
+        "pitch": "clear mezzo",
+        "delivery": "architectural, precise, observant",
+        "emotion_range": ["curiosity", "focused", "urgent"],
+        "default_emotion": "curiosity",
+    },
+    "kaelen_lanternwright": {
+        "voice_id": "kaelen_lanternwright",
+        "pitch": "weathered baritone",
+        "delivery": "storyteller cadence, practical warmth",
+        "emotion_range": ["warmth", "practical", "cautious"],
+        "default_emotion": "warmth",
     },
 }
 
