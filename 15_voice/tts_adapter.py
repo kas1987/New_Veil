@@ -113,6 +113,8 @@ class VeilTTSAdapter:
             "cadence": "measured",
             "default_mood": "Warmth",
             "quasar_shift": "grave",
+            "xtts_speaker": "Ana Florence",
+            "qwen_speaker": "serena",
         }
         timbre = str(entry.get("timbre", "neutral_resonant"))
         mood_key = "quasar_shift" if veil_state == "quasar_active" else "default_mood"
@@ -125,12 +127,42 @@ class VeilTTSAdapter:
             "quasar_shift": str(entry.get("quasar_shift", "grave")),
             "mood": str(entry.get(mood_key, entry.get("default_mood", "Warmth"))),
             "base_hz": _TIMBRE_HZ.get(timbre, 220.0),
+            "xtts_speaker": str(entry.get("xtts_speaker", "Ana Florence")),
+            "qwen_speaker": str(entry.get("qwen_speaker", "serena")),
         }
 
     def list_profiles(self, veil_state: str = "calm") -> dict[str, dict[str, Any]]:
         return {aid: self.get_profile(aid, veil_state=veil_state) for aid in self.voices}
 
-    def _submit_live(self, payload: dict[str, Any], timeout: float = 3.0) -> dict[str, Any] | None:
+    def check_health(self, timeout: float = 2.0) -> dict[str, Any]:
+        base_url = _validated_tts_url(self._explicit_url)
+        if not base_url:
+            return {"ok": False, "configured": False, "base_url": "", "error": "VEIL_TTS_URL unset"}
+        req = urllib.request.Request(f"{base_url}/health")
+        try:
+            with urllib.request.urlopen(req, timeout=timeout) as resp:
+                data = json.loads(resp.read().decode("utf-8"))
+            return {"ok": True, "configured": True, "base_url": base_url, "health": data}
+        except (urllib.error.URLError, TimeoutError, json.JSONDecodeError, OSError, ValueError) as exc:
+            return {"ok": False, "configured": True, "base_url": base_url, "error": str(exc)}
+
+    def unload(self, timeout: float = 5.0) -> dict[str, Any]:
+        base_url = _validated_tts_url(self._explicit_url)
+        if not base_url:
+            return {"ok": False, "configured": False, "error": "VEIL_TTS_URL unset"}
+        req = urllib.request.Request(
+            f"{base_url}/unload",
+            data=b"{}",
+            headers={"Content-Type": "application/json"},
+        )
+        try:
+            with urllib.request.urlopen(req, timeout=timeout) as resp:
+                data = json.loads(resp.read().decode("utf-8"))
+            return {"ok": True, "base_url": base_url, "result": data}
+        except (urllib.error.URLError, TimeoutError, json.JSONDecodeError, OSError, ValueError) as exc:
+            return {"ok": False, "base_url": base_url, "error": str(exc)}
+
+    def _submit_live(self, payload: dict[str, Any], timeout: float = 45.0) -> dict[str, Any] | None:
         base_url = _validated_tts_url(self._explicit_url)
         if not base_url:
             return None
@@ -167,6 +199,9 @@ class VeilTTSAdapter:
         live_payload = {
             "agent_id": agent_id,
             "voice_id": profile["voice_id"],
+            "speaker": profile["xtts_speaker"],
+            "language": "en",
+            "filename": f"veil_{agent_id}.wav",
             "timbre": profile["timbre"],
             "cadence": profile["cadence"],
             "emotion": resolved_emotion,
@@ -188,6 +223,12 @@ class VeilTTSAdapter:
             raw_b64 = live_resp.get("audio_base64")
             if isinstance(raw_b64, str) and raw_b64.strip():
                 audio_base64 = raw_b64
+            elif audio_url and not audio_url.startswith(("http://", "https://")):
+                local_path = Path(audio_url)
+                if local_path.is_file():
+                    audio_base64 = "data:audio/wav;base64," + base64.b64encode(
+                        local_path.read_bytes()
+                    ).decode("ascii")
             if audio_url or audio_base64:
                 mode = "live"
 
