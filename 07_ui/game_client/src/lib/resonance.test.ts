@@ -248,19 +248,50 @@ describe('Resonance Psychometric & Session Engine (3-Layer 0-1000 Scale)', () =>
 
   it('soft-tapers global Town Resonance after +50 per NPC while growing personal Bond to 100 in ~25 turns', () => {
     let state = { ...createInitialSession(), turnsTaken: 6, hasCrossedFirstThreshold: true, resonance: 350.0 }
+    const themes = ['why', 'memory', 'dream', 'truth']
     for (let i = 0; i < 25; i++) {
       const npcReply = 'The lanterns near the Listening Wall go out whenever the fog remembers who built them.'
       const turn = processTalkTurn(
         state,
         'mira',
         npcReply,
-        `I feel uncertain about lantern number ${i} in the fog — why does the listening wall remember?`,
+        `I feel uncertain about wall ${i} and ${themes[i % themes.length]} — how do the lanterns remember?`,
       )
       state = turn.nextState
     }
     const miraEnc = state.encounters.mira
     expect(miraEnc.npcBond).toBe(100.0)
     expect(state.resonance).toBeLessThan(410.0)
+  })
+
+  it('advances the rolling 2-turn keyword-fatigue window across sandbox turns', () => {
+    let state = { ...createInitialSession(), turnsTaken: 6, hasCrossedFirstThreshold: true, resonance: 500.0 }
+
+    const t1 = processTalkTurn(
+      state,
+      'mira',
+      'The lanterns burn softly tonight.',
+      'I wonder why the lanterns stay bright near the veil tonight?',
+    )
+    expect(t1.evaluation.signals.resonantWordsHit).toContain('veil')
+    expect(t1.nextState.recentKeywords).toContain('veil')
+    state = t1.nextState
+
+    // Next turn repeating 'veil' triggers keyword fatigue instead of fresh bonus
+    const t2 = processTalkTurn(
+      state,
+      'mira',
+      'Some visitors ask too quickly.',
+      'I feel uncertain when the veil hides behind warm lanterns?',
+    )
+    expect(t2.evaluation.signals.fatiguedWords).toContain('veil')
+    expect(t2.evaluation.signals.resonantWordsHit).not.toContain('veil')
+    state = t2.nextState
+
+    // Two turns without thematic words clear 'veil' from recentKeywords
+    state = processTalkTurn(state, 'mira', 'Walk calmly.', 'I hear the wind in the trees tonight.').nextState
+    state = processTalkTurn(state, 'mira', 'Keep listening.', 'I feel quieter watching the warm glass tonight.').nextState
+    expect(state.recentKeywords).not.toContain('veil')
   })
 
   it.each(corpus.single_turn_probes)(

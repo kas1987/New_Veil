@@ -151,8 +151,26 @@ class VeilGameEngine:
         schema_sql = (self.repo_root / "03_memory" / "schema.sql").read_text(encoding="utf-8")
         conn.executescript(schema_sql)
         columns = {row[1] for row in conn.execute("PRAGMA table_info(player_stats)")}
-        if "encounter_arcs" not in columns:
-            conn.execute("ALTER TABLE player_stats ADD COLUMN encounter_arcs TEXT DEFAULT '{}'")
+        for col_name, col_def in (
+            ("has_crossed_first_threshold", "INTEGER DEFAULT 0"),
+            ("recent_keywords", "TEXT DEFAULT '[]'"),
+            ("drift_count", "INTEGER DEFAULT 0"),
+            ("last_npc_lines", "TEXT DEFAULT '{}'"),
+            ("encounter_arcs", "TEXT DEFAULT '{}'"),
+        ):
+            if col_name not in columns:
+                conn.execute(f"ALTER TABLE player_stats ADD COLUMN {col_name} {col_def}")
+        # Migrate legacy 0.0-1.0 resonance rows cleanly to the 0-1000 scale
+        conn.execute(
+            "UPDATE player_stats SET "
+            "resonance = ROUND(resonance * 1000.0, 2), "
+            "has_crossed_first_threshold = CASE WHEN ROUND(resonance * 1000.0, 2) >= 450.0 THEN 1 ELSE has_crossed_first_threshold END "
+            "WHERE resonance > 0.0 AND resonance <= 1.0"
+        )
+        conn.execute(
+            "UPDATE player_state SET emotional_depth = ROUND(emotional_depth * 1000.0, 2) "
+            "WHERE emotional_depth > 0.0 AND emotional_depth <= 1.0"
+        )
         conn.commit()
         return conn
 
@@ -1234,11 +1252,19 @@ class VeilGameEngine:
                     ws["active_party"],
                 ),
             )
+            ps_depth = float(ps.get("emotional_depth") or 0.0)
+            if 0.0 < ps_depth <= 1.0:
+                ps_depth = round(ps_depth * 1000.0, 2)
+            st_res = float(st.get("resonance") or 350.0)
+            if 0.0 < st_res <= 1.0:
+                st_res = round(st_res * 1000.0, 2)
+            st_crossed = 1 if (int(st.get("has_crossed_first_threshold") or 0) or st_res >= 450.0) else 0
+
             self._conn.execute(
                 "UPDATE player_state SET emotional_depth=?, turns_taken=?, unlocked_districts=?, dreams_seen=?, veil_state=? "
                 "WHERE player_id='player'",
                 (
-                    ps["emotional_depth"],
+                    ps_depth,
                     ps["turns_taken"],
                     ps["unlocked_districts"],
                     ps["dreams_seen"],
@@ -1246,17 +1272,23 @@ class VeilGameEngine:
                 ),
             )
             self._conn.execute(
-                "UPDATE player_stats SET level=?, xp=?, resonance=?, clarity=?, empathy=?, resolve=?, perception=?, veil_attunement=?, encounter_arcs=? "
+                "UPDATE player_stats SET level=?, xp=?, resonance=?, clarity=?, empathy=?, resolve=?, "
+                "perception=?, veil_attunement=?, has_crossed_first_threshold=?, recent_keywords=?, "
+                "drift_count=?, last_npc_lines=?, encounter_arcs=? "
                 "WHERE player_id='player'",
                 (
                     st["level"],
                     st["xp"],
-                    st["resonance"],
+                    st_res,
                     st["clarity"],
                     st["empathy"],
                     st["resolve"],
                     st["perception"],
                     st["veil_attunement"],
+                    st_crossed,
+                    st.get("recent_keywords") if st.get("recent_keywords") is not None else "[]",
+                    int(st.get("drift_count") or 0),
+                    st.get("last_npc_lines") if st.get("last_npc_lines") is not None else "{}",
                     st.get("encounter_arcs") or "{}",
                 ),
             )
@@ -1462,7 +1494,8 @@ class VeilGameEngine:
                     dc=int(raw["dc"]),
                     outcome_text=raw["outcome_text"],
                 )
-            return PlayResult(ok=raw["ok"], message=raw.get("message", ""), scene=raw["state"], check=check)
+            msg = raw.get("message") or (check.outcome_text if check else "")
+            return PlayResult(ok=raw["ok"], message=msg, scene=raw["state"], check=check)
         if isinstance(action, ToggleParty):
             raw = self._toggle_party(action.character_id)
             return PlayResult(ok=raw["ok"], message=raw["message"], scene=raw["state"])

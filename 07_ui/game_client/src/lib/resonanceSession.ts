@@ -14,7 +14,8 @@ export interface ResonanceSessionState {
   hasCrossedFirstThreshold: boolean // True once >= 450.0
   veilState: VeilState
   playerLastLine: string
-  recentKeywords: string[] // Rolling 2-turn thematic word window
+  recentKeywords: string[] // Flattened rolling 2-turn thematic word window
+  keywordHistory?: string[][] // Per-turn thematic word window (last 2 turns)
   encounters: Record<string, NpcEncounterState>
   isSealedOut: boolean // True if resonance hits 0.0
 }
@@ -42,6 +43,7 @@ export function createInitialSession(): ResonanceSessionState {
     veilState: 'calm',
     playerLastLine: '',
     recentKeywords: [],
+    keywordHistory: [],
     encounters: {},
     isSealedOut: false,
   }
@@ -106,6 +108,15 @@ export function processTalkTurn(
   })
 
   const crossed450 = state.hasCrossedFirstThreshold || evaluation.newResonance >= 450.0
+  const usedThisTurn = Array.from(
+    new Set([
+      ...(evaluation.signals.resonantWordsHit ?? []),
+      ...(evaluation.signals.fatiguedWords ?? []),
+    ]),
+  )
+  const prevHistory = state.keywordHistory ?? (state.recentKeywords.length > 0 ? [state.recentKeywords] : [])
+  const nextKeywordHistory = [...prevHistory, usedThisTurn].slice(-2)
+  const nextRecentKeywords = Array.from(new Set(nextKeywordHistory.flat()))
 
   return {
     evaluation,
@@ -117,6 +128,8 @@ export function processTalkTurn(
       turnsSinceLastTalk: 0,
       hasCrossedFirstThreshold: crossed450,
       playerLastLine: playerLine,
+      recentKeywords: nextRecentKeywords,
+      keywordHistory: nextKeywordHistory,
       encounters: {
         ...state.encounters,
         [npcId]: evaluation.updatedEncounter,

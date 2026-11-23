@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import json
+import sqlite3
 import sys
 from pathlib import Path
 
@@ -212,3 +214,96 @@ def test_party_codex_portrait_and_status_stay_off_the_session_verbs() -> None:
     report = engine.status(shelf_count=3)
     assert "live_llm_enabled" in report
     assert report["local_shelf_characters"] == 3
+
+
+def test_resolve_populates_message_and_save_restores_resonance_metadata() -> None:
+    engine = _engine()
+    fought = engine.play(Resolve("trial_prism_surface", "accept_warmth", seed=0))
+    assert fought.ok is True
+    assert fought.check is not None
+    assert fought.message == fought.check.outcome_text
+
+    # Talk with 'veil', build drift_count, and save
+    _talk(engine, text="I wonder what hides behind the veil when lanterns burn bright?")
+    engine.play(Travel("solstice_bazaar"))
+    saved = engine.save("meta_check", "Metadata Snapshot")
+    assert saved.ok is True
+
+    # Mutate metadata after save via more dialogue and travel
+    _talk(engine, "kaelen_lanternwright", "Why do shadows gather near the mirror?")
+    engine._conn.execute(
+        "UPDATE player_stats SET has_crossed_first_threshold=1, drift_count=2 WHERE player_id='player'"
+    )
+    engine._conn.commit()
+
+    loaded = engine.load("meta_check")
+    assert loaded.ok is True
+    stats_after = engine._row_dict("SELECT * FROM player_stats WHERE player_id='player'")
+    assert int(stats_after["has_crossed_first_threshold"]) == 0
+    assert int(stats_after["drift_count"]) == 1
+    kw_after = json.loads(stats_after["recent_keywords"])
+    assert ["veil"] in kw_after
+    lines_after = json.loads(stats_after["last_npc_lines"])
+    assert "mira" in lines_after
+    assert "kaelen_lanternwright" not in lines_after
+
+    # Legacy 0.0-1.0 save snapshot rescales smoothly to 0-1000 on load
+    snap = json.loads(
+        engine._row_dict("SELECT snapshot_json FROM save_slots WHERE slot_id='meta_check'")["snapshot_json"]
+    )
+    snap["player_stats"]["resonance"] = 0.35
+    snap["player_state"]["emotional_depth"] = 0.35
+    engine._conn.execute(
+        "INSERT OR REPLACE INTO save_slots (slot_id, label, snapshot_json) VALUES (?, ?, ?)",
+        ("legacy_save", "Legacy 0.35", json.dumps(snap)),
+    )
+    engine._conn.commit()
+    legacy_loaded = engine.load("legacy_save")
+    assert legacy_loaded.scene["player"]["resonance"] == 350.0
+
+
+def test_legacy_sqlite_migration_adds_resonance_columns_and_rescales_values(tmp_path: Path) -> None:
+    db_file = tmp_path / "legacy_veil.sqlite"
+    conn = sqlite3.connect(str(db_file))
+    conn.executescript(
+        """
+        CREATE TABLE player_state (
+            player_id TEXT PRIMARY KEY DEFAULT 'player',
+            emotional_depth REAL DEFAULT 0.0,
+            turns_taken INTEGER DEFAULT 0,
+            unlocked_districts TEXT DEFAULT '["caetherra"]',
+            dreams_seen INTEGER DEFAULT 0,
+            veil_state TEXT DEFAULT 'calm',
+            last_updated TEXT DEFAULT CURRENT_TIMESTAMP
+        );
+        CREATE TABLE player_stats (
+            player_id TEXT PRIMARY KEY DEFAULT 'player',
+            level INTEGER DEFAULT 1,
+            xp INTEGER DEFAULT 0,
+            resonance REAL DEFAULT 0.35,
+            clarity INTEGER DEFAULT 10,
+            empathy INTEGER DEFAULT 10,
+            resolve INTEGER DEFAULT 10,
+            perception INTEGER DEFAULT 10,
+            veil_attunement INTEGER DEFAULT 10,
+            emotional_tags TEXT DEFAULT '["warmth"]',
+            updated_at TEXT DEFAULT CURRENT_TIMESTAMP
+        );
+        INSERT INTO player_state (player_id, emotional_depth, turns_taken) VALUES ('player', 0.35, 1);
+        INSERT INTO player_stats (player_id, resonance) VALUES ('player', 0.35);
+        """
+    )
+    conn.commit()
+    conn.close()
+
+    engine = VeilGameEngine(repo_root=ROOT, db_path=db_file)
+    try:
+        scene = engine.scene()
+        assert scene["player"]["resonance"] == 350.0
+        ps = engine._row_dict("SELECT emotional_depth FROM player_state WHERE player_id='player'")
+        assert float(ps["emotional_depth"]) == 350.0
+        # Dialogue executes without OperationalError and advances migrated metadata
+        reply = engine.play(Talk("mira", "Why do these warm lanterns flicker near the plaza?"))
+        assert reply.ok is True
+    finally:
+        engine.close()
