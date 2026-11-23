@@ -130,7 +130,9 @@ def create_app(db_path: Path | str | None = None) -> FastAPI:
             "speaker": reply.speaker if reply else "",
             "reply": reply.text if reply else "",
             "resonance_delta": reply.resonance_delta if reply else 0,
+            "cue_type": reply.cue_type if reply else "standard_harmonic",
             "signals": reply.signals if reply else {},
+            "sealed_out": result.scene["player"]["resonance"] <= 0.0,
             "veil_state": result.scene["world"]["veil_state"],
             "state": result.scene,
         }
@@ -226,6 +228,11 @@ def create_app(db_path: Path | str | None = None) -> FastAPI:
     @app.get("/api/runtime/status")
     def runtime_status() -> dict:
         return engine.status(shelf_count=len(media.list_local_shelf_characters(limit=100)))
+
+    @app.post("/api/game/reset")
+    def reset_game() -> dict:
+        result = engine.reset_session()
+        return {"ok": result.ok, "message": result.message, "state": result.scene}
 
     # Serve built Vite client if present
     dist_dir = _ROOT / "07_ui" / "game_client" / "dist"

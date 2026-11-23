@@ -432,6 +432,22 @@ body,
 .dock-card.cue-collapse {
   filter: grayscale(0.75) brightness(0.7);
 }
+.dock-card.cue-rupture {
+  border-color: #ef4444;
+  box-shadow: 0 0 32px rgba(239, 68, 68, 0.45), var(--card-shadow);
+}
+
+.veil-stage-shell.veil-suffocating .backdrop-layer {
+  filter: grayscale(0.8) brightness(0.45);
+}
+.veil-stage-shell.veil-suffocating::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 4;
+  pointer-events: none;
+  box-shadow: inset 0 0 140px 45px rgba(0, 0, 0, 0.92);
+}
 
 .dock-header {
   display: flex;

@@ -65,28 +65,29 @@ export function useResonanceSession() {
 
   const membrane: VisualMembraneProps = useMemo(() => {
     const r = session.resonance
+    const norm = Math.max(0, Math.min(1, r / 1000))
 
     let tierName = 'First Light'
-    if (r < 0.35) tierName = 'Surface Walker'
-    else if (r < 0.55) tierName = 'First Light'
-    else if (r < 0.75) tierName = 'Veil Listener'
-    else if (r < 0.85) tierName = 'Quasar Tested'
+    if (r < 350) tierName = 'Surface Walker'
+    else if (r < 550) tierName = 'First Light'
+    else if (r < 750) tierName = 'Veil Listener'
+    else if (r < 850) tierName = 'Quasar Tested'
     else tierName = 'Awakened'
 
-    const maskRadius = Math.round(28 + r * 64)
-    const smokeThickness = Number((0.95 - r * 0.83).toFixed(2))
-    const smokeSpill = Math.round(2 + r * 26)
-    const waveFreq = Number((0.5 + r * 3.5).toFixed(2))
+    const maskRadius = Math.round(28 + norm * 64)
+    const smokeThickness = Number((0.95 - norm * 0.83).toFixed(2))
+    const smokeSpill = Math.round(2 + norm * 26)
+    const waveFreq = Number((0.5 + norm * 3.5).toFixed(2))
 
     let hueShift = '210deg'
-    if (r < 0.1) hueShift = '0deg'
-    else if (r < 0.35) hueShift = '215deg'
-    else if (r < 0.75) hueShift = '190deg'
+    if (r < 100) hueShift = '0deg'
+    else if (r < 350) hueShift = '215deg'
+    else if (r < 750) hueShift = '190deg'
     else hueShift = '42deg'
 
     return {
       tierName,
-      percentDisplay: `${Math.round(r * 100)}%`,
+      percentDisplay: `${r.toFixed(1)} / 1000`,
       activeCue: lastEvaluation?.cueType ?? null,
       cssVars: {
         '--veil-mask-radius': `${maskRadius}%`,

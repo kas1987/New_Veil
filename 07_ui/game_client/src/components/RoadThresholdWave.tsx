@@ -2,8 +2,8 @@ import React, { useId, useMemo } from 'react'
 
 export interface RoadThresholdWaveProps {
   roadName: string
-  currentResonance: number // 0.000 to 1.000
-  requiredResonance: number // e.g., 0.550 for Listening Wall
+  currentResonance: number // 0.0 to 1000.0
+  requiredResonance: number // e.g., 550.0 for Listening Wall
   showNumericRule?: boolean
 }
 
@@ -33,15 +33,17 @@ export const RoadThresholdWave: React.FC<RoadThresholdWaveProps> = ({
 }) => {
   const filterId = useId()
   const isLocked = currentResonance < requiredResonance
-  const isSuffocating = currentResonance < 0.1
+  const isSuffocating = currentResonance < 100.0
 
   const { targetPath, playerPath } = useMemo(() => {
     const w = 280
     const h = 68
-    const tFreq = 2 + requiredResonance * 5
-    const tAmp = 10 + requiredResonance * 16
-    const pFreq = 2 + currentResonance * 5
-    const pAmp = 4 + currentResonance * 16
+    const reqNorm = Math.max(0, Math.min(1, requiredResonance / 1000))
+    const curNorm = Math.max(0, Math.min(1, currentResonance / 1000))
+    const tFreq = 2 + reqNorm * 5
+    const tAmp = 10 + reqNorm * 16
+    const pFreq = 2 + curNorm * 5
+    const pAmp = 4 + curNorm * 16
 
     return {
       targetPath: generateSinePath(w, h, tAmp, tFreq, 0),
@@ -116,7 +118,7 @@ export const RoadThresholdWave: React.FC<RoadThresholdWaveProps> = ({
             {isSuffocating ? 'The mist turns back toward the Plaza.' : 'The barrier repels your wave.'}
           </span>
           <span>
-            Req {requiredResonance.toFixed(2)} / Cur {currentResonance.toFixed(2)}
+            Req {requiredResonance.toFixed(1)} / Cur {currentResonance.toFixed(1)}
           </span>
         </div>
       )}

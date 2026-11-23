@@ -64,7 +64,7 @@
       "map_coords": { "x": 80, "y": 28 },
       "unlocked_by_default": false,
       "unlock_conditions": {
-        "min_resonance": 0.7,
+        "min_resonance": 700.0,
         "min_interactions": 6
       },
       "districts": ["gravity_spire"]
@@ -98,7 +98,7 @@
       "objects": ["wall_of_the_unseen_gate", "thread"],
       "services": ["echo_attunement"],
       "hidden": true,
-      "unlock_conditions": { "min_resonance": 0.55, "veil_states": ["storm", "quasar_active"] }
+      "unlock_conditions": { "min_resonance": 550.0, "veil_states": ["storm", "quasar_active"] }
     },
     {
       "id": "miras_garden",
@@ -113,7 +113,7 @@
       "objects": ["mirror", "key"],
       "services": ["deep_dialogue"],
       "hidden": true,
-      "unlock_conditions": { "min_resonance": 0.65, "min_interactions": 5 }
+      "unlock_conditions": { "min_resonance": 650.0, "min_interactions": 5 }
     },
     {
       "id": "stillward_cloister",
@@ -128,7 +128,7 @@
       "objects": ["mirror", "lantern"],
       "services": ["reliquary", "meditate"],
       "hidden": false,
-      "unlock_conditions": { "min_resonance": 0.4, "requires_item": "lantern" }
+      "unlock_conditions": { "min_resonance": 400.0, "requires_item": "lantern" }
     },
     {
       "id": "ashveil_forges",
@@ -143,7 +143,7 @@
       "objects": ["ash", "key"],
       "services": ["forge", "merchant"],
       "hidden": false,
-      "unlock_conditions": { "min_resonance": 0.5 }
+      "unlock_conditions": { "min_resonance": 500.0 }
     },
     {
       "id": "ember_vaults_anvil",
@@ -158,7 +158,7 @@
       "objects": ["ash", "key", "thread"],
       "services": ["archive_trial"],
       "hidden": false,
-      "unlock_conditions": { "min_resonance": 0.65, "requires_district": "ashveil" }
+      "unlock_conditions": { "min_resonance": 650.0, "requires_district": "ashveil" }
     },
     {
       "id": "hollow_clearing",
@@ -173,7 +173,7 @@
       "objects": ["void_door", "thread"],
       "services": ["dream_walk", "sister_council"],
       "hidden": false,
-      "unlock_conditions": { "min_resonance": 0.75 }
+      "unlock_conditions": { "min_resonance": 750.0 }
     },
     {
       "id": "solstice_bazaar",
@@ -230,7 +230,7 @@
       "objects": ["void_door", "mirror"],
       "services": ["quasar_trial"],
       "hidden": false,
-      "unlock_conditions": { "min_resonance": 0.7 }
+      "unlock_conditions": { "min_resonance": 700.0 }
     },
     {
       "id": "astral_observatory",
@@ -245,7 +245,7 @@
       "objects": ["mirror", "thread"],
       "services": ["lore_study"],
       "hidden": false,
-      "unlock_conditions": { "min_resonance": 0.7 }
+      "unlock_conditions": { "min_resonance": 700.0 }
     },
     {
       "id": "void_threshold",
@@ -260,7 +260,7 @@
       "objects": ["void_door"],
       "services": ["convergence"],
       "hidden": true,
-      "unlock_conditions": { "min_resonance": 0.8, "veil_states": ["quasar_active"] }
+      "unlock_conditions": { "min_resonance": 800.0, "veil_states": ["quasar_active"] }
     }
   ],
   "connections": [

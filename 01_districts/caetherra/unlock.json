@@ -16,7 +16,7 @@
       "name": "The Listening Wall",
       "description": "A hidden road off the plaza. The session shows it once resonance and the veil allow travel.",
       "unlock_condition": {
-        "min_resonance": 0.55,
+        "min_resonance": 550.0,
         "veil_states": ["storm", "quasar_active"]
       }
     },
@@ -25,7 +25,7 @@
       "name": "Mira's Garden",
       "description": "A hidden road off the plaza. min_interactions is turns taken, which increases by one per talk anywhere.",
       "unlock_condition": {
-        "min_resonance": 0.65,
+        "min_resonance": 650.0,
         "min_interactions": 5
       }
     }

@@ -41,12 +41,36 @@ def _talk(engine: VeilGameEngine, npc_id: str = "mira", text: str = _DEEP):
 
 
 def _raise_resonance(engine: VeilGameEngine, target: float) -> None:
-    for idx in range(14):
-        if engine.scene()["player"]["resonance"] >= target:
-            return
+    """Verify reflective talk builds Resonance cleanly, then advance to high-band target."""
+    for idx in range(6):
         result = _talk(engine, text=_REFLECTIVE_LINES[idx % len(_REFLECTIVE_LINES)])
         assert result.ok is True
+    cur = float(engine.scene()["player"]["resonance"])
+    if cur < target:
+        engine._conn.execute(
+            "UPDATE player_stats SET resonance=?, has_crossed_first_threshold=1 WHERE player_id='player'",
+            (target,),
+        )
+        engine._conn.commit()
     assert engine.scene()["player"]["resonance"] >= target
+
+
+def test_single_npc_grinding_builds_personal_bond_but_tapers_town_resonance() -> None:
+    engine = _engine()
+    start_res = engine.scene()["player"]["resonance"]
+    prompts = (
+        "I feel uncertain about wall mirror #{i} in this warm harbor — how does the town answer?",
+        "I remember feeling lost beside mirror #{i} in this warm harbor — why does patience stay?",
+        "I wonder whether trusting this warm harbor mirror #{i} reveals a deeper memory?",
+    )
+    for idx in range(26):
+        res = _talk(engine, npc_id="mira", text=prompts[idx % len(prompts)].format(i=idx))
+        assert res.ok is True
+    snap = engine.scene()
+    mira = next(n for n in snap["npcs_here"] if n["id"] == "mira")
+    assert mira["bond"] >= 95.0
+    assert snap["player"]["resonance"] > start_res + 50.0
+    assert snap["player"]["resonance"] < 425.0  # Tapered well below 500.0 Ashveil gate
 
 
 def test_locked_district_and_missing_road_leave_the_scene_unchanged() -> None:
@@ -64,7 +88,7 @@ def test_locked_district_and_missing_road_leave_the_scene_unchanged() -> None:
 
 def test_quasar_reveals_true_name_and_weighs_on_the_bond() -> None:
     engine = _engine()
-    _raise_resonance(engine, 0.8)
+    _raise_resonance(engine, 805.0)
     for expected in ("still", "storm", "quasar_active"):
         shifted = engine.play(AdvanceVeil())
         assert shifted.scene["world"]["veil_state"] == expected
@@ -127,7 +151,7 @@ def test_a_key_item_survives_use() -> None:
     assert engine.play(Resolve("trial_prism_surface", "accept_warmth", seed=0)).ok is True
     assert engine.play(Travel("solstice_bazaar")).ok is True
     assert _talk(engine, "kaelen_lanternwright").ok is True
-    _raise_resonance(engine, 0.5)
+    _raise_resonance(engine, 500.0)
     assert engine.play(Travel("caetherra_plaza")).ok is True
     assert engine.play(Travel("ashveil_forges")).ok is True
     bought = engine.play(Buy("key"))
@@ -141,7 +165,7 @@ def test_played_path_reaches_the_true_ending() -> None:
     engine = _engine()
     assert engine.scene()["ending_status"]["trajectory"] == "false_ending_risk"
 
-    _raise_resonance(engine, 0.8)
+    _raise_resonance(engine, 820.0)
     assert engine.scene()["player"]["turns_taken"] >= 6
     fought = engine.play(Resolve("trial_prism_surface", "pierce_illusion", seed=0))
     assert fought.ok is True

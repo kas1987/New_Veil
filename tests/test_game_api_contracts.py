@@ -36,7 +36,7 @@ def test_locked_district_blocks_travel_until_earned() -> None:
     assert no_road["ok"] is False
     assert "No direct road" in no_road["message"]
 
-    # Adjacent Ashveil Furnaces requires 0.50 resonance; starter player has 0.35
+    # Adjacent Ashveil Furnaces requires 500.0 resonance; starter player has 350.0
     resp = client.post("/api/world/travel", json={"location_id": "ashveil_forges"})
     assert resp.status_code == 200
     body = resp.json()
@@ -116,7 +116,7 @@ def test_party_codex_portrait_binding_and_runtime_status() -> None:
     lore = next(e for e in codex if e["id"] == "lore_bible")
     quasar = next(e for e in codex if e["id"] == "dark_quasar")
     assert lore["unlocked"] is True
-    assert quasar["unlocked"] is False  # Starter resonance 0.35 < 0.60
+    assert quasar["unlocked"] is False  # Starter resonance 350.0 < 600.0
 
     # Portrait binding updates NPC portrait_url cleanly
     bound = client.post("/api/media/bind", json={"npc_id": "mira", "media_key": "adeline"}).json()

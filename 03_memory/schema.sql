@@ -91,7 +91,7 @@ CREATE TABLE IF NOT EXISTS player_stats (
     player_id TEXT PRIMARY KEY DEFAULT 'player',
     level INTEGER DEFAULT 1,
     xp INTEGER DEFAULT 0,
-    resonance REAL DEFAULT 0.35,
+    resonance REAL DEFAULT 350.0,
     clarity REAL DEFAULT 10,
     empathy REAL DEFAULT 10,
     resolve REAL DEFAULT 10,

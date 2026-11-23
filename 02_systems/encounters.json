@@ -15,7 +15,7 @@
           "dc": 10,
           "success_text": "The Prism rewards your gentleness with a clear Echo Shard, though Mira watches you with a quiet, testing gaze.",
           "failure_text": "Your applause rings slightly hollow; the crowd's smiles flicker for a heartbeat.",
-          "rewards": { "xp": 25, "echoes": 5, "resonance_delta": 0.04, "emotional_tag": "warmth" }
+          "rewards": { "xp": 25, "echoes": 5, "resonance_delta": 8.0, "emotional_tag": "warmth" }
         },
         {
           "id": "pierce_illusion",
@@ -24,7 +24,7 @@
           "dc": 12,
           "success_text": "Beneath the major key, a low gravitational hum vibrates in the cobblestones. You glimpse the Veil's true depth.",
           "failure_text": "The warmth overwhelms your focus, leaving only a faint ache behind your eyes.",
-          "rewards": { "xp": 40, "echoes": 8, "resonance_delta": 0.08, "emotional_tag": "mystery" }
+          "rewards": { "xp": 40, "echoes": 8, "resonance_delta": 15.0, "emotional_tag": "mystery" }
         }
       ]
     },
@@ -42,7 +42,7 @@
           "dc": 13,
           "success_text": "Hairline cracks bloom across the silver glass, revealing a hidden latch to the Covenant confessional.",
           "failure_text": "You look away as the bell rings sharp; the reflection snaps back to serene white stone.",
-          "rewards": { "xp": 55, "echoes": 12, "resonance_delta": 0.09, "emotional_tag": "recognition" }
+          "rewards": { "xp": 55, "echoes": 12, "resonance_delta": 16.0, "emotional_tag": "recognition" }
         },
         {
           "id": "attune_bell",
@@ -51,7 +51,7 @@
           "dc": 12,
           "success_text": "The bell answers with a warm overtone, granting you clarity without shattering the sanctuary.",
           "failure_text": "The harmonic slips, shaking loose a brief storm ripple.",
-          "rewards": { "xp": 45, "echoes": 10, "resonance_delta": 0.06, "emotional_tag": "warmth" }
+          "rewards": { "xp": 45, "echoes": 10, "resonance_delta": 12.0, "emotional_tag": "warmth" }
         }
       ]
     },
@@ -69,7 +69,7 @@
           "dc": 11,
           "success_text": "Kaelen nods approvingly from behind the bar and slides you a genuine Echo Shard.",
           "failure_text": "The wayfarer laughs lightly, leaving you wondering if ease really was so dangerous.",
-          "rewards": { "xp": 35, "echoes": 8, "resonance_delta": 0.06, "emotional_tag": "clarity" }
+          "rewards": { "xp": 35, "echoes": 8, "resonance_delta": 12.0, "emotional_tag": "clarity" }
         },
         {
           "id": "listen_to_story",
@@ -78,7 +78,7 @@
           "dc": 10,
           "success_text": "Their smile fades into honesty; they whisper a forgotten bearing toward The Stillward.",
           "failure_text": "They change the subject and raise their glass to Caetherra's endless warmth.",
-          "rewards": { "xp": 30, "echoes": 6, "resonance_delta": 0.05, "emotional_tag": "warmth" }
+          "rewards": { "xp": 30, "echoes": 6, "resonance_delta": 10.0, "emotional_tag": "warmth" }
         }
       ]
     },
@@ -96,7 +96,7 @@
           "dc": 12,
           "success_text": "Ashara's reflection appears beside yours for a heartbeat, sharpening your resonance.",
           "failure_text": "The surface clouds over with soft grey mist.",
-          "rewards": { "xp": 45, "echoes": 9, "resonance_delta": 0.07, "emotional_tag": "recognition" }
+          "rewards": { "xp": 45, "echoes": 9, "resonance_delta": 14.0, "emotional_tag": "recognition" }
         }
       ]
     },
@@ -114,7 +114,7 @@
           "dc": 13,
           "success_text": "Vael watches from the gantry and gives a rare, sharp nod. You held the memory without flinching.",
           "failure_text": "You cough and step back, though a single ember of insight lingers.",
-          "rewards": { "xp": 65, "echoes": 14, "resonance_delta": 0.09, "emotional_tag": "mystery" }
+          "rewards": { "xp": 65, "echoes": 14, "resonance_delta": 16.0, "emotional_tag": "mystery" }
         },
         {
           "id": "channel_ash",
@@ -123,7 +123,7 @@
           "dc": 12,
           "success_text": "The ash parts around your lantern light, revealing a chalk sigil pointing down to the Ember Vaults.",
           "failure_text": "The fragments scatter into static before you can read them.",
-          "rewards": { "xp": 55, "echoes": 12, "resonance_delta": 0.08, "emotional_tag": "mystery" }
+          "rewards": { "xp": 55, "echoes": 12, "resonance_delta": 15.0, "emotional_tag": "mystery" }
         }
       ]
     },
@@ -141,7 +141,7 @@
           "dc": 14,
           "success_text": "A resonant chime rings through the vault; The Rendered steps closer and speaks of the Nine Sisters.",
           "failure_text": "The thread snaps taut with a cold jolt, sealing the vault door tighter.",
-          "rewards": { "xp": 90, "echoes": 20, "resonance_delta": 0.10, "emotional_tag": "truth" }
+          "rewards": { "xp": 90, "echoes": 20, "resonance_delta": 18.0, "emotional_tag": "truth" }
         }
       ]
     },
@@ -159,7 +159,7 @@
           "dc": 15,
           "success_text": "The gravity does not crush you—it anchors you. The Quasar recognizes earned trust.",
           "failure_text": "Suspicion spikes through your bonds as the membrane strains, yet you survive with a sharper eye.",
-          "rewards": { "xp": 120, "echoes": 25, "resonance_delta": 0.12, "emotional_tag": "truth" }
+          "rewards": { "xp": 120, "echoes": 25, "resonance_delta": 20.0, "emotional_tag": "truth" }
         }
       ]
     }

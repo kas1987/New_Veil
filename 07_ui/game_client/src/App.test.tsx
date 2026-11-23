@@ -41,7 +41,7 @@ const MOCK_STATE: GameState = {
   player: {
     level: 1,
     xp: 0,
-    resonance: 0.35,
+    resonance: 350.0,
     clarity: 10,
     empathy: 10,
     resolve: 10,
@@ -66,6 +66,8 @@ const MOCK_STATE: GameState = {
       is_merchant: false,
       can_join_party: true,
       in_party: true,
+      bond: 12.0,
+      stance: 'open',
       relationship: { trust: 52, affection: 50, suspicion: 10, resistance: 65, interactions: 0 },
     },
   ],
@@ -149,7 +151,7 @@ describe('The Veil RPG Client', () => {
               ok: true,
               speaker: 'Mira',
               reply: 'Listen closely to the Prism.',
-              resonance_delta: 0.04,
+              resonance_delta: 2.0,
               state: MOCK_STATE,
             }),
           }
@@ -178,6 +180,8 @@ describe('The Veil RPG Client', () => {
 
     expect(screen.getAllByText('Mira').length).toBeGreaterThan(0)
     expect(screen.getByText(/First Light/i)).toBeTruthy()
+    expect(screen.getByText('350.0')).toBeTruthy()
+    expect(screen.getByText(/Bond/i)).toBeTruthy()
 
     // Send quick dialogue prompt
     fireEvent.click(screen.getByRole('button', { name: /Ask about the Veil/i }))

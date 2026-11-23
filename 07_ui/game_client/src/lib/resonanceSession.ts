@@ -1,21 +1,22 @@
 import {
   evaluateTalkResonance,
   NpcEncounterState,
+  PersonalityWeights,
   ResonanceEvaluation,
 } from './resonanceEvaluator'
 
 export type VeilState = 'calm' | 'still' | 'storm' | 'quasar_active'
 
 export interface ResonanceSessionState {
-  resonance: number // 0.000 to 1.000
+  resonance: number // 0.0 to 1000.0
   turnsTaken: number // Accepted talks count
   turnsSinceLastTalk: number // Tracks 3-turn drift intervals
-  hasCrossedFirstThreshold: boolean // True once >= 0.450
+  hasCrossedFirstThreshold: boolean // True once >= 450.0
   veilState: VeilState
   playerLastLine: string
   recentKeywords: string[] // Rolling 2-turn thematic word window
   encounters: Record<string, NpcEncounterState>
-  isSealedOut: boolean // True if resonance hits 0.000
+  isSealedOut: boolean // True if resonance hits 0.0
 }
 
 export interface RoadLockCheck {
@@ -27,14 +28,14 @@ export interface RoadLockCheck {
 }
 
 const ITEM_DELTAS: Record<string, number> = {
-  echo_shard: 0.04,
-  vial_of_memory_ash: 0.06,
-  ash: 0.06,
+  echo_shard: 6.0,
+  vial_of_memory_ash: 10.0,
+  ash: 10.0,
 }
 
 export function createInitialSession(): ResonanceSessionState {
   return {
-    resonance: 0.35,
+    resonance: 350.0,
     turnsTaken: 0,
     turnsSinceLastTalk: 0,
     hasCrossedFirstThreshold: false,
@@ -51,13 +52,13 @@ function applyGraceAndClamp(
   state: ResonanceSessionState,
 ): { value: number; sealedOut: boolean } {
   const inGraceWindow = state.turnsTaken < 5 && !state.hasCrossedFirstThreshold
-  let next = Number(candidate.toFixed(3))
+  let next = Number(candidate.toFixed(2))
 
-  if (inGraceWindow && next < 0.35) {
-    next = 0.35
+  if (inGraceWindow && next < 350.0) {
+    next = 350.0
   }
 
-  next = Math.max(0.0, Math.min(1.0, next))
+  next = Math.max(0.0, Math.min(1000.0, next))
   return {
     value: next,
     sealedOut: next === 0.0,
@@ -71,6 +72,7 @@ export function processTalkTurn(
   playerLine: string,
   defaultStance: NpcEncounterState['currentStance'] = 'guarded',
   relevantUnlockedTokens: string[] = [],
+  personalityWeights?: PersonalityWeights,
 ): {
   nextState: ResonanceSessionState
   evaluation: ResonanceEvaluation
@@ -84,10 +86,12 @@ export function processTalkTurn(
     consecutiveAttunedTurns: 0,
     breakthroughAwarded: false,
     relevantUnlockedTokens,
+    npcBond: 0.0,
+    townContribution: 0.0,
   }
 
   const renderedPlayerText =
-    state.resonance < 0.1 ? corruptLineWithStatic(playerLine, state.resonance) : playerLine
+    state.resonance < 100.0 ? corruptLineWithStatic(playerLine, state.resonance) : playerLine
 
   const evaluation = evaluateTalkResonance(playerLine, {
     currentResonance: state.resonance,
@@ -98,9 +102,10 @@ export function processTalkTurn(
     recentKeywords: state.recentKeywords,
     veilState: state.veilState,
     encounter,
+    personalityWeights,
   })
 
-  const crossed450 = state.hasCrossedFirstThreshold || evaluation.newResonance >= 0.45
+  const crossed450 = state.hasCrossedFirstThreshold || evaluation.newResonance >= 450.0
 
   return {
     evaluation,
@@ -129,13 +134,13 @@ export function processNonTalkTurn(state: ResonanceSessionState): {
   let driftApplied = 0
 
   if (nextIdleCount >= 3) {
-    driftApplied = state.veilState === 'storm' ? -0.02 : -0.01
+    driftApplied = state.veilState === 'storm' ? -1.0 : -0.5
   }
 
   const { value, sealedOut } = applyGraceAndClamp(state.resonance + driftApplied, state)
 
   return {
-    driftApplied: Number((value - state.resonance).toFixed(3)),
+    driftApplied: Number((value - state.resonance).toFixed(2)),
     nextState: {
       ...state,
       resonance: value,
@@ -152,11 +157,11 @@ export function applyDirectDelta(
   const delta = source.itemId ? (ITEM_DELTAS[source.itemId] ?? 0) : (source.trialDelta ?? 0)
   if (delta === 0) return { nextState: state, appliedDelta: 0 }
 
-  const next = Math.max(0.0, Math.min(1.0, Number((state.resonance + delta).toFixed(3))))
-  const crossed450 = state.hasCrossedFirstThreshold || next >= 0.45
+  const next = Math.max(0.0, Math.min(1000.0, Number((state.resonance + delta).toFixed(2))))
+  const crossed450 = state.hasCrossedFirstThreshold || next >= 450.0
 
   return {
-    appliedDelta: Number((next - state.resonance).toFixed(3)),
+    appliedDelta: Number((next - state.resonance).toFixed(2)),
     nextState: {
       ...state,
       resonance: next,
@@ -175,7 +180,7 @@ export function checkRoadAccess(
     hasRequiredKeyItem?: boolean
   },
 ): RoadLockCheck {
-  if (state.resonance < 0.1) {
+  if (state.resonance < 100.0) {
     return {
       allowed: false,
       reason: 'veil_suffocation_loop',
@@ -214,7 +219,8 @@ export function checkRoadAccess(
 }
 
 function corruptLineWithStatic(line: string, resonance: number): string {
-  const dropProbability = Math.max(0.35, 1 - resonance * 8)
+  const norm = resonance / 1000
+  const dropProbability = Math.max(0.35, 1 - norm * 8)
   return line
     .split(/\s+/)
     .map((word, idx) => {

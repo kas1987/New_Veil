@@ -68,7 +68,7 @@ export const ResonanceSandbox: React.FC = () => {
     const sign = evaluation.delta >= 0 ? '+' : ''
 
     let simulatedReply = 'The mist drifts between us without answering.'
-    if (nextState.resonance < 0.1) {
+    if (nextState.resonance < 100.0) {
       simulatedReply = '...'
     } else if (evaluation.cueType === 'breakthrough_surge') {
       simulatedReply =
@@ -78,7 +78,7 @@ export const ResonanceSandbox: React.FC = () => {
         'You don’t push back like the others. Keep your voice steady if you want to stay near the wall.'
     } else if (evaluation.cueType === 'friction_damping') {
       simulatedReply = 'Save your breath. Empty words don’t carry here.'
-    } else if (nextState.resonance >= 0.8 && nextState.veilState === 'quasar_active') {
+    } else if (nextState.resonance >= 800.0 && nextState.veilState === 'quasar_active') {
       simulatedReply = 'The sky is open—you can hear my true name now beneath the quasar hum.'
     } else {
       simulatedReply = 'The air feels thinner when you speak like that. What else do you remember?'
@@ -89,12 +89,12 @@ export const ResonanceSandbox: React.FC = () => {
       {
         sender: 'Visitor',
         text: renderedPlayerText,
-        meta: `${sign}${evaluation.delta.toFixed(3)} (${evaluation.cueType})`,
+        meta: `${sign}${evaluation.delta.toFixed(2)} (${evaluation.cueType})`,
       },
       {
         sender: activeNpc.name,
         text: simulatedReply,
-        meta: `Stance: ${evaluation.updatedEncounter.currentStance}`,
+        meta: `Stance: ${evaluation.updatedEncounter.currentStance} · Bond ${(evaluation.updatedEncounter.npcBond ?? 0).toFixed(1)}`,
       },
     ])
     setInputText('')
@@ -109,13 +109,14 @@ export const ResonanceSandbox: React.FC = () => {
           </div>
           <div className="scene-sub">
             Grace Window:{' '}
-            {session.turnsTaken < 5 && !session.hasCrossedFirstThreshold ? 'Active (0.350 Floor)' : 'Dissolved'}
+            {session.turnsTaken < 5 && !session.hasCrossedFirstThreshold ? 'Active (350.0 Floor)' : 'Dissolved'}
+            {' · '}NPC Bond: {(currentEncounter?.npcBond ?? 0).toFixed(1)}/100
+            {' · '}Contrib: {(currentEncounter?.townContribution ?? 0).toFixed(1)}/50
           </div>
         </div>
         <div style={{ textAlign: 'right' }}>
           <div style={{ fontFamily: 'Cinzel Decorative, serif', fontSize: 20, color: 'var(--star)' }}>
-            {membrane.percentDisplay}{' '}
-            <span style={{ fontSize: 12, color: 'var(--text-dim)' }}>({session.resonance.toFixed(3)})</span>
+            {membrane.percentDisplay}
           </div>
           <div style={{ fontSize: 10, letterSpacing: '0.18em', color: 'var(--quasar-bright)' }}>
             {membrane.tierName.toUpperCase()}
@@ -139,10 +140,10 @@ export const ResonanceSandbox: React.FC = () => {
           Mira (Guarded Arc)
         </button>
         <button type="button" className="btn" onClick={() => useConsumableOrTrial({ itemId: 'echo_shard' })}>
-          + Echo Shard (0.04)
+          + Echo Shard (+6.0)
         </button>
         <button type="button" className="btn" onClick={() => useConsumableOrTrial({ itemId: 'vial_of_memory_ash' })}>
-          + Memory Ash (0.06)
+          + Memory Ash (+10.0)
         </button>
         <button type="button" className="btn btn-bloom" onClick={() => advanceNonTalkTurn()}>
           Idle/Travel ({session.turnsSinceLastTalk}/3)
@@ -152,25 +153,28 @@ export const ResonanceSandbox: React.FC = () => {
       {lastEvaluation && (
         <div className="card" style={{ display: 'flex', flexWrap: 'wrap', gap: 8, fontSize: 11 }}>
           <span style={{ color: lastEvaluation.signals.mirroredNpc ? 'var(--emerald)' : 'var(--text-muted)' }}>
-            [Mirror +0.020]
+            [Mirror +0.6]
           </span>
           <span style={{ color: lastEvaluation.signals.openInquiry ? 'var(--emerald)' : 'var(--text-muted)' }}>
-            [Inquiry +0.015]
+            [Inquiry +0.5]
           </span>
           <span style={{ color: lastEvaluation.signals.interiority ? 'var(--emerald)' : 'var(--text-muted)' }}>
-            [Interiority +0.020]
+            [Interiority +0.6]
           </span>
           <span style={{ color: lastEvaluation.signals.thematicInSentence ? 'var(--emerald)' : 'var(--text-muted)' }}>
-            [Thematic +0.020]
+            [Thematic +0.6]
           </span>
           <span style={{ color: lastEvaluation.signals.sustainedCadence ? 'var(--emerald)' : 'var(--text-muted)' }}>
-            [Length&gt;45 +0.010]
+            [Length&gt;45 +0.3]
           </span>
+          {lastEvaluation.signals.npcTaperApplied && (
+            <span style={{ color: 'var(--star)' }}>[Town Taper 0.15×]</span>
+          )}
           {lastEvaluation.signals.frictionType !== 'none' && (
             <span style={{ color: 'var(--ember)' }}>[Friction: {lastEvaluation.signals.frictionType}]</span>
           )}
           {lastEvaluation.cueType === 'breakthrough_surge' && (
-            <span style={{ color: 'var(--star)', fontWeight: 600 }}>[BREAKTHROUGH SURGE +0.070]</span>
+            <span style={{ color: 'var(--star)', fontWeight: 600 }}>[BREAKTHROUGH SURGE +3.5]</span>
           )}
         </div>
       )}
@@ -198,7 +202,7 @@ export const ResonanceSandbox: React.FC = () => {
           disabled={session.isSealedOut}
           placeholder={
             session.isSealedOut
-              ? 'The Veil has sealed you out (0.000).'
+              ? 'The Veil has sealed you out (0.0).'
               : `Speak to ${activeNpc.name} (Stance: ${currentStance})…`
           }
         />
@@ -211,12 +215,12 @@ export const ResonanceSandbox: React.FC = () => {
         <RoadThresholdWave
           roadName="Listening Wall"
           currentResonance={session.resonance}
-          requiredResonance={0.55}
+          requiredResonance={550.0}
         />
         <RoadThresholdWave
           roadName="The Hollow"
           currentResonance={session.resonance}
-          requiredResonance={0.75}
+          requiredResonance={750.0}
         />
       </div>
     </div>

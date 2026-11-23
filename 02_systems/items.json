@@ -12,7 +12,7 @@
       "stat_bonuses": { "clarity": 2, "perception": 1 },
       "prism_description": "A warm brass-and-glass lantern that illuminates safe paths through Caetherra.",
       "dq_description": "Its flame casts your shadow twice as long. Something watches from the dark behind you.",
-      "depth_reveal_threshold": 0.65,
+      "depth_reveal_threshold": 650.0,
       "tags": ["light", "threshold_key"]
     },
     {
@@ -26,7 +26,7 @@
       "stat_bonuses": { "empathy": 2 },
       "prism_description": "A silvered pocket glass that shows you at your warmest and clearest.",
       "dq_description": "Your reflection blinks a half-second late.",
-      "depth_reveal_threshold": 0.5,
+      "depth_reveal_threshold": 500.0,
       "tags": ["reflection", "memory"]
     },
     {
@@ -40,7 +40,7 @@
       "stat_bonuses": { "veil_attunement": 2, "empathy": 1 },
       "prism_description": "A luminous filament that tugs gently toward people who remember you.",
       "dq_description": "A tether you did not tie yourself—leading straight toward Vault Seven.",
-      "depth_reveal_threshold": 0.5,
+      "depth_reveal_threshold": 500.0,
       "tags": ["connection", "vault_seven"]
     },
     {
@@ -54,7 +54,7 @@
       "stat_bonuses": {},
       "prism_description": "A key forged for a door meant to welcome you.",
       "dq_description": "Still warm from the palm of someone who never came back.",
-      "depth_reveal_threshold": 0.6,
+      "depth_reveal_threshold": 600.0,
       "tags": ["access", "convergence"]
     },
     {
@@ -65,10 +65,10 @@
       "value_echoes": 8,
       "equippable": false,
       "slot": null,
-      "effect": { "resonance_delta": 0.06, "emotional_tag": "mystery" },
+      "effect": { "resonance_delta": 10.0, "emotional_tag": "mystery" },
       "prism_description": "Soft grey dust from Ashveil's furnaces—remnants of quiet endings.",
       "dq_description": "Distilled erased memories. Inhaling a pinch exposes fragments of what was burned.",
-      "depth_reveal_threshold": 0.4,
+      "depth_reveal_threshold": 400.0,
       "tags": ["memory", "covenant"]
     },
     {
@@ -79,10 +79,10 @@
       "value_echoes": 5,
       "equippable": false,
       "slot": null,
-      "effect": { "resonance_delta": 0.04, "emotional_tag": "warmth" },
+      "effect": { "resonance_delta": 6.0, "emotional_tag": "warmth" },
       "prism_description": "A humming glass sliver storing a single unspoken moment.",
       "dq_description": "Crack it open to feed your resonance—at the cost of waking whatever remembers it.",
-      "depth_reveal_threshold": 0.35,
+      "depth_reveal_threshold": 350.0,
       "tags": ["echo", "currency"]
     },
     {
@@ -96,7 +96,7 @@
       "stat_bonuses": { "resolve": 3 },
       "prism_description": "A tiny white-bronze bell that steadies your pulse during Veil storms.",
       "dq_description": "Goes dead silent when the Dark Quasar awakens.",
-      "depth_reveal_threshold": 0.6,
+      "depth_reveal_threshold": 600.0,
       "tags": ["ward", "stillward"]
     },
     {
@@ -110,7 +110,7 @@
       "stat_bonuses": { "perception": 3, "veil_attunement": 3 },
       "prism_description": "A dark glass monocle that reveals hairline fractures in the Prism.",
       "dq_description": "Lets you gaze directly into gravitational truth without flinching.",
-      "depth_reveal_threshold": 0.75,
+      "depth_reveal_threshold": 750.0,
       "tags": ["quasar", "endgame"]
     }
   ]

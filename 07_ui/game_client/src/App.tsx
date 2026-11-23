@@ -2,7 +2,7 @@ import { FormEvent, useEffect, useMemo, useState } from 'react'
 import { api } from './api'
 import { ResonanceSandbox } from './components/ResonanceSandbox'
 import { RoadThresholdWave } from './components/RoadThresholdWave'
-import { mapSignalsToCueClasses, type ResonanceSignals } from './lib/resonanceEvaluator'
+import { mapSignalsToCueClasses, type CueType, type ResonanceSignals } from './lib/resonanceEvaluator'
 import type { CodexEntry, GameState, NpcProfile, ShelfCharacter } from './types'
 
 type DrawerId =
@@ -67,6 +67,7 @@ export default function App() {
   const [shelf, setShelf] = useState<ShelfCharacter[]>([])
   const [bindTargetNpc, setBindTargetNpc] = useState<string>('mira')
   const [lastSignals, setLastSignals] = useState<ResonanceSignals | null>(null)
+  const [lastCueType, setLastCueType] = useState<CueType | null>(null)
 
   const notify = (msg: string) => {
     setToast(msg)
@@ -160,6 +161,7 @@ export default function App() {
       const res = await api.talk(selectedNpc.id, text)
       setState(res.state)
       if (res.signals) setLastSignals(res.signals)
+      if (res.cue_type) setLastCueType(res.cue_type)
       setChatHistory((prev) => ({
         ...prev,
         [selectedNpc.id]: [
@@ -170,7 +172,7 @@ export default function App() {
       }))
       setInputText('')
       const sign = res.resonance_delta >= 0 ? '+' : ''
-      notify(`${sign}${res.resonance_delta.toFixed(3)} Resonance`)
+      notify(`${sign}${res.resonance_delta.toFixed(1)} Resonance`)
     } catch (err) {
       notify((err as Error).message)
     } finally {
@@ -279,6 +281,23 @@ export default function App() {
     }
   }
 
+  const handleResetSession = async () => {
+    setBusy(true)
+    try {
+      const res = await api.resetSession()
+      setState(res.state)
+      setChatHistory({})
+      setLastSignals(null)
+      setLastCueType(null)
+      if (res.state.npcs_here.length > 0) setSelectedNpcId(res.state.npcs_here[0].id)
+      notify(res.message)
+    } catch (err) {
+      notify((err as Error).message)
+    } finally {
+      setBusy(false)
+    }
+  }
+
   if (!state) {
     return (
       <div className="veil-stage-shell" style={{ display: 'grid', placeItems: 'center', padding: 40 }}>
@@ -305,9 +324,12 @@ export default function App() {
 
   const { world, player } = state
   const activeNpcChat = selectedNpc ? chatHistory[selectedNpc.id] || [] : []
+  const isSealedOut = player.resonance <= 0.0
+  const isSuffocating = player.resonance < 100.0
+  const isDegraded = player.resonance < 350.0
 
   return (
-    <div className="veil-stage-shell">
+    <div className={`veil-stage-shell ${isSuffocating ? 'veil-suffocating' : ''}`}>
       {/* Layer 0: Atmospheric Veil Backdrop */}
       <div className={`backdrop-layer veil-${world.veil_state}`} />
       <div className="backdrop-grid" />
@@ -335,7 +357,7 @@ export default function App() {
             Veil: <strong>{world.veil_state.replace('_', ' ')}</strong> ↻
           </button>
           <span className="pill">
-            Resonance <strong>{(player.resonance * 100).toFixed(0)}%</strong> ({player.resonance_tier.name})
+            Resonance <strong>{player.resonance.toFixed(1)}</strong> / 1000 ({player.resonance_tier.name})
           </span>
           <span className="pill">
             Lv <strong>{player.level}</strong>
@@ -419,7 +441,7 @@ export default function App() {
         </div>
         <h1>{world.current_location.name}</h1>
         <p className="location-subtitle">{world.current_location.surface_description}</p>
-        {player.resonance >= 0.45 && (
+        {player.resonance >= 450.0 && (
           <div className="depth-whisper">
             <strong>Depth Perception:</strong> {world.current_location.depth_description}
           </div>
@@ -463,7 +485,7 @@ export default function App() {
 
           {selectedNpc && (
             <div
-              className={`dock-card ${mapSignalsToCueClasses(lastSignals)}`}
+              className={`dock-card ${mapSignalsToCueClasses(lastSignals, lastCueType)}`}
               style={{ borderColor: selectedNpc.accent }}
             >
               <div className="dock-header">
@@ -475,6 +497,11 @@ export default function App() {
                 </div>
 
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  {selectedNpc.bond !== undefined && (
+                    <span className="pill" style={{ borderColor: 'var(--emerald)' }}>
+                      Bond <strong>{selectedNpc.bond.toFixed(0)}</strong>
+                    </span>
+                  )}
                   <span className="pill">
                     Trust <strong>{selectedNpc.relationship.trust}</strong>
                   </span>
@@ -510,37 +537,73 @@ export default function App() {
                 )}
               </div>
 
-              <div className="dialogue-choices">
-                <button
-                  type="button"
-                  className="btn"
-                  disabled={busy}
-                  onClick={(e) => handleSendDialogue(e, 'What lies beneath the Prism surface here?')}
-                >
-                  Ask about the Veil
-                </button>
-                <button
-                  type="button"
-                  className="btn btn-quasar"
-                  disabled={busy}
-                  onClick={(e) => handleSendDialogue(e, 'Tell me the truth about the Dark Quasar and your role.')}
-                >
-                  Probe deeper truth
-                </button>
-              </div>
+              {isSealedOut ? (
+                <div className="card" style={{ borderColor: 'var(--text-muted)', textAlign: 'center' }}>
+                  <p className="scene-sub" style={{ marginBottom: 8 }}>
+                    The Veil has closed around this frequency (0.0). The town no longer answers.
+                  </p>
+                  <button type="button" className="btn btn-quasar" disabled={busy} onClick={handleResetSession}>
+                    Begin New Frequency
+                  </button>
+                </div>
+              ) : (
+                <>
+                  {isSuffocating && (
+                    <div className="depth-whisper" style={{ borderColor: 'var(--ember)', color: 'var(--star)' }}>
+                      The Veil is suffocating your voice (&lt; 100.0). Use an Echo Shard or Vial of Memory Ash to cross.
+                    </div>
+                  )}
 
-              <form className="dialogue-form" onSubmit={handleSendDialogue}>
-                <input
-                  className="text-input"
-                  placeholder={`Speak to ${selectedNpc.display_name}…`}
-                  value={inputText}
-                  onChange={(e) => setInputText(e.target.value)}
-                  disabled={busy}
-                />
-                <button type="submit" className="btn" disabled={busy || !inputText.trim()}>
-                  Send
-                </button>
-              </form>
+                  <div className="dialogue-choices">
+                    {isDegraded ? (
+                      <button
+                        type="button"
+                        className="btn"
+                        disabled={busy}
+                        onClick={(e) => handleSendDialogue(e, 'What places are still open around the plaza?')}
+                      >
+                        Is anything open nearby?
+                      </button>
+                    ) : (
+                      <>
+                        <button
+                          type="button"
+                          className="btn"
+                          disabled={busy}
+                          onClick={(e) => handleSendDialogue(e, 'What lies beneath the Prism surface here?')}
+                        >
+                          Ask about the Veil
+                        </button>
+                        <button
+                          type="button"
+                          className="btn btn-quasar"
+                          disabled={busy}
+                          onClick={(e) => handleSendDialogue(e, 'Tell me the truth about the Dark Quasar and your role.')}
+                        >
+                          Probe deeper truth
+                        </button>
+                      </>
+                    )}
+                  </div>
+
+                  <form className="dialogue-form" onSubmit={handleSendDialogue}>
+                    <input
+                      className="text-input"
+                      placeholder={
+                        isSuffocating
+                          ? 'Your voice scatters into static…'
+                          : `Speak to ${selectedNpc.display_name}…`
+                      }
+                      value={inputText}
+                      onChange={(e) => setInputText(e.target.value)}
+                      disabled={busy}
+                    />
+                    <button type="submit" className="btn" disabled={busy || !inputText.trim()}>
+                      Send
+                    </button>
+                  </form>
+                </>
+              )}
             </div>
           )}
         </section>
@@ -617,7 +680,7 @@ export default function App() {
                           <RoadThresholdWave
                             roadName={loc.name}
                             currentResonance={player.resonance}
-                            requiredResonance={parseFloat(loc.lock_reason.match(/(\d\.\d+)/)?.[1] ?? '0.5')}
+                            requiredResonance={parseFloat(loc.lock_reason.match(/(\d+(?:\.\d+)?)/)?.[1] ?? '500.0')}
                           />
                         </div>
                       ) : (

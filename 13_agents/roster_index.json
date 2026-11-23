@@ -5,7 +5,7 @@
       "id": "mira",
       "display_name": "Mira",
       "true_name": "Thesmera Locke",
-      "true_name_min_resonance": 0.8,
+      "true_name_min_resonance": 800.0,
       "category": "sister",
       "faction_id": "nine_sisters",
       "role": "First Awakening Guide",
@@ -16,6 +16,7 @@
       "is_merchant": false,
       "accent": "#e879f9",
       "portrait_hint": "mira",
+      "personality_weights": { "mirror": 1.1, "inquiry": 1.0, "interiority": 1.2, "thematic": 1.0, "cadence": 1.0 },
       "greeting": "The lanterns always burn a little brighter when someone new arrives. Tell me—does Caetherra feel too warm to be real?"
     },
     {
@@ -31,6 +32,7 @@
       "is_merchant": false,
       "accent": "#fde68a",
       "portrait_hint": "solenne",
+      "personality_weights": { "mirror": 1.2, "inquiry": 0.9, "interiority": 1.1, "thematic": 0.9, "cadence": 1.2 },
       "greeting": "Rest your shoulders here. Warmth is not a trick—it is simply the first doorway."
     },
     {
@@ -46,6 +48,7 @@
       "is_merchant": true,
       "accent": "#f97316",
       "portrait_hint": "vael",
+      "personality_weights": { "mirror": 1.0, "inquiry": 1.1, "interiority": 1.2, "thematic": 1.1, "cadence": 0.9 },
       "greeting": "If you came looking for gentle answers, turn back toward Caetherra. Here we weigh what survives the heat."
     },
     {
@@ -76,6 +79,7 @@
       "is_merchant": false,
       "accent": "#7c3aed",
       "portrait_hint": "shadow",
+      "personality_weights": { "mirror": 0.9, "inquiry": 0.9, "interiority": 1.25, "thematic": 1.2, "cadence": 1.0 },
       "greeting": "...Listen to the pause after your own words. That is where the Veil answers."
     },
     {
@@ -106,6 +110,7 @@
       "is_merchant": false,
       "accent": "#06b6d4",
       "portrait_hint": "nyth",
+      "personality_weights": { "mirror": 1.0, "inquiry": 1.0, "interiority": 1.15, "thematic": 1.25, "cadence": 1.0 },
       "greeting": "Gravity is not cruelty. It is simply the weight of being truly known."
     },
     {
