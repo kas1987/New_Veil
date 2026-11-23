@@ -1,6 +1,7 @@
 {
-  "mira": 0.4,
-  "vael": 0.3,
+  "thessa": 0.4,
   "solenne": 0.5,
-  "greeter": 0.6
+  "greeter": 0.3,
+  "vael": -0.2,
+  "mira": 0.4
 }

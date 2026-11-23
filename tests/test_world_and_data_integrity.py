@@ -66,6 +66,18 @@ def test_character_roster_and_nine_sisters_complete() -> None:
         for npc_id in loc.get("npcs", []):
             assert npc_id in char_ids, f"Location {loc['id']} references unknown NPC {npc_id}"
 
+    # Verify newly completed agent dossiers have profile, prompt, and relationships
+    for rel_dir in (
+        "13_agents/sisters/ashara",
+        "13_agents/sisters/nyth",
+        "13_agents/sisters/thessa",
+        "13_agents/supporting/kaelen_lanternwright",
+    ):
+        d = ROOT / rel_dir
+        assert (d / "profile.json").is_file(), f"Missing profile.json in {rel_dir}"
+        assert (d / "system_prompt.md").is_file(), f"Missing system_prompt.md in {rel_dir}"
+        assert (d / "relationships.json").is_file(), f"Missing relationships.json in {rel_dir}"
+
 
 def test_quests_economy_and_encounters_integrity() -> None:
     world = _load("11_world/world_manifest.json")

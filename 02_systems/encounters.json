@@ -56,6 +56,96 @@
       ]
     },
     {
+      "id": "trial_tavern_rumor",
+      "title": "The Easy Shortcut",
+      "location_id": "crossroads_tavern",
+      "veil_states": ["calm", "still", "storm"],
+      "description": "A smiling wayfarer slides an unblemished prism charm across the table, swearing it lets you bypass every Veil storm without ever feeling doubt.",
+      "choices": [
+        {
+          "id": "refuse_shortcut",
+          "label": "Decline the charm — shallow comfort breeds false endings (Clarity DC 11)",
+          "attribute": "clarity",
+          "dc": 11,
+          "success_text": "Kaelen nods approvingly from behind the bar and slides you a genuine Echo Shard.",
+          "failure_text": "The wayfarer laughs lightly, leaving you wondering if ease really was so dangerous.",
+          "rewards": { "xp": 35, "echoes": 8, "resonance_delta": 0.06, "emotional_tag": "clarity" }
+        },
+        {
+          "id": "listen_to_story",
+          "label": "Ask what they lost to learn about that charm (Empathy DC 10)",
+          "attribute": "empathy",
+          "dc": 10,
+          "success_text": "Their smile fades into honesty; they whisper a forgotten bearing toward The Stillward.",
+          "failure_text": "They change the subject and raise their glass to Caetherra's endless warmth.",
+          "rewards": { "xp": 30, "echoes": 6, "resonance_delta": 0.05, "emotional_tag": "warmth" }
+        }
+      ]
+    },
+    {
+      "id": "trial_mirror_well",
+      "title": "The Unspoken Reflection",
+      "location_id": "mirror_well",
+      "veil_states": ["calm", "still", "storm", "quasar_active"],
+      "description": "The water inside the Mirror Well ripples against the wind, revealing a moment you almost chose to forget.",
+      "choices": [
+        {
+          "id": "witness_reflection",
+          "label": "Keep watching until the ripple settles (Perception DC 12)",
+          "attribute": "perception",
+          "dc": 12,
+          "success_text": "Ashara's reflection appears beside yours for a heartbeat, sharpening your resonance.",
+          "failure_text": "The surface clouds over with soft grey mist.",
+          "rewards": { "xp": 45, "echoes": 9, "resonance_delta": 0.07, "emotional_tag": "recognition" }
+        }
+      ]
+    },
+    {
+      "id": "trial_ashveil_crucible",
+      "title": "Walking Through Memory Ash",
+      "location_id": "ashveil_forges",
+      "veil_states": ["calm", "still", "storm", "quasar_active"],
+      "description": "A furnace vents a slow curtain of silver-grey ash across the catwalk. Every flake carries a sting of someone else's abandoned certainty.",
+      "choices": [
+        {
+          "id": "stride_through_ash",
+          "label": "Walk straight through without shielding your eyes (Resolve DC 13)",
+          "attribute": "resolve",
+          "dc": 13,
+          "success_text": "Vael watches from the gantry and gives a rare, sharp nod. You held the memory without flinching.",
+          "failure_text": "You cough and step back, though a single ember of insight lingers.",
+          "rewards": { "xp": 65, "echoes": 14, "resonance_delta": 0.09, "emotional_tag": "mystery" }
+        },
+        {
+          "id": "channel_ash",
+          "label": "Let the Veil attune the drifting fragments (Veil Attunement DC 12)",
+          "attribute": "veil_attunement",
+          "dc": 12,
+          "success_text": "The ash parts around your lantern light, revealing a chalk sigil pointing down to the Ember Vaults.",
+          "failure_text": "The fragments scatter into static before you can read them.",
+          "rewards": { "xp": 55, "echoes": 12, "resonance_delta": 0.08, "emotional_tag": "mystery" }
+        }
+      ]
+    },
+    {
+      "id": "trial_vault_seven",
+      "title": "The Taut Thread of Vault Seven",
+      "location_id": "ember_vaults_anvil",
+      "veil_states": ["still", "storm", "quasar_active"],
+      "description": "Beside the Memory Anvil, a single silver thread vibrates like a harp string leading straight into sealed Vault Seven.",
+      "choices": [
+        {
+          "id": "pluck_thread",
+          "label": "Touch the thread to hear whose belief sleeps inside (Veil Attunement DC 14)",
+          "attribute": "veil_attunement",
+          "dc": 14,
+          "success_text": "A resonant chime rings through the vault; The Rendered steps closer and speaks of the Nine Sisters.",
+          "failure_text": "The thread snaps taut with a cold jolt, sealing the vault door tighter.",
+          "rewards": { "xp": 90, "echoes": 20, "resonance_delta": 0.10, "emotional_tag": "truth" }
+        }
+      ]
+    },
+    {
       "id": "trial_quasar_gravity",
       "title": "The Weight of Being Known",
       "location_id": "gravity_spire_deck",

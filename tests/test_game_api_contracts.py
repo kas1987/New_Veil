@@ -116,3 +116,64 @@ def test_encounter_deterministic_resolution_and_save_restore() -> None:
     assert loaded["ok"] is True
     assert loaded["state"]["world"]["current_location"]["id"] == "caetherra_plaza"
     assert loaded["state"]["player"]["xp"] == 0
+
+
+def test_expanded_town_pois_and_true_vs_false_ending_tracker() -> None:
+    client = _make_client()
+    engine = client.app.state.engine
+
+    # Baseline is false_ending_risk
+    initial = client.get("/api/game/ending").json()
+    assert initial["trajectory"] == "false_ending_risk"
+
+    # Travel to expanded Solstice Crossing POIs
+    assert client.post("/api/world/travel", json={"location_id": "crossroads_tavern"}).json()["ok"] is True
+    assert client.post("/api/world/travel", json={"location_id": "mirror_well"}).json()["ok"] is True
+
+    # Satisfy all 4 True Ending canon criteria
+    engine._conn.execute("UPDATE player_stats SET resonance = 0.85 WHERE player_id='player'")
+    engine._conn.execute("UPDATE relationships SET trust = 75.0 WHERE agent_a='mira' AND agent_b='player'")
+    engine._conn.commit()
+    for _ in range(3):
+        client.post("/api/world/advance-veil")  # reaches quasar_active
+    assert client.post("/api/world/travel", json={"location_id": "void_threshold"}).json()["ok"] is True
+
+    ready = client.get("/api/game/ending").json()
+    assert ready["trajectory"] == "true_ending_ready"
+    assert all(ready["criteria"].values())
+    assert "void_threshold" in ready["hidden_paths_found"]
+
+
+def test_party_codex_portrait_binding_and_runtime_status() -> None:
+    client = _make_client()
+
+    # Party toggle: recruit Solenne, dismiss Mira, reject non-recruitable Greeter
+    add_sol = client.post("/api/party/toggle", json={"character_id": "solenne"}).json()
+    assert add_sol["ok"] is True
+    assert "solenne" in add_sol["party"]
+
+    rm_mira = client.post("/api/party/toggle", json={"character_id": "mira"}).json()
+    assert rm_mira["ok"] is True
+    assert "mira" not in rm_mira["party"]
+
+    reject = client.post("/api/party/toggle", json={"character_id": "greeter"}).json()
+    assert reject["ok"] is False
+
+    # Codex returns entries with resonance gating
+    codex = client.get("/api/codex").json()["entries"]
+    assert len(codex) >= 4
+    lore = next(e for e in codex if e["id"] == "lore_bible")
+    quasar = next(e for e in codex if e["id"] == "dark_quasar")
+    assert lore["unlocked"] is True
+    assert quasar["unlocked"] is False  # Starter resonance 0.35 < 0.60
+
+    # Portrait binding updates NPC portrait_url cleanly
+    bound = client.post("/api/media/bind", json={"npc_id": "mira", "media_key": "adeline"}).json()
+    assert bound["ok"] is True
+    mira = next(n for n in bound["state"]["npcs_here"] if n["id"] == "mira")
+    assert mira["portrait_url"] == "/api/media/portrait/adeline"
+
+    # Runtime status endpoint
+    status = client.get("/api/runtime/status").json()
+    assert "live_llm_enabled" in status
+    assert "comfy_hub" in status

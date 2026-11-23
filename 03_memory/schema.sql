@@ -144,3 +144,10 @@ CREATE TABLE IF NOT EXISTS save_slots (
     created_at TEXT DEFAULT CURRENT_TIMESTAMP,
     updated_at TEXT DEFAULT CURRENT_TIMESTAMP
 );
+
+-- Optional local portrait bindings (maps RPG npc_id -> local media key).
+CREATE TABLE IF NOT EXISTS portrait_bindings (
+    npc_id TEXT PRIMARY KEY,
+    media_key TEXT NOT NULL,
+    updated_at TEXT DEFAULT CURRENT_TIMESTAMP
+);

@@ -1,7 +1,7 @@
 {
   "mira": 0.5,
-  "lyra": 0.5,
+  "lyra": 0.7,
   "shadow": 0.4,
-  "witness": 0.6,
-  "nyth": 0.3
+  "archivist": 0.6,
+  "solenne": 0.1
 }

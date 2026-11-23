@@ -51,6 +51,15 @@ class SaveRequest(BaseModel):
     label: str = ""
 
 
+class PartyRequest(BaseModel):
+    character_id: str
+
+
+class PortraitBindRequest(BaseModel):
+    npc_id: str
+    media_key: str
+
+
 def create_app(db_path: Path | str | None = None) -> FastAPI:
     app = FastAPI(title="The Veil — RPG Game API", version="0.4.0")
     app.add_middleware(
@@ -78,6 +87,10 @@ def create_app(db_path: Path | str | None = None) -> FastAPI:
     @app.get("/api/game/state")
     def get_state() -> dict:
         return engine.get_state()
+
+    @app.get("/api/game/ending")
+    def get_ending() -> dict:
+        return engine.evaluate_ending()
 
     @app.post("/api/world/travel")
     def travel(req: TravelRequest) -> dict:
@@ -139,6 +152,28 @@ def create_app(db_path: Path | str | None = None) -> FastAPI:
     @app.get("/api/media/local-shelf")
     def list_local_shelf() -> dict:
         return {"characters": media.list_local_shelf_characters()}
+
+    @app.post("/api/media/bind")
+    def bind_portrait(req: PortraitBindRequest) -> dict:
+        try:
+            return engine.bind_portrait(req.npc_id, req.media_key)
+        except ValueError as exc:
+            raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+    @app.post("/api/party/toggle")
+    def toggle_party(req: PartyRequest) -> dict:
+        try:
+            return engine.toggle_party(req.character_id)
+        except ValueError as exc:
+            raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+    @app.get("/api/codex")
+    def get_codex() -> dict:
+        return {"entries": engine.get_codex()}
+
+    @app.get("/api/runtime/status")
+    def runtime_status() -> dict:
+        return engine.runtime_status(shelf_count=len(media.list_local_shelf_characters(limit=100)))
 
     # Serve built Vite client if present
     dist_dir = _ROOT / "07_ui" / "game_client" / "dist"

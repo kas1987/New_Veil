@@ -34,6 +34,7 @@ const MOCK_STATE: GameState = {
       is_adjacent: false,
       discovered: true,
     },
+    active_party: ['mira'],
     locations: [],
     connections: [],
   },
@@ -63,6 +64,8 @@ const MOCK_STATE: GameState = {
       greeting: 'The lanterns burn brighter tonight.',
       portrait_url: '/api/media/portrait/mira',
       is_merchant: false,
+      can_join_party: true,
+      in_party: true,
       relationship: { trust: 52, affection: 50, suspicion: 10, resistance: 65, interactions: 0 },
     },
   ],
@@ -104,6 +107,13 @@ const MOCK_STATE: GameState = {
   encounters: [],
   merchant: null,
   recent_logs: [],
+  ending_status: {
+    trajectory: 'false_ending_risk',
+    summary: 'You still walk the warm Prism surface.',
+    criteria: { resonance_gt_80: false, hidden_path_unlocked: false },
+    hidden_paths_found: [],
+    max_sister_trust: 52,
+  },
   saves: [],
 }
 
@@ -111,14 +121,55 @@ describe('The Veil RPG Client', () => {
   beforeEach(() => {
     vi.stubGlobal(
       'fetch',
-      vi.fn().mockResolvedValue({
-        ok: true,
-        json: async () => MOCK_STATE,
+      vi.fn().mockImplementation(async (url: string) => {
+        if (url === '/api/codex') {
+          return {
+            ok: true,
+            json: async () => ({
+              entries: [
+                {
+                  id: 'lore_bible',
+                  title: 'Veil Town Lore Bible',
+                  category: 'Canon',
+                  min_resonance: 0,
+                  unlocked: true,
+                  excerpt: 'Veil Town exists behind the Veil.',
+                },
+              ],
+            }),
+          }
+        }
+        if (url === '/api/media/local-shelf') {
+          return { ok: true, json: async () => ({ characters: [] }) }
+        }
+        if (url === '/api/dialogue/turn') {
+          return {
+            ok: true,
+            json: async () => ({
+              ok: true,
+              speaker: 'Mira',
+              reply: 'Listen closely to the Prism.',
+              resonance_delta: 0.04,
+              state: MOCK_STATE,
+            }),
+          }
+        }
+        if (url === '/api/world/advance-veil') {
+          return {
+            ok: true,
+            json: async () => ({
+              ok: true,
+              veil_state: 'still',
+              state: { ...MOCK_STATE, world: { ...MOCK_STATE.world, veil_state: 'still' } },
+            }),
+          }
+        }
+        return { ok: true, json: async () => MOCK_STATE }
       }),
     )
   })
 
-  it('renders HUD, current location, Mira, and switches RPG tabs cleanly', async () => {
+  it('renders HUD, dialogue, Veil shift, Codex, Quests, Inventory, and Stats', async () => {
     render(<App />)
 
     await waitFor(() => {
@@ -128,6 +179,24 @@ describe('The Veil RPG Client', () => {
     expect(screen.getByText('Mira')).toBeTruthy()
     expect(screen.getByText(/First Light/i)).toBeTruthy()
 
+    // Send quick dialogue prompt
+    fireEvent.click(screen.getByRole('button', { name: /Ask about the Veil/i }))
+    await waitFor(() => {
+      expect(screen.getByText(/Listen closely to the Prism/i)).toBeTruthy()
+    })
+
+    // Shift Veil state
+    fireEvent.click(screen.getByRole('button', { name: /Veil:/i }))
+    await waitFor(() => {
+      expect(screen.getByText('Veil shifted to still')).toBeTruthy()
+    })
+
+    // Switch to Lore Codex tab
+    fireEvent.click(screen.getByRole('button', { name: /Lore Codex/i }))
+    await waitFor(() => {
+      expect(screen.getByText('Veil Town Lore Bible')).toBeTruthy()
+    })
+
     // Switch to Quest Journal tab
     fireEvent.click(screen.getByRole('button', { name: /Quest Journal/i }))
     expect(screen.getByText('The First Light')).toBeTruthy()
@@ -136,8 +205,9 @@ describe('The Veil RPG Client', () => {
     fireEvent.click(screen.getByRole('button', { name: /Relics & Pack/i }))
     expect(screen.getByText(/Crystallized Echo Shard/i)).toBeTruthy()
 
-    // Switch to Stats & Factions tab
+    // Switch to Stats & Factions tab (verify Ending Trajectory card)
     fireEvent.click(screen.getByRole('button', { name: /Stats & Factions/i }))
     expect(screen.getByText('The Nine Sisters')).toBeTruthy()
+    expect(screen.getByText(/FALSE ENDING RISK/i)).toBeTruthy()
   })
 })

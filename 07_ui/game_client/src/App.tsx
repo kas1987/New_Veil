@@ -1,8 +1,8 @@
 import { FormEvent, useEffect, useMemo, useState } from 'react'
 import { api } from './api'
-import type { GameState, NpcProfile } from './types'
+import type { CodexEntry, GameState, NpcProfile, ShelfCharacter } from './types'
 
-type Tab = 'scene' | 'map' | 'quests' | 'inventory' | 'character'
+type Tab = 'scene' | 'map' | 'quests' | 'inventory' | 'codex' | 'character'
 
 interface ChatLine {
   role: 'player' | 'npc'
@@ -42,6 +42,9 @@ export default function App() {
   const [chatHistory, setChatHistory] = useState<Record<string, ChatLine[]>>({})
   const [toast, setToast] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
+  const [codex, setCodex] = useState<CodexEntry[]>([])
+  const [shelf, setShelf] = useState<ShelfCharacter[]>([])
+  const [bindTargetNpc, setBindTargetNpc] = useState<string>('mira')
 
   const notify = (msg: string) => {
     setToast(msg)
@@ -56,6 +59,8 @@ export default function App() {
         if (s.npcs_here.length > 0) setSelectedNpcId(s.npcs_here[0].id)
       })
       .catch((err: Error) => notify(`API offline: ${err.message}`))
+    api.getCodex().then((r) => setCodex(r.entries || [])).catch(() => {})
+    api.listLocalShelf().then((r) => setShelf(r.characters || [])).catch(() => {})
   }, [])
 
   const selectedNpc = useMemo(() => {
@@ -165,6 +170,28 @@ export default function App() {
     notify(res.message)
   }
 
+  const handleToggleParty = async (characterId: string) => {
+    setBusy(true)
+    try {
+      const res = await api.toggleParty(characterId)
+      setState(res.state)
+      notify(res.message)
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  const handleBindPortrait = async (mediaKey: string) => {
+    setBusy(true)
+    try {
+      const res = await api.bindPortrait(bindTargetNpc, mediaKey)
+      setState(res.state)
+      notify(`Bound portrait '${mediaKey}' to ${bindTargetNpc}`)
+    } finally {
+      setBusy(false)
+    }
+  }
+
   if (!state) {
     return (
       <div className="veil-shell" style={{ placeItems: 'center', padding: 40 }}>
@@ -254,11 +281,34 @@ export default function App() {
           </button>
           <button
             type="button"
+            className={`nav-btn ${tab === 'codex' ? 'active' : ''}`}
+            onClick={() => {
+              setTab('codex')
+              api.getCodex().then((r) => setCodex(r.entries || [])).catch(() => {})
+            }}
+          >
+            ✦ Lore Codex
+          </button>
+          <button
+            type="button"
             className={`nav-btn ${tab === 'character' ? 'active' : ''}`}
             onClick={() => setTab('character')}
           >
             ◎ Stats & Factions
           </button>
+
+          {world.active_party && world.active_party.length > 0 && (
+            <div style={{ marginTop: 10, paddingTop: 10, borderTop: '1px solid var(--glass-border)' }}>
+              <div className="section-label">Active Party ({world.active_party.length}/3)</div>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                {world.active_party.map((pid) => (
+                  <span key={pid} className="pill" style={{ borderColor: 'var(--bloom)', color: 'var(--text)' }}>
+                    {pid}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
 
           <div style={{ marginTop: 'auto', paddingTop: 14, borderTop: '1px solid var(--glass-border)' }}>
             <button type="button" className="btn btn-quasar" style={{ width: '100%' }} onClick={handleQuickSave}>
@@ -318,6 +368,20 @@ export default function App() {
                         </div>
                         <span>{npc.relationship.suspicion}</span>
                       </div>
+                      {npc.can_join_party && (
+                        <button
+                          type="button"
+                          className={`btn ${npc.in_party ? 'btn-quasar' : ''}`}
+                          style={{ marginTop: 4, fontSize: 11, padding: '4px 8px' }}
+                          disabled={busy}
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            handleToggleParty(npc.id)
+                          }}
+                        >
+                          {npc.in_party ? '✓ In Party' : '+ Recruit'}
+                        </button>
+                      )}
                     </div>
                   ))}
                 </div>
@@ -539,6 +603,38 @@ export default function App() {
             </section>
           )}
 
+          {tab === 'codex' && (
+            <section className="card" style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              <div className="section-label">Lore Codex · Canon & Metaphysics</div>
+              {codex.length === 0 ? (
+                <p className="scene-sub">Loading canonical codex entries…</p>
+              ) : (
+                codex.map((entry) => (
+                  <div key={entry.id} className="card" style={{ padding: 12 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
+                      <strong style={{ color: entry.unlocked ? 'var(--quasar-bright)' : 'var(--text-muted)' }}>
+                        {entry.title}
+                      </strong>
+                      <span className="pill">
+                        {entry.category} · {entry.unlocked ? 'Unlocked' : `Res >= ${entry.min_resonance}`}
+                      </span>
+                    </div>
+                    <pre
+                      style={{
+                        whiteSpace: 'pre-wrap',
+                        fontFamily: 'inherit',
+                        fontSize: 11,
+                        color: entry.unlocked ? 'var(--text-dim)' : 'var(--text-muted)',
+                      }}
+                    >
+                      {entry.excerpt}
+                    </pre>
+                  </div>
+                ))
+              )}
+            </section>
+          )}
+
           {tab === 'character' && (
             <>
               <section className="card">
@@ -574,6 +670,64 @@ export default function App() {
                   ))}
                 </div>
               </section>
+
+              {state.ending_status && (
+                <section className="card">
+                  <div className="section-label">Veil Convergence · Ending Trajectory</div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                    <strong style={{ color: state.ending_status.trajectory === 'true_ending_ready' ? 'var(--emerald)' : 'var(--bloom)' }}>
+                      {state.ending_status.trajectory.replace(/_/g, ' ').toUpperCase()}
+                    </strong>
+                    <span className="pill">Max Sister Trust: {state.ending_status.max_sister_trust}</span>
+                  </div>
+                  <p className="scene-sub" style={{ marginBottom: 8 }}>{state.ending_status.summary}</p>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                    {Object.entries(state.ending_status.criteria).map(([key, met]) => (
+                      <span
+                        key={key}
+                        className="pill"
+                        style={{ borderColor: met ? 'var(--emerald)' : 'var(--glass-border)', color: met ? 'var(--emerald)' : 'var(--text-dim)' }}
+                      >
+                        {met ? '✓' : '○'} {key.replace(/_/g, ' ')}
+                      </span>
+                    ))}
+                  </div>
+                </section>
+              )}
+
+              {shelf.length > 0 && (
+                <section className="card">
+                  <div className="section-label">Local Portrait Binder ({shelf.length} shelf assets)</div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
+                    <span className="scene-sub">Bind to NPC:</span>
+                    <select
+                      className="text-input"
+                      style={{ maxWidth: 200 }}
+                      value={bindTargetNpc}
+                      onChange={(e) => setBindTargetNpc(e.target.value)}
+                    >
+                      {state.npcs_here.map((n) => (
+                        <option key={n.id} value={n.id}>
+                          {n.display_name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                    {shelf.slice(0, 12).map((ch) => (
+                      <button
+                        key={ch.id}
+                        type="button"
+                        className="btn"
+                        disabled={busy}
+                        onClick={() => handleBindPortrait(ch.id)}
+                      >
+                        {ch.display_name}
+                      </button>
+                    ))}
+                  </div>
+                </section>
+              )}
 
               <section className="card">
                 <div className="section-label">Save Slots</div>

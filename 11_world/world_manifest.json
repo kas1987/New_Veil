@@ -190,6 +190,34 @@
       "hidden": false
     },
     {
+      "id": "crossroads_tavern",
+      "settlement_id": "solstice_crossing",
+      "district_id": "solstice_market",
+      "name": "The Prism Hearth Tavern",
+      "type": "tavern",
+      "map_coords": { "x": 14, "y": 48 },
+      "surface_description": "A timber-and-glass roadside inn smelling of spiced cider and warm lamp oil. Wayfarers swap stories of Veil Town.",
+      "depth_description": "Half the patrons here are travelers who chose a comfortable false ending and forgot why they set out.",
+      "npcs": ["kaelen_lanternwright", "solenne"],
+      "objects": ["lantern"],
+      "services": ["rest", "rumors"],
+      "hidden": false
+    },
+    {
+      "id": "mirror_well",
+      "settlement_id": "solstice_crossing",
+      "district_id": "solstice_market",
+      "name": "The Mirror Well",
+      "type": "shrine",
+      "map_coords": { "x": 24, "y": 24 },
+      "surface_description": "A mossy limestone well north of the bazaar whose water reflects a clearer sky than the one overhead.",
+      "depth_description": "Look long enough and the water shows the Veil state that is coming next — and the face you hide from it.",
+      "npcs": ["ashara"],
+      "objects": ["mirror"],
+      "services": ["echo_attunement"],
+      "hidden": false
+    },
+    {
       "id": "gravity_spire_deck",
       "settlement_id": "obsidian_reach",
       "district_id": "gravity_spire",
@@ -203,16 +231,50 @@
       "services": ["quasar_trial"],
       "hidden": false,
       "unlock_conditions": { "min_resonance": 0.7 }
+    },
+    {
+      "id": "astral_observatory",
+      "settlement_id": "obsidian_reach",
+      "district_id": "gravity_spire",
+      "name": "Astral Observatory",
+      "type": "observatory",
+      "map_coords": { "x": 86, "y": 42 },
+      "surface_description": "Brass rings and obsidian lenses charting the deterministic cycle of the Veil.",
+      "depth_description": "Every orbit mapped here ends at the same gravitational center: the moment you stop pretending.",
+      "npcs": ["thessa", "archivist"],
+      "objects": ["mirror", "thread"],
+      "services": ["lore_study"],
+      "hidden": false,
+      "unlock_conditions": { "min_resonance": 0.7 }
+    },
+    {
+      "id": "void_threshold",
+      "settlement_id": "obsidian_reach",
+      "district_id": "gravity_spire",
+      "name": "The Void Threshold",
+      "type": "hidden_path",
+      "map_coords": { "x": 88, "y": 16 },
+      "surface_description": "An empty stretch of basalt cliff overlooking the horizon.",
+      "depth_description": "A door with no wall. Under quasar_active, it stands open to those who survived with trust intact.",
+      "npcs": ["nyth", "mira", "witness"],
+      "objects": ["void_door"],
+      "services": ["convergence"],
+      "hidden": true,
+      "unlock_conditions": { "min_resonance": 0.8, "veil_states": ["quasar_active"] }
     }
   ],
   "connections": [
     { "from": "caetherra_plaza", "to": "solstice_bazaar", "travel_ticks": 1, "bidirectional": true },
+    { "from": "solstice_bazaar", "to": "crossroads_tavern", "travel_ticks": 1, "bidirectional": true },
+    { "from": "solstice_bazaar", "to": "mirror_well", "travel_ticks": 1, "bidirectional": true },
     { "from": "caetherra_plaza", "to": "listening_wall", "travel_ticks": 1, "bidirectional": true, "hidden": true },
     { "from": "caetherra_plaza", "to": "miras_garden", "travel_ticks": 1, "bidirectional": true, "hidden": true },
     { "from": "caetherra_plaza", "to": "stillward_cloister", "travel_ticks": 1, "bidirectional": true },
     { "from": "caetherra_plaza", "to": "ashveil_forges", "travel_ticks": 1, "bidirectional": true },
     { "from": "ashveil_forges", "to": "ember_vaults_anvil", "travel_ticks": 1, "bidirectional": true },
     { "from": "stillward_cloister", "to": "hollow_clearing", "travel_ticks": 2, "bidirectional": true },
-    { "from": "hollow_clearing", "to": "gravity_spire_deck", "travel_ticks": 2, "bidirectional": true }
+    { "from": "hollow_clearing", "to": "gravity_spire_deck", "travel_ticks": 2, "bidirectional": true },
+    { "from": "gravity_spire_deck", "to": "astral_observatory", "travel_ticks": 1, "bidirectional": true },
+    { "from": "gravity_spire_deck", "to": "void_threshold", "travel_ticks": 1, "bidirectional": true, "hidden": true }
   ]
 }

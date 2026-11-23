@@ -318,6 +318,11 @@ class VeilGameEngine:
         }
 
         # Present NPCs at current location
+        bindings = {
+            r["npc_id"]: r["media_key"]
+            for r in self._rows_list("SELECT npc_id, media_key FROM portrait_bindings")
+        }
+        active_party = json.loads(ws.get("active_party") or "[]")
         present_npcs = []
         for cid in current_loc.get("npcs", []):
             char = self.characters.get(cid)
@@ -334,10 +339,12 @@ class VeilGameEngine:
                 and ws["veil_state"] == "quasar_active"
             ):
                 display_name = f"{char['display_name']} ({char['true_name']})"
+            portrait_key = bindings.get(cid) or char.get("portrait_hint", cid)
             present_npcs.append(
                 {
                     **char,
                     "display_name": display_name,
+                    "in_party": cid in active_party,
                     "voice": self.voices.get(cid, {}),
                     "relationship": {
                         "trust": round(float(rel["trust"]), 1),
@@ -346,7 +353,7 @@ class VeilGameEngine:
                         "resistance": round(float(rel["resistance"]), 1),
                         "interactions": int(rel["interactions"]),
                     },
-                    "portrait_url": f"/api/media/portrait/{char.get('portrait_hint', cid)}",
+                    "portrait_url": f"/api/media/portrait/{portrait_key}",
                 }
             )
 
@@ -425,6 +432,9 @@ class VeilGameEngine:
             "SELECT id, agent_id, content, created_at FROM memories ORDER BY id DESC LIMIT 12"
         )
 
+        # True vs. False Ending readiness (per 10_canon/LORE_BIBLE.md)
+        ending_status = self.evaluate_ending(stats, ws, rels, discovered)
+
         return {
             "world": {
                 "world_id": self.world["world_id"],
@@ -455,7 +465,71 @@ class VeilGameEngine:
             "encounters": encounters,
             "merchant": merchant,
             "recent_logs": list(reversed(recent_logs)),
+            "ending_status": ending_status,
             "saves": self.list_saves(),
+        }
+
+    def evaluate_ending(
+        self,
+        stats: dict[str, Any] | None = None,
+        ws: dict[str, Any] | None = None,
+        rels: dict[str, dict[str, Any]] | None = None,
+        discovered: set[str] | None = None,
+    ) -> dict[str, Any]:
+        """Evaluate True Ending vs. False Ending trajectory per 10_canon/LORE_BIBLE.md."""
+        if ws is None:
+            ws = self._row_dict("SELECT * FROM world_state WHERE player_id='player'")
+        if stats is None:
+            stats = self._effective_stats(
+                self._row_dict("SELECT * FROM player_stats WHERE player_id='player'"),
+                self._inventory_map(),
+            )
+        if rels is None:
+            rels = {
+                r["agent_a"]: r
+                for r in self._rows_list("SELECT * FROM relationships WHERE agent_b='player'")
+            }
+        if discovered is None:
+            discovered = set(json.loads(ws.get("discovered_locations") or "[]"))
+
+        res = float(stats.get("resonance", 0.0))
+        hidden_ids = {loc["id"] for loc in self.world["locations"] if loc.get("hidden")}
+        hidden_discovered = sorted(discovered & hidden_ids)
+
+        sister_ids = {cid for cid, c in self.characters.items() if c.get("category") == "sister"}
+        max_sister_trust = max(
+            (float(rels[sid]["trust"]) for sid in sister_ids if sid in rels),
+            default=0.0,
+        )
+        experienced_quasar = ws.get("veil_state") == "quasar_active" or bool(
+            self._conn.execute(
+                "SELECT 1 FROM memories WHERE content LIKE '%quasar active%' OR content LIKE '%quasar_active%' LIMIT 1"
+            ).fetchone()
+        )
+
+        criteria = {
+            "resonance_gt_80": res >= 0.8,
+            "hidden_path_unlocked": len(hidden_discovered) >= 1,
+            "quasar_experienced": experienced_quasar,
+            "earned_sister_trust": max_sister_trust >= 60.0,
+        }
+        met_count = sum(1 for v in criteria.values() if v)
+        if all(criteria.values()):
+            trajectory = "true_ending_ready"
+            summary = "You have seen past the Prism, survived the Quasar's gravity, and earned true resonance."
+        elif met_count >= 2:
+            trajectory = "awakening"
+            summary = "The surface veil is thinning. Keep deepening bonds and explore hidden paths."
+        else:
+            trajectory = "false_ending_risk"
+            summary = "You still walk the warm Prism surface. Leaving now would yield a False Ending."
+
+        return {
+            "trajectory": trajectory,
+            "summary": summary,
+            "criteria": criteria,
+            "hidden_paths_found": hidden_discovered,
+            "max_sister_trust": round(max_sister_trust, 1),
         }
 
     # ── Actions ─────────────────────────────────────────────────────────────
@@ -516,6 +590,17 @@ class VeilGameEngine:
             self._advance_quest_stage("q_nine_sisters", 1)
 
         self._conn.commit()
+        self._emit_cue(
+            "scene_prompts.jsonl",
+            {
+                "created_at": datetime.now(UTC).isoformat(),
+                "agent_id": "world",
+                "district": target["district_id"],
+                "location": location_id,
+                "veil_state": ws["veil_state"],
+                "positive": f"{target['name']} — {target['surface_description']}",
+            },
+        )
         return {"ok": True, "message": f"Arrived at {target['name']}.", "state": self.get_state()}
 
     def talk(self, npc_id: str, player_text: str) -> dict[str, Any]:
@@ -623,6 +708,17 @@ class VeilGameEngine:
             self._advance_quest_stage("q_ashes_of_belief", 3)
 
         self._conn.commit()
+        voice_profile = self.voices.get(npc_id, {})
+        self._emit_cue(
+            "tts_queue.jsonl",
+            {
+                "created_at": datetime.now(UTC).isoformat(),
+                "agent_id": npc_id,
+                "voice_id": voice_profile.get("timbre", "default"),
+                "emotion": voice_profile.get("quasar_shift" if veil_state == "quasar_active" else "default_mood", "Warmth"),
+                "text": reply[:240],
+            },
+        )
         return {
             "ok": True,
             "npc_id": npc_id,
@@ -853,3 +949,91 @@ class VeilGameEngine:
             )
         self._conn.commit()
         return {"ok": True, "message": f"Loaded slot '{slot_id}'.", "state": self.get_state()}
+
+    # ── Party, Codex, Portrait Binding & Cue Hooks ──────────────────────────
+
+    def _emit_cue(self, filename: str, payload: dict[str, Any]) -> None:
+        """Append scene/voice cue JSONL under 06_logs/ when file-backed."""
+        if str(self.db_path) == ":memory:" and os.environ.get("VEIL_EMIT_CUES") != "1":
+            return
+        logs_dir = self.repo_root / "06_logs"
+        logs_dir.mkdir(parents=True, exist_ok=True)
+        with (logs_dir / filename).open("a", encoding="utf-8") as fh:
+            fh.write(json.dumps(payload) + "\n")
+
+    def toggle_party(self, character_id: str) -> dict[str, Any]:
+        char = self.characters.get(character_id)
+        if not char:
+            raise ValueError(f"Unknown character: {character_id}")
+        if not char.get("can_join_party"):
+            return {"ok": False, "message": f"{char['display_name']} walks their own path and cannot join your party.", "state": self.get_state()}
+
+        ws = self._row_dict("SELECT active_party FROM world_state WHERE player_id='player'")
+        party: list[str] = json.loads(ws.get("active_party") or "[]")
+        if character_id in party:
+            party.remove(character_id)
+            msg = f"{char['display_name']} left your active party."
+        else:
+            if len(party) >= 3:
+                return {"ok": False, "message": "Party is full (max 3 companions).", "state": self.get_state()}
+            party.append(character_id)
+            msg = f"{char['display_name']} joined your party."
+
+        self._conn.execute(
+            "UPDATE world_state SET active_party=?, updated_at=CURRENT_TIMESTAMP WHERE player_id='player'",
+            (json.dumps(party),),
+        )
+        self._conn.commit()
+        return {"ok": True, "message": msg, "party": party, "state": self.get_state()}
+
+    def bind_portrait(self, npc_id: str, media_key: str) -> dict[str, Any]:
+        if npc_id not in self.characters:
+            raise ValueError(f"Unknown character: {npc_id}")
+        clean_key = "".join(ch for ch in media_key.lower() if ch.isalnum() or ch in ("_", "-"))
+        if not clean_key:
+            raise ValueError("Invalid media_key")
+        self._conn.execute(
+            "INSERT INTO portrait_bindings (npc_id, media_key, updated_at) VALUES (?, ?, CURRENT_TIMESTAMP) "
+            "ON CONFLICT(npc_id) DO UPDATE SET media_key=excluded.media_key, updated_at=CURRENT_TIMESTAMP",
+            (npc_id, clean_key),
+        )
+        self._conn.commit()
+        return {"ok": True, "npc_id": npc_id, "media_key": clean_key, "state": self.get_state()}
+
+    def get_codex(self) -> list[dict[str, Any]]:
+        """Return canonical Lore & Metaphysics codex entries filtered by player resonance."""
+        stats = self._row_dict("SELECT resonance FROM player_stats WHERE player_id='player'")
+        res = float(stats.get("resonance", 0.35))
+        sources = [
+            ("lore_bible", "Veil Town Lore Bible", "10_canon/LORE_BIBLE.md", 0.0, "Canon"),
+            ("the_veil", "The Veil Membrane", "12_metaphysics/THE_VEIL.md", 0.0, "Metaphysics"),
+            ("veil_states", "The Four Veil States", "12_metaphysics/VEIL_STATES.md", 0.3, "Metaphysics"),
+            ("dream_system", "Dreams & Symbolic Echoes", "12_metaphysics/DREAM_SYSTEM.md", 0.45, "Metaphysics"),
+            ("dark_quasar", "The Dark Quasar", "12_metaphysics/DARK_QUASAR.md", 0.6, "Forbidden Depth"),
+        ]
+        entries: list[dict[str, Any]] = []
+        for cid, title, rel_path, min_res, category in sources:
+            full = self.repo_root / rel_path
+            if not full.is_file():
+                continue
+            unlocked = res >= min_res
+            text = full.read_text(encoding="utf-8")
+            entries.append(
+                {
+                    "id": cid,
+                    "title": title,
+                    "category": category,
+                    "min_resonance": min_res,
+                    "unlocked": unlocked,
+                    "excerpt": text[:1400] if unlocked else f"Sealed beneath the Veil. Earn {min_res:.2f} Resonance to read.",
+                }
+            )
+        return entries
+
+    def runtime_status(self, shelf_count: int = 0) -> dict[str, Any]:
+        return {
+            "live_llm_enabled": os.environ.get("VEIL_USE_LIVE_LLM") == "1",
+            "comfy_hub": os.environ.get("VEIL_COMFY_HUB", "http://127.0.0.1:8188"),
+            "local_shelf_characters": shelf_count,
+            "cues_enabled": str(self.db_path) != ":memory:" or os.environ.get("VEIL_EMIT_CUES") == "1",
+        }

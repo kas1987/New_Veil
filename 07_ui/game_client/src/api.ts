@@ -1,4 +1,4 @@
-import type { GameState } from './types'
+import type { CodexEntry, GameState, ShelfCharacter } from './types'
 
 async function request<T>(url: string, options?: RequestInit): Promise<T> {
   const res = await fetch(url, {
@@ -60,5 +60,17 @@ export const api = {
   loadGame: (slot_id: string) =>
     request<{ ok: boolean; message: string; state: GameState }>(`/api/saves/load/${slot_id}`, {
       method: 'POST',
+    }),
+  toggleParty: (character_id: string) =>
+    request<{ ok: boolean; message: string; party?: string[]; state: GameState }>('/api/party/toggle', {
+      method: 'POST',
+      body: JSON.stringify({ character_id }),
+    }),
+  getCodex: () => request<{ entries: CodexEntry[] }>('/api/codex'),
+  listLocalShelf: () => request<{ characters: ShelfCharacter[] }>('/api/media/local-shelf'),
+  bindPortrait: (npc_id: string, media_key: string) =>
+    request<{ ok: boolean; npc_id: string; media_key: string; state: GameState }>('/api/media/bind', {
+      method: 'POST',
+      body: JSON.stringify({ npc_id, media_key }),
     }),
 }

@@ -32,6 +32,8 @@ export interface NpcProfile {
   greeting: string
   portrait_url: string
   is_merchant: boolean
+  can_join_party?: boolean
+  in_party?: boolean
   relationship: {
     trust: number
     affection: number
@@ -109,6 +111,7 @@ export interface GameState {
     current_region: { id: string; name: string; description: string }
     current_settlement: { id: string; name: string; type: string }
     current_location: LocationNode
+    active_party?: string[]
     locations: LocationNode[]
     connections: { from: string; to: string; bidirectional?: boolean }[]
   }
@@ -132,5 +135,28 @@ export interface GameState {
   encounters: EncounterEntry[]
   merchant: MerchantEntry | null
   recent_logs: { id: number; agent_id: string; content: string; created_at: string }[]
+  ending_status?: {
+    trajectory: string
+    summary: string
+    criteria: Record<string, boolean>
+    hidden_paths_found: string[]
+    max_sister_trust: number
+  }
   saves: { slot_id: string; label: string; updated_at: string }[]
+}
+
+export interface CodexEntry {
+  id: string
+  title: string
+  category: string
+  min_resonance: number
+  unlocked: boolean
+  excerpt: string
+}
+
+export interface ShelfCharacter {
+  id: string
+  display_name: string
+  source: string
+  portrait_url: string
 }
