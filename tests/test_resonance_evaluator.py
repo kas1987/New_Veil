@@ -20,14 +20,14 @@ NPC_LINE = "The lanterns near the Listening Wall go out whenever the fog remembe
 
 
 def _ctx(**overrides):
-    defaults = dict(
-        current_resonance=500.0,
-        turns_taken=6,
-        has_crossed_first_threshold=True,
-        npc_last_line=NPC_LINE,
-        recent_keywords=[],
-        veil_state="calm",
-    )
+    defaults = {
+        "current_resonance": 500.0,
+        "turns_taken": 6,
+        "has_crossed_first_threshold": True,
+        "npc_last_line": NPC_LINE,
+        "recent_keywords": [],
+        "veil_state": "calm",
+    }
     defaults.update(overrides)
     return RES_MOD.TurnContext(**defaults)
 

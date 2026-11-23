@@ -15,7 +15,7 @@ _API = ROOT / "04_runtime" / "game_api"
 if str(_API) not in sys.path:
     sys.path.insert(0, str(_API))
 
-from engine import AdvanceVeil, Talk, Travel, VeilGameEngine  # noqa: E402
+from engine import AdvanceVeil, Talk, Travel, VeilGameEngine
 
 _VOICE = load_module("veil_dialogue_voice", _API / "dialogue_voice.py")
 _EXPECTED_NPCS = ("mira", "solenne", "greeter", "witness", "threadwatcher")

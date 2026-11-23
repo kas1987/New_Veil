@@ -5,7 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 
 class PaymentType(Enum):
@@ -25,7 +25,7 @@ class OrderDevotion:
     coin_payments: int = 0
     favor_payments: int = 0
     self_payments: int = 0
-    last_interaction: Optional[str] = None
+    last_interaction: str | None = None
     devotion_score: float = 0.0
 
 
@@ -38,7 +38,7 @@ class SisterTrust:
     sincere_interactions: int = 0
     confessions_offered: int = 0
     quality_score: float = 0.0
-    last_interaction: Optional[str] = None
+    last_interaction: str | None = None
     betrayals: int = 0
 
 
@@ -59,9 +59,9 @@ class RevelationSystem:
     """Dual-meter revelation tracker."""
 
     def __init__(self) -> None:
-        self.order_devotion: Dict[str, OrderDevotion] = {}
-        self.sister_trust: Dict[str, SisterTrust] = {}
-        self.revelations_unlocked: List[RevelationEvent] = []
+        self.order_devotion: dict[str, OrderDevotion] = {}
+        self.sister_trust: dict[str, SisterTrust] = {}
+        self.revelations_unlocked: list[RevelationEvent] = []
         self.sister_order_map = {
             "seamwright": "seraphyne_vale",
             "clockmender": "valeria_syn",
@@ -83,8 +83,8 @@ class RevelationSystem:
         order_id: str,
         payment_type: PaymentType,
         sincerity_score: float = 0.5,
-        interaction_details: Optional[Dict[str, Any]] = None,
-    ) -> Dict[str, Any]:
+        interaction_details: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
         """Update devotion and hidden trust after an interaction."""
 
         devotion = self.order_devotion.setdefault(order_id, OrderDevotion(order_id))
@@ -132,7 +132,7 @@ class RevelationSystem:
         sister_id: str,
         payment_type: PaymentType,
         sincerity_score: float,
-        details: Optional[Dict[str, Any]],
+        details: dict[str, Any] | None,
     ) -> int:
         """Adjust hidden Sister trust based on interaction quality."""
 
@@ -170,7 +170,7 @@ class RevelationSystem:
         *,
         order_id: str,
         veil_proximity: float,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Return whether the revelation requirements are satisfied."""
 
         sister_id = self._get_sister_for_order(order_id)
@@ -216,7 +216,7 @@ class RevelationSystem:
         *,
         sister_id: str,
         veil_proximity: float,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Record a revelation if it has not already occurred."""
 
         if any(event.sister_id == sister_id for event in self.revelations_unlocked):
@@ -251,9 +251,9 @@ class RevelationSystem:
     # ------------------------------------------------------------------ #
     # Helpers
     # ------------------------------------------------------------------ #
-    def _get_sister_for_order(self, order_id: str) -> Optional[str]:
+    def _get_sister_for_order(self, order_id: str) -> str | None:
         return self.sister_order_map.get(order_id)
 
-    def _get_order_for_sister(self, sister_id: str) -> Optional[str]:
+    def _get_order_for_sister(self, sister_id: str) -> str | None:
         inverse = {sister: order for order, sister in self.sister_order_map.items()}
         return inverse.get(sister_id)

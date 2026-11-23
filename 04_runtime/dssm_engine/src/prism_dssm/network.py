@@ -12,7 +12,6 @@ from __future__ import annotations
 import json
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Dict, List
 
 from .models import CoreState, clamp
 
@@ -27,8 +26,8 @@ class Edge:
 
 @dataclass
 class Network:
-    agents: Dict[str, CoreState] = field(default_factory=dict)
-    edges: List[Edge] = field(default_factory=list)
+    agents: dict[str, CoreState] = field(default_factory=dict)
+    edges: list[Edge] = field(default_factory=list)
 
     def add_agent(self, name: str, state: CoreState) -> None:
         self.agents[name] = state
@@ -44,7 +43,7 @@ class Network:
             Edge(src=src, dst=dst, influence=influence, polarity=polarity),
         )
 
-    def neighbors_of(self, src: str) -> List[Edge]:
+    def neighbors_of(self, src: str) -> list[Edge]:
         return [e for e in self.edges if e.src == src]
 
     def avg_trust(self) -> float:

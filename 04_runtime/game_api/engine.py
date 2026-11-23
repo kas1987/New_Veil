@@ -518,7 +518,6 @@ class VeilGameEngine:
                         "resistance": round(float(rel["resistance"]), 1),
                         "interactions": int(rel["interactions"]),
                     },
-                    "portrait_url": f"/api/media/portrait/{char.get('portrait_hint', cid)}",
                     "portrait_url": f"/api/media/portrait/{portrait_key}",
                 }
             )

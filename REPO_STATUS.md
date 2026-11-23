@@ -45,11 +45,13 @@
 ## Public engineering
 
 - MIT license
-- CI scaffold gate + pre-commit
-- CodeQL (Python)
-- Dependabot for GitHub Actions
+- CI scaffold gate + pre-commit + Ruff lint
+- Python `pytest` + coverage gate (including RPG vertical slice, psychometrics calibration evals, and observatory data layer)
+- Frontend `tsc` + Vitest coverage + Vite build + Playwright full-stack E2E browser smoke test
+- CodeQL (`python` and `javascript-typescript`)
+- Dependabot for GitHub Actions, Python (`pip`), and Frontend (`npm` with grouped Vite/Vitest stack)
 - PR/issue templates, CODEOWNERS, SECURITY.md, CONTRIBUTING.md
-- Branch protection ruleset on `main`
+- Branch protection ruleset on `main` (requiring scaffold, pre-commit, unit tests, frontend UI, Playwright E2E, Review Loopback Gate, and CodeQL)
 
 ## Not yet
 
@@ -60,4 +62,3 @@
 
 1. Complete `relationships.json` and `system_prompt.md` parity across all `13_agents/` entries.
 2. Wire optional TTS synthesis adapter under `15_voice/` (keep machine-local forwarders out of repo).
-3. Stage and commit the RPG Vertical Slice (`02_systems/`, `04_runtime/game_api/`, `07_ui/game_client/`, `11_world/`, `14_psychometrics/`, `15_voice/`, `tests/`).

@@ -66,11 +66,11 @@ def veil_timeline(series: list[dict]) -> go.Figure:
     fig.update_layout(
         title="Veil State Over Turns",
         xaxis_title="Turn",
-        yaxis=dict(
-            tickvals=list(_VEIL_LABELS.keys()),
-            ticktext=list(_VEIL_LABELS.values()),
-            range=[0.5, 4.5],
-        ),
+        yaxis={
+            "tickvals": list(_VEIL_LABELS.keys()),
+            "ticktext": list(_VEIL_LABELS.values()),
+            "range": [0.5, 4.5],
+        },
         margin={"t": 40, "b": 40},
     )
     return fig

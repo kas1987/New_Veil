@@ -93,18 +93,19 @@ def _calculate_priority(task_type: TaskType, veil_state: str) -> int:
     base = 5
 
     # Alignment and dream tasks are higher priority during quasar
-    if veil_state == "quasar_active":
-        if task_type in (TaskType.ALIGNMENT_CHECK, TaskType.DREAM, TaskType.CANON_QUERY):
-            base = 2
+    if veil_state == "quasar_active" and task_type in (
+        TaskType.ALIGNMENT_CHECK,
+        TaskType.DREAM,
+        TaskType.CANON_QUERY,
+    ):
+        base = 2
 
     # Memory writes are higher priority during storm/quasar
-    if veil_state in ("storm", "quasar_active"):
-        if task_type == TaskType.MEMORY_WRITE:
-            base = 3
+    if veil_state in ("storm", "quasar_active") and task_type == TaskType.MEMORY_WRITE:
+        base = 3
 
     # Voice and chat are lower priority during storm
-    if veil_state == "storm":
-        if task_type in (TaskType.VOICE_PIPELINE, TaskType.CHAT):
-            base = 7
+    if veil_state == "storm" and task_type in (TaskType.VOICE_PIPELINE, TaskType.CHAT):
+        base = 7
 
     return base

@@ -11,7 +11,7 @@ _API = ROOT / "04_runtime" / "game_api"
 if str(_API) not in sys.path:
     sys.path.insert(0, str(_API))
 
-from engine import (  # noqa: E402
+from engine import (
     AdvanceVeil,
     Buy,
     ChooseBeat,

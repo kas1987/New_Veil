@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any
 
 from .models import VeilState
 from .network import Network
@@ -15,11 +15,11 @@ from .veil_effects import _veil_from_dict
 
 @dataclass
 class LoadedConfig:
-    personas: Dict[str, PersonaConfig]
-    veil_states: List[VeilState]
-    veil_schedule: List[str]
+    personas: dict[str, PersonaConfig]
+    veil_states: list[VeilState]
+    veil_schedule: list[str]
     network: Network | None
-    stress_test: Dict[str, Any]
+    stress_test: dict[str, Any]
 
 
 def load_config_dir(config_dir: str | Path) -> LoadedConfig:

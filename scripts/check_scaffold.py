@@ -66,7 +66,18 @@ SECRET_RE = re.compile(
 ABS_PATH_RE = re.compile(r"(?i)(?:[A-Z]:\\\\|/home/|/Users/)[^\s\"']+")
 
 SKIP_SUFFIXES = {".png", ".jpg", ".jpeg", ".gif", ".webp", ".sqlite", ".db"}
-SKIP_DIR_NAMES = {".git", ".venv", "__pycache__", ".pytest_cache", "node_modules", "dist"}
+SKIP_DIR_NAMES = {
+    ".git",
+    ".venv",
+    "__pycache__",
+    ".pytest_cache",
+    ".ruff_cache",
+    "node_modules",
+    "dist",
+    "coverage",
+    "playwright-report",
+    "test-results",
+}
 
 
 def iter_text_files() -> list[Path]:
@@ -104,7 +115,7 @@ def main() -> int:
     try:
         index = json.loads(index_path.read_text(encoding="utf-8"))
         worktree = json.loads(map_path.read_text(encoding="utf-8"))
-    except Exception as exc:  # noqa: BLE001 - CI wants the message
+    except Exception as exc:
         errors.append(f"JSON load failed: {exc}")
         index, worktree = {}, {}
 

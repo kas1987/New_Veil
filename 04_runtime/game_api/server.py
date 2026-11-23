@@ -24,7 +24,7 @@ if str(_ROOT) not in sys.path:
 if str(_HERE) not in sys.path:
     sys.path.insert(0, str(_HERE))
 
-from engine import (  # noqa: E402
+from engine import (
     AdvanceVeil,
     Buy,
     ChooseBeat,
@@ -37,7 +37,7 @@ from engine import (  # noqa: E402
     Use,
     VeilGameEngine,
 )
-from media_adapter import MediaAdapter  # noqa: E402
+from media_adapter import MediaAdapter
 
 
 class TravelRequest(BaseModel):
