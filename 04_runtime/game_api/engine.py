@@ -21,6 +21,7 @@ from typing import Any
 from veil_loader import load_module
 
 _RES_MOD = load_module("veil_resonance_evaluator", Path(__file__).resolve().parent / "resonance_evaluator.py")
+_VOICE_MOD = load_module("veil_dialogue_voice", Path(__file__).resolve().parent / "dialogue_voice.py")
 
 _VEIL_CYCLE = ["calm", "still", "storm", "quasar_active"]
 _TIME_CYCLE = ["dawn", "day", "dusk", "night"]
@@ -134,6 +135,7 @@ class VeilGameEngine:
         }
         self.psychometrics = _load_json(self.repo_root / "14_psychometrics" / "attributes.json")
         self.voices = _load_json(self.repo_root / "15_voice" / "voice_registry.json")["voices"]
+        self.dialogue_beats = _load_json(self.repo_root / "13_agents" / "caetherra_dialogue_beats.json")
 
         self.locations = {loc["id"]: loc for loc in self.world["locations"]}
         self.settlements = {s["id"]: s for s in self.world["settlements"]}
@@ -483,6 +485,7 @@ class VeilGameEngine:
                     "display_name": display_name,
                     "in_party": cid in active_party,
                     "bond": round(float(enc_state.get("npcBond", 0.0)), 1),
+                    "bond_tier": _VOICE_MOD.bond_tier(float(enc_state.get("npcBond", 0.0))),
                     "stance": str(enc_state.get("currentStance", default_stance)),
                     "voice": self.voices.get(cid, {}),
                     "relationship": {
@@ -859,58 +862,93 @@ class VeilGameEngine:
             )
             next_drift = 0 if is_resonant_talk else int(stats.get("drift_count", 0))
 
+            # Collect bounded memory and relationship count before choosing a voice reply
+            rel = self._row_dict(
+                "SELECT * FROM relationships WHERE agent_a=? AND agent_b='player'", (npc_id,)
+            )
+            prev_interactions = int(rel.get("interactions", 0))
+            updated_enc = evaluation["updatedEncounter"]
+            npc_bond = float(updated_enc.get("npcBond", 0.0))
+            cue_type = str(evaluation.get("cueType") or "standard_harmonic")
+            stance_after = str(updated_enc.get("currentStance") or "guarded")
+            memory_ctx = _VOICE_MOD.collect_bounded_memory(self._conn, npc_id, npc_arcs)
+
             # Optional stateless live LLM + alignment gate when explicitly enabled
             reply: str | None = None
             if new_res >= 100.0 and os.environ.get("VEIL_USE_LIVE_LLM") == "1":
                 try:
                     llm_mod = load_module("llm_provider", self.repo_root / "04_runtime" / "llm_provider.py")
                     scorer_mod = load_module("scorer", self.repo_root / "05_alignment" / "scorer.py")
+                    quarantine_mod = load_module("quarantine", self.repo_root / "05_alignment" / "quarantine.py")
+                    user_prompt = _VOICE_MOD.build_live_llm_prompt(
+                        beats_pack=self.dialogue_beats,
+                        npc_id=npc_id,
+                        location_name=current_loc["name"],
+                        veil_state=veil_state,
+                        resonance=new_res,
+                        npc_bond=npc_bond,
+                        stance=stance_after,
+                        cue_type=cue_type,
+                        memory_ctx=memory_ctx,
+                        player_text=text,
+                    )
                     candidate = llm_mod.generate_agent_output(
                         agent_id=npc_id,
-                        prompt=f"[Location: {current_loc['name']} | Veil: {veil_state} | Resonance: {new_res:.2f}]\nPlayer: {text}",
+                        user_prompt=user_prompt,
                     )
-                    if candidate and not scorer_mod.score_output(candidate, veil_state=veil_state).quarantine_recommended:
-                        reply = str(candidate)
+                    candidate_text = (
+                        str(candidate.get("output") or "").strip()
+                        if isinstance(candidate, dict) and not candidate.get("fallback")
+                        else ""
+                    )
+                    if candidate_text:
+                        score_dict = scorer_mod.score_text(
+                            candidate_text,
+                            canon_refs=["VEIL-001"],
+                            agent_id=npc_id,
+                        ).to_dict()
+                        quarantined, _ = quarantine_mod.should_quarantine(
+                            score_dict,
+                            veil_state=veil_state,
+                        )
+                        if not quarantined:
+                            reply = candidate_text
                 except Exception:
                     reply = None
 
             logged_player_text = _RES_MOD.corrupt_suffocated_text(text) if new_res < 100.0 else text
 
             if not reply:
-                if new_res < 100.0:
-                    reply = "..."
-                elif new_res < 350.0:
-                    reply = f"{char['display_name']} looks past you, answering briefly: \"Not now. The streets are quieter than they seem.\""
-                elif veil_state == "quasar_active":
-                    reply = (
-                        f"{char['display_name']} studies you beneath the Quasar's gravity. "
-                        f"\"You asked about '{text[:60]}'. Strip away the Prism's comfort—{char['hidden_function'].lower()}.\""
-                    )
-                elif depth_hits >= 1 or signals["vulnerableFraming"] or new_res >= 550.0:
-                    reply = (
-                        f"{char['display_name']} pauses, the surface smile softening into real attention. "
-                        f"\"Few travelers look past the warmth so quickly. Remember: {char['surface_function']}. "
-                        f"Keep listening, and the Veil will answer.\""
-                    )
-                else:
-                    reply = f"{char['display_name']} answers warmly: \"{char['greeting']}\""
+                reply = _VOICE_MOD.select_offline_reply(
+                    beats_pack=self.dialogue_beats,
+                    npc_id=npc_id,
+                    char=char,
+                    characters=self.characters,
+                    resonance=new_res,
+                    veil_state=veil_state,
+                    cue_type=cue_type,
+                    signals=signals,
+                    delta=res_delta,
+                    npc_bond=npc_bond,
+                    interactions=prev_interactions,
+                    last_npc_line=npc_last_line,
+                    memory_ctx=memory_ctx,
+                    player_text=text,
+                )
 
             last_npc_lines[npc_id] = reply
             npc_arcs[npc_id] = {
-                "encounter": evaluation["updatedEncounter"],
+                "encounter": updated_enc,
                 "playerLastLine": text,
             }
             arcs["npcs"] = npc_arcs
 
             # DSSM-inspired relationship update (Quasar gravity applies in quasar_active!)
-            rel = self._row_dict(
-                "SELECT * FROM relationships WHERE agent_a=? AND agent_b='player'", (npc_id,)
-            )
             trust = float(rel.get("trust", 50.0))
             affection = float(rel.get("affection", 50.0))
             suspicion = float(rel.get("suspicion", 10.0))
             resistance = float(rel.get("resistance", 70.0))
-            interactions = int(rel.get("interactions", 0)) + 1
+            interactions = prev_interactions + 1
 
             if veil_state == "quasar_active":
                 suspicion = min(100.0, suspicion + 4.0)
@@ -949,9 +987,11 @@ class VeilGameEngine:
                 (new_res,),
             )
             self._add_xp(15)
+            voice_family = _VOICE_MOD.stance_family(veil_state, cue_type, signals, res_delta)
+            mem_scope = "private" if (voice_family in ("quasar", "friction") or new_res < 350.0) else "shared"
             self._conn.execute(
-                "INSERT INTO memories (scope, agent_id, subject_id, content) VALUES ('shared', ?, 'player', ?)",
-                (npc_id, f"Player: {logged_player_text} | {char['display_name']}: {reply}"),
+                "INSERT INTO memories (scope, agent_id, subject_id, content) VALUES (?, ?, 'player', ?)",
+                (mem_scope, npc_id, f"Player: {logged_player_text} | {char['display_name']}: {reply}"),
             )
 
             # Quest triggers (enforce prerequisite stages!)
