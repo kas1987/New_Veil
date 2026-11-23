@@ -12,7 +12,8 @@ test('full-stack React client talks to live FastAPI game engine', async ({ page,
   await page.goto('/')
 
   await expect(page.getByRole('heading', { name: 'Caetherra Sunlit Plaza' })).toBeVisible()
-  await expect(page.getByText(/Surface Walker/i).first()).toBeVisible()
+  const tierName: string = resetBody.state.player.resonance_tier.name
+  await expect(page.getByText(tierName, { exact: false }).first()).toBeVisible()
   await expect(page.getByRole('button', { name: /Mira/i })).toBeVisible()
 
   // Live backend object inspection over HTTP -> SQLite

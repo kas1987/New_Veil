@@ -61,4 +61,5 @@ ignore = [
     "S110",    # Intentional try-except-pass in cleanup/fallback paths
     "S112",    # Intentional try-except-continue in log parsing
     "PLW0602", # Global read access
+    "EXE001",  # Scripts keep shebangs while tracked with Windows/Linux mode compatibility
 ]
