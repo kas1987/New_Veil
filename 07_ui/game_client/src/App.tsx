@@ -68,6 +68,7 @@ export default function App() {
   const [bindTargetNpc, setBindTargetNpc] = useState<string>('mira')
   const [lastSignals, setLastSignals] = useState<ResonanceSignals | null>(null)
   const [lastCueType, setLastCueType] = useState<CueType | null>(null)
+  const [diegeticMode, setDiegeticMode] = useState(false)
 
   const notify = (msg: string) => {
     setToast(msg)
@@ -171,8 +172,44 @@ export default function App() {
         ],
       }))
       setInputText('')
-      const sign = res.resonance_delta >= 0 ? '+' : ''
-      notify(`${sign}${res.resonance_delta.toFixed(1)} Resonance`)
+      if (diegeticMode) {
+        notify(
+          res.resonance_delta > 0
+            ? 'The Veil resonates warmly.'
+            : res.resonance_delta < 0
+              ? 'The air around you cools.'
+              : 'Your words settle into stillness.',
+        )
+      } else {
+        const sign = res.resonance_delta >= 0 ? '+' : ''
+        notify(`${sign}${res.resonance_delta.toFixed(1)} Resonance`)
+      }
+    } catch (err) {
+      notify((err as Error).message)
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  const handleInspect = async (objectId: string) => {
+    setBusy(true)
+    try {
+      const res = await api.inspectObject(objectId)
+      setState(res.state)
+      notify(res.message)
+    } catch (err) {
+      notify((err as Error).message)
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  const handleChooseBeat = async (beatId: string, choice: 'accept' | 'decline') => {
+    setBusy(true)
+    try {
+      const res = await api.chooseBeat(beatId, choice)
+      setState(res.state)
+      notify(res.message)
     } catch (err) {
       notify((err as Error).message)
     } finally {
@@ -357,14 +394,31 @@ export default function App() {
             Veil: <strong>{world.veil_state.replace('_', ' ')}</strong> ↻
           </button>
           <span className="pill">
-            Resonance <strong>{player.resonance.toFixed(1)}</strong> / 1000 ({player.resonance_tier.name})
+            {diegeticMode ? (
+              <strong>{player.resonance_tier.name}</strong>
+            ) : (
+              <>
+                Resonance <strong>{player.resonance.toFixed(1)}</strong> / 1000 ({player.resonance_tier.name})
+              </>
+            )}
           </span>
-          <span className="pill">
-            Lv <strong>{player.level}</strong>
-          </span>
+          {!diegeticMode && (
+            <span className="pill">
+              Lv <strong>{player.level}</strong>
+            </span>
+          )}
           <span className="pill" style={{ borderColor: 'var(--star)', color: 'var(--star)' }}>
             ◈ <strong>{world.echoes}</strong>
           </span>
+          <button
+            type="button"
+            className={`pill ${diegeticMode ? 'veil-pill' : ''}`}
+            aria-pressed={diegeticMode}
+            onClick={() => setDiegeticMode((d) => !d)}
+            title="Toggle between numeric testbed readouts and diegetic sensory cues"
+          >
+            {diegeticMode ? 'Diegetic' : 'Numeric'}
+          </button>
         </div>
       </header>
 
@@ -446,6 +500,11 @@ export default function App() {
             <strong>Depth Perception:</strong> {world.current_location.depth_description}
           </div>
         )}
+        {state.district_status?.caetherra_awakened && (
+          <span className="pill" style={{ marginTop: 6, borderColor: 'var(--emerald)', color: 'var(--emerald)' }}>
+            ✦ Caetherra Awakened
+          </span>
+        )}
       </div>
 
       {selectedNpc && <HeroPortrait npc={selectedNpc} />}
@@ -469,7 +528,19 @@ export default function App() {
               ))}
             </div>
 
-            <div style={{ display: 'flex', gap: 6 }}>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+              {(state.objects_here || []).map((obj) => (
+                <button
+                  key={obj.id}
+                  type="button"
+                  className={`btn ${obj.inspected_dq ? 'btn-bloom' : ''}`}
+                  disabled={busy}
+                  title={obj.active_description}
+                  onClick={() => handleInspect(obj.id)}
+                >
+                  {obj.inspected_dq ? '✦ ' : ''}Inspect: {obj.display_name}
+                </button>
+              ))}
               {state.encounters.length > 0 && (
                 <button type="button" className="btn btn-bloom" onClick={() => setDrawer('trial')}>
                   ✦ Resonance Trial ({state.encounters.length})
@@ -497,17 +568,30 @@ export default function App() {
                 </div>
 
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                  {selectedNpc.bond !== undefined && (
-                    <span className="pill" style={{ borderColor: 'var(--emerald)' }}>
-                      Bond <strong>{selectedNpc.bond.toFixed(0)}</strong>
-                    </span>
+                  {diegeticMode ? (
+                    <>
+                      <span className="pill" style={{ borderColor: 'var(--emerald)' }}>
+                        <strong>{selectedNpc.bond_tier || 'stranger'}</strong>
+                      </span>
+                      <span className="pill">
+                        <strong>{selectedNpc.stance || 'guarded'}</strong>
+                      </span>
+                    </>
+                  ) : (
+                    <>
+                      {selectedNpc.bond !== undefined && (
+                        <span className="pill" style={{ borderColor: 'var(--emerald)' }}>
+                          Bond <strong>{selectedNpc.bond.toFixed(0)}</strong>
+                        </span>
+                      )}
+                      <span className="pill">
+                        Trust <strong>{selectedNpc.relationship.trust}</strong>
+                      </span>
+                      <span className="pill">
+                        Suspicion <strong>{selectedNpc.relationship.suspicion}</strong>
+                      </span>
+                    </>
                   )}
-                  <span className="pill">
-                    Trust <strong>{selectedNpc.relationship.trust}</strong>
-                  </span>
-                  <span className="pill">
-                    Suspicion <strong>{selectedNpc.relationship.suspicion}</strong>
-                  </span>
                   {selectedNpc.can_join_party && (
                     <button
                       type="button"
@@ -551,6 +635,41 @@ export default function App() {
                   {isSuffocating && (
                     <div className="depth-whisper" style={{ borderColor: 'var(--ember)', color: 'var(--star)' }}>
                       The Veil is suffocating your voice (&lt; 100.0). Use an Echo Shard or Vial of Memory Ash to cross.
+                    </div>
+                  )}
+
+                  {selectedNpc.id === 'greeter' && state.district_status?.false_comfort_available && (
+                    <div
+                      className="depth-whisper"
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        gap: 8,
+                        flexWrap: 'wrap',
+                      }}
+                    >
+                      <span>
+                        Congregation Seat: <strong>{state.district_status.false_comfort_state}</strong>
+                      </span>
+                      <div style={{ display: 'flex', gap: 6 }}>
+                        <button
+                          type="button"
+                          className={`btn ${state.district_status.false_comfort_state === 'accepted' ? 'btn-bloom' : ''}`}
+                          disabled={busy}
+                          onClick={() => handleChooseBeat('caetherra_false_comfort', 'accept')}
+                        >
+                          Accept Warmth
+                        </button>
+                        <button
+                          type="button"
+                          className={`btn ${state.district_status.false_comfort_state === 'declined' ? 'btn-quasar' : ''}`}
+                          disabled={busy}
+                          onClick={() => handleChooseBeat('caetherra_false_comfort', 'decline')}
+                        >
+                          Decline — Keep the Eastern Road
+                        </button>
+                      </div>
                     </div>
                   )}
 

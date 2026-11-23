@@ -24,6 +24,16 @@ export const api = {
     request<{ ok: boolean; veil_state: string; state: GameState }>('/api/world/advance-veil', {
       method: 'POST',
     }),
+  inspectObject: (object_id: string) =>
+    request<{ ok: boolean; message: string; state: GameState }>('/api/world/inspect', {
+      method: 'POST',
+      body: JSON.stringify({ object_id }),
+    }),
+  chooseBeat: (beat_id: string, choice: 'accept' | 'decline') =>
+    request<{ ok: boolean; message: string; state: GameState }>('/api/world/beat-choice', {
+      method: 'POST',
+      body: JSON.stringify({ beat_id, choice }),
+    }),
   talk: (npc_id: string, message: string) =>
     request<{
       ok: boolean

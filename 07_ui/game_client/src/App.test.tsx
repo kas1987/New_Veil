@@ -67,10 +67,29 @@ const MOCK_STATE: GameState = {
       can_join_party: true,
       in_party: true,
       bond: 12.0,
+      bond_tier: 'stranger',
       stance: 'open',
       relationship: { trust: 52, affection: 50, suspicion: 10, resistance: 65, interactions: 0 },
     },
   ],
+  objects_here: [
+    {
+      id: 'lantern',
+      display_name: 'Lantern',
+      inspected_prism: false,
+      inspected_dq: false,
+      can_reveal_dq: false,
+      active_description: 'A warm lantern lights the path.',
+    },
+  ],
+  narrative_beats: [],
+  district_status: {
+    district_id: 'caetherra',
+    false_comfort_available: false,
+    false_comfort_state: 'unanswered',
+    unseen_gate_discovered: false,
+    caetherra_awakened: false,
+  },
   inventory: [
     {
       id: 'echo_shard',
@@ -166,6 +185,24 @@ describe('The Veil RPG Client', () => {
             }),
           }
         }
+        if (url === '/api/world/inspect') {
+          return {
+            ok: true,
+            json: async () => ({
+              ok: true,
+              message: 'A warm lantern lights the path.',
+              state: {
+                ...MOCK_STATE,
+                objects_here: [
+                  {
+                    ...MOCK_STATE.objects_here![0],
+                    inspected_prism: true,
+                  },
+                ],
+              },
+            }),
+          }
+        }
         return { ok: true, json: async () => MOCK_STATE }
       }),
     )
@@ -188,6 +225,20 @@ describe('The Veil RPG Client', () => {
     await waitFor(() => {
       expect(screen.getByText(/Listen closely to the Prism/i)).toBeTruthy()
     })
+
+    // Inspect symbolic object
+    fireEvent.click(screen.getByRole('button', { name: /Inspect: Lantern/i }))
+    await waitFor(() => {
+      expect(screen.getByText('A warm lantern lights the path.')).toBeTruthy()
+    })
+
+    // Toggle Diegetic mode: hides numeric 350.0 & Bond 12 while keeping qualitative cues
+    fireEvent.click(screen.getByRole('button', { name: /Numeric/i }))
+    expect(screen.queryByText('350.0')).toBeNull()
+    expect(screen.getByText('stranger')).toBeTruthy()
+    expect(screen.getByText(/First Light/i)).toBeTruthy()
+    fireEvent.click(screen.getByRole('button', { name: /Diegetic/i }))
+    expect(screen.getByText('350.0')).toBeTruthy()
 
     // Shift Veil state
     fireEvent.click(screen.getByRole('button', { name: /Veil:/i }))
