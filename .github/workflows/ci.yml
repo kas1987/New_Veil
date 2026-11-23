@@ -48,8 +48,6 @@ jobs:
       - name: Run hooks
         run: pre-commit run --all-files
 
-  alignment-tests:
-    name: alignment unit tests
   python-tests:
     name: python tests (RPG · alignment · DSSM)
     runs-on: ubuntu-latest
@@ -63,13 +61,9 @@ jobs:
           python-version: "3.11"
           cache: pip
 
-      - name: Install pytest
-        run: pip install pytest
       - name: Install package and dev dependencies
         run: pip install -e ".[dev]"
 
-      - name: Run alignment tests
-        run: python -m pytest 05_alignment/tests -q
       - name: Run full pytest suite
         run: python -m pytest -q
 
