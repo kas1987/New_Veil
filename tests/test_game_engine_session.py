@@ -380,3 +380,59 @@ def test_sealed_session_rejects_play_actions_until_reset() -> None:
     assert reset.ok is True
     assert reset.scene["player"]["resonance"] == 350.0
     assert _talk(engine, text="I wonder why the lanterns stay warm here?").ok is True
+
+
+def test_talking_to_mira_after_buying_lantern_advances_first_light() -> None:
+    engine = _engine()
+    assert engine.play(Resolve("trial_prism_surface", "accept_warmth", seed=0)).ok is True
+    assert engine.play(Travel("solstice_bazaar")).ok is True
+    bought = engine.play(Buy("lantern"))
+    assert bought.ok is True, bought.message
+    assert engine.play(Travel("caetherra_plaza")).ok is True
+
+    first_talk = _talk(engine, "mira", "I brought a lantern from Solstice — why do they guard this square?")
+    assert first_talk.ok is True
+    q_first = next(q for q in first_talk.scene["quests"] if q["id"] == "q_first_awakening")
+    assert q_first["stage_index"] >= 2
+
+    _raise_resonance(engine, 460.0)
+    assert engine.play(AdvanceVeil()).ok is True
+    final_talk = _talk(engine, "mira", "The air shifted beneath your lantern light — what lies ahead?")
+    assert final_talk.ok is True
+    q_done = next(q for q in final_talk.scene["quests"] if q["id"] == "q_first_awakening")
+    assert q_done["status"] == "completed"
+
+
+def test_failed_encounter_awards_zero_xp_and_blocks_farming() -> None:
+    engine = _engine()
+    before_xp = engine.scene()["player"]["xp"]
+    failed = engine.play(Resolve("trial_prism_surface", "pierce_illusion", seed=1))
+    assert failed.ok is True
+    assert failed.check is not None
+    assert failed.check.success is False
+    assert failed.scene["player"]["xp"] == before_xp
+
+    failed_again = engine.play(Resolve("trial_prism_surface", "pierce_illusion", seed=1))
+    assert failed_again.ok is True
+    assert failed_again.check is not None
+    assert failed_again.check.success is False
+    assert failed_again.scene["player"]["xp"] == before_xp
+
+
+def test_checkpoint_load_restores_memories_and_ending_quasar_predicate() -> None:
+    engine = _engine()
+    assert engine.scene()["ending_status"]["criteria"]["quasar_experienced"] is False
+    assert engine.save("calm_cp", "Before Quasar").ok is True
+
+    for expected in ("still", "storm", "quasar_active"):
+        assert engine.play(AdvanceVeil()).scene["world"]["veil_state"] == expected
+    assert engine.scene()["ending_status"]["criteria"]["quasar_experienced"] is True
+
+    loaded = engine.load("calm_cp")
+    assert loaded.ok is True
+    assert loaded.scene["world"]["veil_state"] == "calm"
+    assert loaded.scene["ending_status"]["criteria"]["quasar_experienced"] is False
+    assert not any(
+        "quasar active" in row["content"].lower()
+        for row in engine._rows_list("SELECT content FROM memories")
+    )

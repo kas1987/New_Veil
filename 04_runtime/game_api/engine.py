@@ -958,6 +958,8 @@ class VeilGameEngine:
             inv_map = self._inventory_map()
             if npc_id == "mira":
                 self._advance_quest_stage("q_first_awakening", 1)
+                if "lantern" in inv_map:
+                    self._advance_quest_stage("q_first_awakening", 2)
                 q_first = self._row_dict("SELECT stage_index FROM quest_progress WHERE player_id='player' AND quest_id='q_first_awakening'")
                 shifted = veil_state != "calm" or bool(
                     self._conn.execute("SELECT 1 FROM memories WHERE content LIKE 'The Veil shifted%' LIMIT 1").fetchone()
@@ -1177,7 +1179,6 @@ class VeilGameEngine:
                         self._advance_quest_stage("q_nine_sisters", 2)
                 outcome_text = choice["success_text"]
             else:
-                self._add_xp(10)
                 outcome_text = choice["failure_text"]
 
             self._conn.execute(
@@ -1220,6 +1221,9 @@ class VeilGameEngine:
                     "SELECT encounter_id FROM completed_encounters WHERE player_id='player'"
                 ),
                 "portrait_bindings": self._rows_list("SELECT npc_id, media_key FROM portrait_bindings"),
+                "memories": self._rows_list(
+                    "SELECT scope, agent_id, subject_id, content, emotional_tags, canon_refs, created_at FROM memories ORDER BY id ASC"
+                ),
             }
             slot_label = label.strip() or f"Save {datetime.now(UTC).strftime('%Y-%m-%d %H:%M')}"
             self._conn.execute(
@@ -1343,6 +1347,22 @@ class VeilGameEngine:
                     "INSERT INTO portrait_bindings (npc_id, media_key) VALUES (?, ?)",
                     (pb["npc_id"], pb["media_key"]),
                 )
+            if "memories" in snap:
+                self._conn.execute("DELETE FROM memories")
+                for mem in snap["memories"]:
+                    self._conn.execute(
+                        "INSERT INTO memories (scope, agent_id, subject_id, content, emotional_tags, canon_refs, created_at) "
+                        "VALUES (?, ?, ?, ?, ?, ?, ?)",
+                        (
+                            mem["scope"],
+                            mem.get("agent_id"),
+                            mem.get("subject_id"),
+                            mem["content"],
+                            mem.get("emotional_tags") or "[]",
+                            mem.get("canon_refs") or "[]",
+                            mem.get("created_at"),
+                        ),
+                    )
             self._conn.commit()
             return {"ok": True, "message": f"Loaded slot '{slot_id}'.", "state": self._snapshot()}
 
