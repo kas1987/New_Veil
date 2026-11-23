@@ -1,0 +1,21 @@
+{
+  "schema_version": "1.0.0",
+  "note": "Canonical voice profiles and mood cues. Runtime TTS adapters stay external; no machine-local forwarders.",
+  "voices": {
+    "mira": { "timbre": "warm_alto", "cadence": "playful_measured", "default_mood": "Warmth", "quasar_shift": "intimate_grave" },
+    "solenne": { "timbre": "bright_mezzo", "cadence": "gentle_reassuring", "default_mood": "Warmth", "quasar_shift": "hushed_steady" },
+    "vael": { "timbre": "crisp_contralto", "cadence": "sharp_deliberate", "default_mood": "Defiance", "quasar_shift": "commanding" },
+    "lyra": { "timbre": "ethereal_soprano", "cadence": "dreamlike_echoing", "default_mood": "Curiosity", "quasar_shift": "haunting" },
+    "shadow": { "timbre": "low_whisper", "cadence": "sparse_pauses", "default_mood": "Dormant", "quasar_shift": "resonant_void" },
+    "ashara": { "timbre": "velvet_alto", "cadence": "reflective", "default_mood": "Curiosity", "quasar_shift": "uncanny" },
+    "nyth": { "timbre": "deep_contralto", "cadence": "slow_gravitational", "default_mood": "Ache", "quasar_shift": "overwhelming" },
+    "thessa": { "timbre": "clear_mezzo", "cadence": "architectural_precise", "default_mood": "Curiosity", "quasar_shift": "urgent" },
+    "witness": { "timbre": "neutral_resonant", "cadence": "observational", "default_mood": "Dormant", "quasar_shift": "judicial" },
+    "warden": { "timbre": "calm_baritone", "cadence": "monastic_even", "default_mood": "Trust", "quasar_shift": "strained" },
+    "archivist": { "timbre": "dry_tenor", "cadence": "cataloging", "default_mood": "Curiosity", "quasar_shift": "whispered" },
+    "rendered": { "timbre": "metallic_layered", "cadence": "fragmented", "default_mood": "Ache", "quasar_shift": "articulated" },
+    "threadwatcher": { "timbre": "soft_baritone", "cadence": "watchful", "default_mood": "Curiosity", "quasar_shift": "taut" },
+    "greeter": { "timbre": "friendly_tenor", "cadence": "brisk_welcoming", "default_mood": "Warmth", "quasar_shift": "nervous" },
+    "kaelen_lanternwright": { "timbre": "weathered_baritone", "cadence": "storyteller", "default_mood": "Warmth", "quasar_shift": "cautious" }
+  }
+}

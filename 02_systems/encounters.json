@@ -1,0 +1,77 @@
+{
+  "schema_version": "1.0.0",
+  "encounters": [
+    {
+      "id": "trial_prism_surface",
+      "title": "The Warm Mirage",
+      "location_id": "caetherra_plaza",
+      "veil_states": ["calm", "still"],
+      "description": "A street musician plays a melody that sounds exactly like a memory you never lived. The crowd smiles in unison.",
+      "choices": [
+        {
+          "id": "accept_warmth",
+          "label": "Smile and applaud the melody (Empathy DC 10)",
+          "attribute": "empathy",
+          "dc": 10,
+          "success_text": "The Prism rewards your gentleness with a clear Echo Shard, though Mira watches you with a quiet, testing gaze.",
+          "failure_text": "Your applause rings slightly hollow; the crowd's smiles flicker for a heartbeat.",
+          "rewards": { "xp": 25, "echoes": 5, "resonance_delta": 0.04, "emotional_tag": "warmth" }
+        },
+        {
+          "id": "pierce_illusion",
+          "label": "Listen for the dissonance beneath the chords (Perception DC 12)",
+          "attribute": "perception",
+          "dc": 12,
+          "success_text": "Beneath the major key, a low gravitational hum vibrates in the cobblestones. You glimpse the Veil's true depth.",
+          "failure_text": "The warmth overwhelms your focus, leaving only a faint ache behind your eyes.",
+          "rewards": { "xp": 40, "echoes": 8, "resonance_delta": 0.08, "emotional_tag": "mystery" }
+        }
+      ]
+    },
+    {
+      "id": "trial_stillward_mirror",
+      "title": "The Unblinking Cloister",
+      "location_id": "stillward_cloister",
+      "veil_states": ["still", "storm", "quasar_active"],
+      "description": "Three prayer mirrors line the white archway. As the Stilling Bell tolls, one mirror shows an iron confessional instead of your face.",
+      "choices": [
+        {
+          "id": "hold_gaze",
+          "label": "Hold the mirror's gaze without flinching (Resolve DC 13)",
+          "attribute": "resolve",
+          "dc": 13,
+          "success_text": "Hairline cracks bloom across the silver glass, revealing a hidden latch to the Covenant confessional.",
+          "failure_text": "You look away as the bell rings sharp; the reflection snaps back to serene white stone.",
+          "rewards": { "xp": 55, "echoes": 12, "resonance_delta": 0.09, "emotional_tag": "recognition" }
+        },
+        {
+          "id": "attune_bell",
+          "label": "Hum in resonance with the Stilling Bell (Veil Attunement DC 12)",
+          "attribute": "veil_attunement",
+          "dc": 12,
+          "success_text": "The bell answers with a warm overtone, granting you clarity without shattering the sanctuary.",
+          "failure_text": "The harmonic slips, shaking loose a brief storm ripple.",
+          "rewards": { "xp": 45, "echoes": 10, "resonance_delta": 0.06, "emotional_tag": "warmth" }
+        }
+      ]
+    },
+    {
+      "id": "trial_quasar_gravity",
+      "title": "The Weight of Being Known",
+      "location_id": "gravity_spire_deck",
+      "veil_states": ["storm", "quasar_active"],
+      "description": "The Dark Quasar's gravity surges across Obsidian Reach. Every unspoken doubt you carry rises like iron filings toward the sky.",
+      "choices": [
+        {
+          "id": "stand_in_truth",
+          "label": "Name your doubt aloud and stand firm (Clarity DC 15)",
+          "attribute": "clarity",
+          "dc": 15,
+          "success_text": "The gravity does not crush you—it anchors you. The Quasar recognizes earned trust.",
+          "failure_text": "Suspicion spikes through your bonds as the membrane strains, yet you survive with a sharper eye.",
+          "rewards": { "xp": 120, "echoes": 25, "resonance_delta": 0.12, "emotional_tag": "truth" }
+        }
+      ]
+    }
+  ]
+}

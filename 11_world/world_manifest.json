@@ -1,0 +1,218 @@
+{
+  "schema_version": "1.0.0",
+  "world_id": "the_veil",
+  "display_name": "The Veil",
+  "tagline": "A resonant membrane between Prism warmth and Dark Quasar truth.",
+  "veil_cycle": ["calm", "still", "storm", "quasar_active"],
+  "time_cycle": ["dawn", "day", "dusk", "night"],
+  "regions": [
+    {
+      "id": "veil_heartlands",
+      "name": "The Veil Heartlands",
+      "tier": 1,
+      "description": "The resonant core where the Prism shines warmest and the Nine Sisters watch over Veil Town.",
+      "map_coords": { "x": 50, "y": 52 },
+      "default_mood": "Warmth",
+      "settlements": ["veil_town"]
+    },
+    {
+      "id": "prism_marches",
+      "name": "The Prism Marches",
+      "tier": 1,
+      "description": "Sunlit borderlands of glass-stone roads and lantern caravans trading in crystallized Echoes.",
+      "map_coords": { "x": 22, "y": 38 },
+      "default_mood": "Curiosity",
+      "settlements": ["solstice_crossing"]
+    },
+    {
+      "id": "quasar_rim",
+      "name": "The Quasar Rim",
+      "tier": 3,
+      "description": "Where the membrane thins to a razor edge and gravity bends memory itself.",
+      "map_coords": { "x": 80, "y": 28 },
+      "default_mood": "Ache",
+      "settlements": ["obsidian_reach"]
+    }
+  ],
+  "settlements": [
+    {
+      "id": "veil_town",
+      "region_id": "veil_heartlands",
+      "type": "city",
+      "name": "Veil Town (Caetherra)",
+      "description": "Not a place you merely travel to, but a resonance you achieve. Five interlocking districts spanning Prism surface to liminal Hollow.",
+      "map_coords": { "x": 50, "y": 52 },
+      "unlocked_by_default": true,
+      "districts": ["caetherra", "stillward", "ashveil", "ember_vaults", "the_hollow"]
+    },
+    {
+      "id": "solstice_crossing",
+      "region_id": "prism_marches",
+      "type": "town",
+      "name": "Solstice Crossing",
+      "description": "A lively crossroads town of lanternwrights, echo-brokers, and travelers pausing before the Veil's deeper pull.",
+      "map_coords": { "x": 22, "y": 38 },
+      "unlocked_by_default": true,
+      "districts": ["solstice_market"]
+    },
+    {
+      "id": "obsidian_reach",
+      "region_id": "quasar_rim",
+      "type": "outpost",
+      "name": "Obsidian Reach",
+      "description": "A cliffside observatory perched above the Dark Quasar horizon. Only travelers with proven depth can stand its gravity.",
+      "map_coords": { "x": 80, "y": 28 },
+      "unlocked_by_default": false,
+      "unlock_conditions": {
+        "min_resonance": 0.7,
+        "min_interactions": 6
+      },
+      "districts": ["gravity_spire"]
+    }
+  ],
+  "locations": [
+    {
+      "id": "caetherra_plaza",
+      "settlement_id": "veil_town",
+      "district_id": "caetherra",
+      "name": "Caetherra Sunlit Plaza",
+      "type": "plaza",
+      "map_coords": { "x": 48, "y": 54 },
+      "surface_description": "Warm limestone arches, amber lanterns, and welcoming voices. The Prism feels effortlessly gentle here.",
+      "depth_description": "Every cobblestone reflects a slightly different version of your shadow. Someone is counting your footsteps.",
+      "npcs": ["mira", "solenne", "greeter"],
+      "objects": ["lantern", "mirror"],
+      "services": ["rest", "rumors"],
+      "hidden": false
+    },
+    {
+      "id": "listening_wall",
+      "settlement_id": "veil_town",
+      "district_id": "caetherra",
+      "name": "The Listening Wall",
+      "type": "hidden_path",
+      "map_coords": { "x": 55, "y": 58 },
+      "surface_description": "An old weathered stone wall at the edge of the quarter.",
+      "depth_description": "During quasar_active, the mortar hums with distorted fragments of your own memories.",
+      "npcs": ["witness", "threadwatcher"],
+      "objects": ["wall_of_the_unseen_gate", "thread"],
+      "services": ["echo_attunement"],
+      "hidden": true,
+      "unlock_conditions": { "min_resonance": 0.55, "veil_states": ["storm", "quasar_active"] }
+    },
+    {
+      "id": "miras_garden",
+      "settlement_id": "veil_town",
+      "district_id": "caetherra",
+      "name": "Mira's Garden",
+      "type": "sanctuary",
+      "map_coords": { "x": 43, "y": 48 },
+      "surface_description": "A quiet courtyard behind ivy-draped glass.",
+      "depth_description": "A pocket of unfiltered honesty where Mira drops the surface veil and speaks as Thesmera Locke.",
+      "npcs": ["mira"],
+      "objects": ["mirror", "key"],
+      "services": ["deep_dialogue"],
+      "hidden": true,
+      "unlock_conditions": { "min_resonance": 0.65, "min_interactions": 5 }
+    },
+    {
+      "id": "stillward_cloister",
+      "settlement_id": "veil_town",
+      "district_id": "stillward",
+      "name": "The Stillward Cloister",
+      "type": "monastery",
+      "map_coords": { "x": 50, "y": 32 },
+      "surface_description": "White stone walkways, soft light, and the rhythmic breathing of the Stilling Bell.",
+      "depth_description": "Nothing decays here because nothing is allowed to change. Beneath the prayer mirrors lies a sealed confessional.",
+      "npcs": ["warden", "archivist"],
+      "objects": ["mirror", "lantern"],
+      "services": ["reliquary", "meditate"],
+      "hidden": false,
+      "unlock_conditions": { "min_resonance": 0.4, "requires_item": "lantern" }
+    },
+    {
+      "id": "ashveil_forges",
+      "settlement_id": "veil_town",
+      "district_id": "ashveil",
+      "name": "Ashveil Furnaces",
+      "type": "industrial",
+      "map_coords": { "x": 68, "y": 54 },
+      "surface_description": "Iron stacks and glowing bellows where the Ashen Covenant burns away fragile illusions.",
+      "depth_description": "The drifting grey ash is composed of archived memories. Walking through it stings with recognition.",
+      "npcs": ["vael", "threadwatcher"],
+      "objects": ["ash", "key"],
+      "services": ["forge", "merchant"],
+      "hidden": false,
+      "unlock_conditions": { "min_resonance": 0.5 }
+    },
+    {
+      "id": "ember_vaults_anvil",
+      "settlement_id": "veil_town",
+      "district_id": "ember_vaults",
+      "name": "The Memory Anvil (Ember Vaults)",
+      "type": "dungeon",
+      "map_coords": { "x": 74, "y": 66 },
+      "surface_description": "Subterranean galleries lined with glowing caskets of condensed belief.",
+      "depth_description": "Vault Seven hums with a silver thread pulled taut toward an unseen hand.",
+      "npcs": ["rendered", "nyth"],
+      "objects": ["ash", "key", "thread"],
+      "services": ["archive_trial"],
+      "hidden": false,
+      "unlock_conditions": { "min_resonance": 0.65, "requires_district": "ashveil" }
+    },
+    {
+      "id": "hollow_clearing",
+      "settlement_id": "veil_town",
+      "district_id": "the_hollow",
+      "name": "The Hollow Clearing",
+      "type": "liminal",
+      "map_coords": { "x": 62, "y": 24 },
+      "surface_description": "Mist over dark glass water where dreams drift untethered.",
+      "depth_description": "The Veil thinned to transparency. Here the Nine Sisters convene without masks.",
+      "npcs": ["lyra", "shadow", "ashara", "thessa"],
+      "objects": ["void_door", "thread"],
+      "services": ["dream_walk", "sister_council"],
+      "hidden": false,
+      "unlock_conditions": { "min_resonance": 0.75 }
+    },
+    {
+      "id": "solstice_bazaar",
+      "settlement_id": "solstice_crossing",
+      "district_id": "solstice_market",
+      "name": "Lanternwright's Bazaar",
+      "type": "market",
+      "map_coords": { "x": 22, "y": 38 },
+      "surface_description": "Canvas awnings strung with prismatic glass lamps. Travelers barter rumors, charms, and Echo shards.",
+      "depth_description": "Every lantern sold here casts a slightly longer shadow than the flame warrants.",
+      "npcs": ["kaelen_lanternwright", "greeter"],
+      "objects": ["lantern"],
+      "services": ["merchant", "rest", "rumors"],
+      "hidden": false
+    },
+    {
+      "id": "gravity_spire_deck",
+      "settlement_id": "obsidian_reach",
+      "district_id": "gravity_spire",
+      "name": "Obsidian Gravity Spire",
+      "type": "observatory",
+      "map_coords": { "x": 80, "y": 28 },
+      "surface_description": "A basalt tower overlooking a swirling violet abyss.",
+      "depth_description": "The Dark Quasar's pull is naked here. Only earned trust survives without fracturing.",
+      "npcs": ["nyth", "witness"],
+      "objects": ["void_door", "mirror"],
+      "services": ["quasar_trial"],
+      "hidden": false,
+      "unlock_conditions": { "min_resonance": 0.7 }
+    }
+  ],
+  "connections": [
+    { "from": "caetherra_plaza", "to": "solstice_bazaar", "travel_ticks": 1, "bidirectional": true },
+    { "from": "caetherra_plaza", "to": "listening_wall", "travel_ticks": 1, "bidirectional": true, "hidden": true },
+    { "from": "caetherra_plaza", "to": "miras_garden", "travel_ticks": 1, "bidirectional": true, "hidden": true },
+    { "from": "caetherra_plaza", "to": "stillward_cloister", "travel_ticks": 1, "bidirectional": true },
+    { "from": "caetherra_plaza", "to": "ashveil_forges", "travel_ticks": 1, "bidirectional": true },
+    { "from": "ashveil_forges", "to": "ember_vaults_anvil", "travel_ticks": 1, "bidirectional": true },
+    { "from": "stillward_cloister", "to": "hollow_clearing", "travel_ticks": 2, "bidirectional": true },
+    { "from": "hollow_clearing", "to": "gravity_spire_deck", "travel_ticks": 2, "bidirectional": true }
+  ]
+}

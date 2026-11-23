@@ -1,0 +1,8 @@
+{
+  "agent_id": "ashara",
+  "display_name": "Ashara",
+  "role": "Mirror of Memory",
+  "alignment": { "prism": 0.55, "dark_quasar": 0.72, "emotional_depth": 0.88 },
+  "traits": ["reflective", "recursive", "uncanny", "patient"],
+  "forbidden_actions": ["erase player memory", "override immutable canon"]
+}
