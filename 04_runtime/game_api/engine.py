@@ -13,10 +13,14 @@ import os
 import random
 import sqlite3
 import threading
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
+
+from veil_loader import load_module
+
+_RES_MOD = load_module("veil_resonance_evaluator", Path(__file__).resolve().parent / "resonance_evaluator.py")
 
 _VEIL_CYCLE = ["calm", "still", "storm", "quasar_active"]
 _TIME_CYCLE = ["dawn", "day", "dusk", "night"]
@@ -68,6 +72,7 @@ class Reply:
     speaker: str
     text: str
     resonance_delta: float
+    signals: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass(frozen=True)
@@ -144,6 +149,9 @@ class VeilGameEngine:
         conn.row_factory = sqlite3.Row
         schema_sql = (self.repo_root / "03_memory" / "schema.sql").read_text(encoding="utf-8")
         conn.executescript(schema_sql)
+        columns = {row[1] for row in conn.execute("PRAGMA table_info(player_stats)")}
+        if "encounter_arcs" not in columns:
+            conn.execute("ALTER TABLE player_stats ADD COLUMN encounter_arcs TEXT DEFAULT '{}'")
         conn.commit()
         return conn
 
@@ -722,22 +730,64 @@ class VeilGameEngine:
                 raise ValueError(f"{char['display_name']} is not at {current_loc['name']}.")
 
             stats = self._row_dict("SELECT * FROM player_stats WHERE player_id='player'")
+            ps = self._row_dict("SELECT * FROM player_state WHERE player_id='player'")
             veil_state = ws["veil_state"]
             res = float(stats.get("resonance", 0.35))
+            turns_taken = int(ps.get("turns_taken", 0))
+            has_crossed = bool(stats.get("has_crossed_first_threshold", 0))
+            recent_kw_history: list[list[str]] = json.loads(stats.get("recent_keywords") or "[]")
+            flat_recent_kw = [w for turn_kws in recent_kw_history[-2:] for w in turn_kws]
+            last_npc_lines: dict[str, str] = json.loads(stats.get("last_npc_lines") or "{}")
+            npc_last_line = last_npc_lines.get(npc_id, char.get("greeting", ""))
+            arcs = json.loads(stats.get("encounter_arcs") or "{}")
+            npc_arcs = arcs.get("npcs") or {}
+            stored = npc_arcs.get(npc_id) or {}
+            char_stance = char.get("encounter_stance") or "guarded"
+            if char_stance not in ("hostile", "guarded", "open", "bonded"):
+                char_stance = "guarded"
+            encounter = stored.get("encounter") or {
+                "npcId": npc_id,
+                "initialStance": char_stance,
+                "currentStance": char_stance,
+                "turnsSpentInResistance": 0,
+                "consecutiveAttunedTurns": 0,
+                "breakthroughAwarded": False,
+                "relevantUnlockedTokens": [],
+            }
+            encounter["npcId"] = npc_id
+            encounter["relevantUnlockedTokens"] = self._revealed_tokens(res)
 
-            # Compute emotional depth & resonance delta from input richness
-            lowered = text.lower()
-            deep_keywords = ("veil", "quasar", "prism", "truth", "memory", "shadow", "dream", "trust", "fear", "why")
-            depth_hits = sum(1 for kw in deep_keywords if kw in lowered)
-            res_delta = min(0.08, 0.02 + depth_hits * 0.015 + (0.01 if len(text) > 45 else 0.0))
-            new_res = round(min(1.0, res + res_delta), 3)
+            # Deterministic conversational posture evaluation (1:1 parity with resonanceEvaluator.ts)
+            eval_ctx = _RES_MOD.TurnContext(
+                current_resonance=res,
+                turns_taken=turns_taken,
+                has_crossed_first_threshold=has_crossed,
+                npc_last_line=npc_last_line,
+                recent_keywords=flat_recent_kw,
+                veil_state=veil_state,
+                player_last_line=stored.get("playerLastLine") or "",
+                encounter=encounter,
+            )
+            evaluation = _RES_MOD.evaluate_talk_resonance(text, eval_ctx)
+            new_res = float(evaluation["new_resonance"])
+            res_delta = float(evaluation["delta"])
+            signals = evaluation["signals"]
+            depth_hits = len(signals["resonantWordsHit"])
+
+            # Track crossing 0.450 threshold and rolling 2-turn keyword window
+            next_crossed = 1 if (has_crossed or new_res >= 0.450) else 0
+            used_this_turn = list(dict.fromkeys(signals["resonantWordsHit"] + signals["fatiguedWords"]))
+            next_kw_history = (recent_kw_history + [used_this_turn])[-2:]
+            is_resonant_talk = (
+                not signals["isDismissiveOrTransactional"]
+                and (signals["mirroredNpc"] or signals["openInquiry"] or signals["vulnerableFraming"] or depth_hits > 0)
+            )
+            next_drift = 0 if is_resonant_talk else int(stats.get("drift_count", 0))
 
             # Optional stateless live LLM + alignment gate when explicitly enabled
             reply: str | None = None
-            if os.environ.get("VEIL_USE_LIVE_LLM") == "1":
+            if new_res >= 0.100 and os.environ.get("VEIL_USE_LIVE_LLM") == "1":
                 try:
-                    from veil_loader import load_module
-
                     llm_mod = load_module("llm_provider", self.repo_root / "04_runtime" / "llm_provider.py")
                     scorer_mod = load_module("scorer", self.repo_root / "05_alignment" / "scorer.py")
                     candidate = llm_mod.generate_agent_output(
@@ -749,13 +799,19 @@ class VeilGameEngine:
                 except Exception:
                     reply = None
 
+            logged_player_text = _RES_MOD.corrupt_suffocated_text(text) if new_res < 0.100 else text
+
             if not reply:
-                if veil_state == "quasar_active":
+                if new_res < 0.100:
+                    reply = "..."
+                elif new_res < 0.350:
+                    reply = f"{char['display_name']} looks past you, answering briefly: \"Not now. The streets are quieter than they seem.\""
+                elif veil_state == "quasar_active":
                     reply = (
                         f"{char['display_name']} studies you beneath the Quasar's gravity. "
                         f"\"You asked about '{text[:60]}'. Strip away the Prism's comfort—{char['hidden_function'].lower()}.\""
                     )
-                elif depth_hits >= 1 or new_res >= 0.55:
+                elif depth_hits >= 1 or signals["vulnerableFraming"] or new_res >= 0.55:
                     reply = (
                         f"{char['display_name']} pauses, the surface smile softening into real attention. "
                         f"\"Few travelers look past the warmth so quickly. Remember: {char['surface_function']}. "
@@ -763,6 +819,13 @@ class VeilGameEngine:
                     )
                 else:
                     reply = f"{char['display_name']} answers warmly: \"{char['greeting']}\""
+
+            last_npc_lines[npc_id] = reply
+            npc_arcs[npc_id] = {
+                "encounter": evaluation["updatedEncounter"],
+                "playerLastLine": text,
+            }
+            arcs["npcs"] = npc_arcs
 
             # DSSM-inspired relationship update (Quasar gravity applies in quasar_active!)
             rel = self._row_dict(
@@ -792,10 +855,18 @@ class VeilGameEngine:
                 (npc_id, trust, affection, suspicion, resistance, interactions),
             )
 
-            # Update player resonance, turns, XP, memory
+            # Update player resonance, grace/fatigue metadata, turns, XP, memory
             self._conn.execute(
-                "UPDATE player_stats SET resonance=?, updated_at=CURRENT_TIMESTAMP WHERE player_id='player'",
-                (new_res,),
+                "UPDATE player_stats SET resonance=?, has_crossed_first_threshold=?, recent_keywords=?, "
+                "drift_count=?, last_npc_lines=?, encounter_arcs=?, updated_at=CURRENT_TIMESTAMP WHERE player_id='player'",
+                (
+                    new_res,
+                    next_crossed,
+                    json.dumps(next_kw_history),
+                    next_drift,
+                    json.dumps(last_npc_lines),
+                    json.dumps(arcs),
+                ),
             )
             self._conn.execute(
                 "UPDATE player_state SET turns_taken = turns_taken + 1, emotional_depth = ?, "
@@ -805,7 +876,7 @@ class VeilGameEngine:
             self._add_xp(15)
             self._conn.execute(
                 "INSERT INTO memories (scope, agent_id, subject_id, content) VALUES ('shared', ?, 'player', ?)",
-                (npc_id, f"Player: {text} | {char['display_name']}: {reply}"),
+                (npc_id, f"Player: {logged_player_text} | {char['display_name']}: {reply}"),
             )
 
             # Quest triggers (enforce prerequisite stages!)
@@ -851,7 +922,9 @@ class VeilGameEngine:
                 "speaker": char["display_name"],
                 "reply": reply,
                 "resonance_delta": round(res_delta, 3),
+                "signals": signals,
                 "veil_state": veil_state,
+                "sealed_out": new_res <= 0.0,
                 "state": self._snapshot(),
             }
 
@@ -1111,7 +1184,7 @@ class VeilGameEngine:
                 ),
             )
             self._conn.execute(
-                "UPDATE player_stats SET level=?, xp=?, resonance=?, clarity=?, empathy=?, resolve=?, perception=?, veil_attunement=? "
+                "UPDATE player_stats SET level=?, xp=?, resonance=?, clarity=?, empathy=?, resolve=?, perception=?, veil_attunement=?, encounter_arcs=? "
                 "WHERE player_id='player'",
                 (
                     st["level"],
@@ -1122,6 +1195,7 @@ class VeilGameEngine:
                     st["resolve"],
                     st["perception"],
                     st["veil_attunement"],
+                    st.get("encounter_arcs") or "{}",
                 ),
             )
             self._conn.execute("DELETE FROM inventory WHERE player_id='player'")
@@ -1222,6 +1296,29 @@ class VeilGameEngine:
         self._conn.commit()
         return {"ok": True, "npc_id": npc_id, "media_key": clean_key, "state": self._snapshot()}
 
+    def _revealed_tokens(self, resonance: float) -> list[str]:
+        """Content words from revealed item depth lines and open codex titles."""
+        texts: list[str] = []
+        for item_id in self._inventory_map():
+            item = self.items_catalog.get(item_id) or {}
+            if resonance >= float(item.get("depth_reveal_threshold") or 1):
+                texts.append(str(item.get("dq_description") or ""))
+        for _cid, title, _path, min_res, _category in (
+            ("lore_bible", "Veil Town Lore Bible", "10_canon/LORE_BIBLE.md", 0.0, "Canon"),
+            ("the_veil", "The Veil Membrane", "12_metaphysics/THE_VEIL.md", 0.0, "Metaphysics"),
+            ("veil_states", "The Four Veil States", "12_metaphysics/VEIL_STATES.md", 0.3, "Metaphysics"),
+            ("dream_system", "Dreams & Symbolic Echoes", "12_metaphysics/DREAM_SYSTEM.md", 0.45, "Metaphysics"),
+            ("dark_quasar", "The Dark Quasar", "12_metaphysics/DARK_QUASAR.md", 0.6, "Forbidden Depth"),
+        ):
+            if resonance >= min_res:
+                texts.append(title)
+        tokens: list[str] = []
+        for text in texts:
+            for token in _RES_MOD.tokenize(text):
+                if token not in tokens:
+                    tokens.append(token)
+        return tokens
+
     def _codex_entries(self) -> list[dict[str, Any]]:
         """Return canonical Lore & Metaphysics codex entries filtered by player resonance."""
         stats = self._row_dict("SELECT resonance FROM player_stats WHERE player_id='player'")
@@ -1275,7 +1372,12 @@ class VeilGameEngine:
                 ok=raw["ok"],
                 message=raw["reply"],
                 scene=raw["state"],
-                reply=Reply(raw["speaker"], raw["reply"], float(raw["resonance_delta"])),
+                reply=Reply(
+                    raw["speaker"],
+                    raw["reply"],
+                    float(raw["resonance_delta"]),
+                    raw.get("signals") or {},
+                ),
             )
         if isinstance(action, AdvanceVeil):
             raw = self._advance_veil()

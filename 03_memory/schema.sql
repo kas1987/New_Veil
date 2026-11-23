@@ -98,6 +98,11 @@ CREATE TABLE IF NOT EXISTS player_stats (
     perception REAL DEFAULT 10,
     veil_attunement REAL DEFAULT 10,
     emotional_tags TEXT DEFAULT '["warmth", "curiosity"]',
+    has_crossed_first_threshold INTEGER DEFAULT 0,
+    recent_keywords TEXT DEFAULT '[]',
+    drift_count INTEGER DEFAULT 0,
+    last_npc_lines TEXT DEFAULT '{}',
+    encounter_arcs TEXT DEFAULT '{}',
     updated_at TEXT DEFAULT CURRENT_TIMESTAMP
 );
 

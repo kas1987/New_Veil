@@ -130,6 +130,7 @@ def create_app(db_path: Path | str | None = None) -> FastAPI:
             "speaker": reply.speaker if reply else "",
             "reply": reply.text if reply else "",
             "resonance_delta": reply.resonance_delta if reply else 0,
+            "signals": reply.signals if reply else {},
             "veil_state": result.scene["world"]["veil_state"],
             "state": result.scene,
         }

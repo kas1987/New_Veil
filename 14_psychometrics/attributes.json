@@ -33,10 +33,47 @@
     }
   ],
   "resonance_tiers": [
-    { "tier": 1, "name": "Surface Walker", "min_resonance": 0.0, "description": "Sees only the warm Prism surface." },
-    { "tier": 2, "name": "First Light", "min_resonance": 0.35, "description": "Notices subtle reflections and hidden thresholds." },
-    { "tier": 3, "name": "Veil Listener", "min_resonance": 0.55, "description": "Unlocks Ashveil, Stillward, and echo fragments." },
-    { "tier": 4, "name": "Quasar Tested", "min_resonance": 0.75, "description": "Can enter The Hollow and survive quasar_active." },
-    { "tier": 5, "name": "Awakened", "min_resonance": 0.85, "description": "Eligible for true names and True Ending." }
-  ]
+    { "tier": 1, "name": "Surface Walker", "min_resonance": 0.0, "description": "Draining talk. The town turns away. Below 0.10 the voice fails to cross. At 0.00 the session ends." },
+    { "tier": 2, "name": "First Light", "min_resonance": 0.35, "description": "Polite, guarded contact. A new session starts here. The plaza depth sentence appears at 0.45." },
+    { "tier": 3, "name": "Veil Listener", "min_resonance": 0.55, "description": "Engaged talk: listening, a real question, an observation. Listening Wall still needs storm or quasar." },
+    { "tier": 4, "name": "Quasar Tested", "min_resonance": 0.75, "description": "Vulnerable talk. Mira's name can show at 0.80 during quasar. Other road locks still apply." },
+    { "tier": 5, "name": "Awakened", "min_resonance": 0.85, "description": "Intimate talk. The membrane is clear glass. A surge at or above 0.80 is damped, so this band stays rare. Not an understanding of the Veil." }
+  ],
+  "resonance_talk": {
+    "turn_cap": 0.08,
+    "breakthrough_bonus": 0.07,
+    "breakthrough_ceiling": 0.15,
+    "high_band_from": 0.8,
+    "high_band_ceiling": 0.115,
+    "prior_resistance_turns": 2,
+    "stances": ["hostile", "guarded", "open", "bonded"],
+    "default_stance": "guarded",
+    "one_breakthrough_per_npc_per_session": true
+  },
+  "grace_window": {
+    "floor": 0.35,
+    "max_turns": 5,
+    "break_threshold": 0.45
+  },
+  "talk_weights": {
+    "mirror_npc_word": 0.02,
+    "open_inquiry": 0.015,
+    "interiority": 0.02,
+    "thematic_in_sentence": 0.02,
+    "interiority_thematic_cap": 0.04,
+    "sustained_length": 0.01,
+    "sustained_min_chars": 45
+  },
+  "friction_penalties": {
+    "terse_or_filler": -0.02,
+    "terse_max_chars": 14,
+    "command_spam_or_repeat": -0.03,
+    "keyword_fatigue_turns": 2
+  },
+  "drift": {
+    "interval_turns": 3,
+    "calm_decay": -0.01,
+    "storm_decay": -0.02,
+    "collapse_threshold": 0.1
+  }
 }

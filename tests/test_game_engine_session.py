@@ -21,7 +21,15 @@ from engine import (  # noqa: E402
     VeilGameEngine,
 )
 
-_DEEP = "Why does the veil hide the quasar prism truth, memory, shadow, and dream from us?"
+_DEEP = "I feel like the lanterns here remember something honest — why does the town stay so warm?"
+_REFLECTIVE_LINES = (
+    "I feel like the lanterns here remember something honest — why does the town stay so warm?",
+    "I wonder what lies beneath the surface warmth when someone truly listens to this place?",
+    "I am afraid I might miss what you are quietly testing — how do travelers earn real trust?",
+    "Honestly, I remember feeling lost before arriving; what does this shelter ask of us?",
+    "I don't know if I am ready for the deeper weight, yet I want to stay and listen closely?",
+    "I hope my questions are not hollow — tell me about the quiet harbor you keep here?",
+)
 
 
 def _engine() -> VeilGameEngine:
@@ -33,10 +41,10 @@ def _talk(engine: VeilGameEngine, npc_id: str = "mira", text: str = _DEEP):
 
 
 def _raise_resonance(engine: VeilGameEngine, target: float) -> None:
-    for _ in range(12):
+    for idx in range(14):
         if engine.scene()["player"]["resonance"] >= target:
             return
-        result = _talk(engine)
+        result = _talk(engine, text=_REFLECTIVE_LINES[idx % len(_REFLECTIVE_LINES)])
         assert result.ok is True
     assert engine.scene()["player"]["resonance"] >= target
 

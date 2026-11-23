@@ -169,14 +169,14 @@ describe('The Veil RPG Client', () => {
     )
   })
 
-  it('renders HUD, dialogue, Veil shift, Codex, Quests, Inventory, and Stats', async () => {
+  it('renders full-bleed stage, dialogue dock, Veil shift, hotkeys, and slide-over drawers', async () => {
     render(<App />)
 
     await waitFor(() => {
       expect(screen.getByText('Caetherra Sunlit Plaza')).toBeTruthy()
     })
 
-    expect(screen.getByText('Mira')).toBeTruthy()
+    expect(screen.getAllByText('Mira').length).toBeGreaterThan(0)
     expect(screen.getByText(/First Light/i)).toBeTruthy()
 
     // Send quick dialogue prompt
@@ -191,22 +191,25 @@ describe('The Veil RPG Client', () => {
       expect(screen.getByText('Veil shifted to still')).toBeTruthy()
     })
 
-    // Switch to Lore Codex tab
-    fireEvent.click(screen.getByRole('button', { name: /Lore Codex/i }))
+    // Open Lore Codex drawer via hotkey 'c'
+    fireEvent.keyDown(window, { key: 'c' })
     await waitFor(() => {
       expect(screen.getByText('Veil Town Lore Bible')).toBeTruthy()
     })
 
-    // Switch to Quest Journal tab
+    // Close drawer via Escape
+    fireEvent.keyDown(window, { key: 'Escape' })
+    expect(screen.queryByText('Veil Town Lore Bible')).toBeNull()
+
+    // Open Quest Journal drawer via ghost rail button
     fireEvent.click(screen.getByRole('button', { name: /Quest Journal/i }))
     expect(screen.getByText('The First Light')).toBeTruthy()
 
-    // Switch to Relics & Pack tab
+    // Open Relics & Pack drawer
     fireEvent.click(screen.getByRole('button', { name: /Relics & Pack/i }))
     expect(screen.getByText(/Crystallized Echo Shard/i)).toBeTruthy()
 
-    // Switch to Stats & Factions tab
-    // Switch to Stats & Factions tab (verify Ending Trajectory card)
+    // Open Stats & Factions drawer (verify Ending Trajectory card)
     fireEvent.click(screen.getByRole('button', { name: /Stats & Factions/i }))
     expect(screen.getByText('The Nine Sisters')).toBeTruthy()
     expect(screen.getByText(/FALSE ENDING RISK/i)).toBeTruthy()
