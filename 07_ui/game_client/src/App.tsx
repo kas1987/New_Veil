@@ -1,8 +1,10 @@
 import { FormEvent, useEffect, useMemo, useState } from 'react'
 import { api } from './api'
+import { ResonantCore } from './components/ResonantCore'
 import { ResonanceSandbox } from './components/ResonanceSandbox'
 import { RoadThresholdWave } from './components/RoadThresholdWave'
 import { mapSignalsToCueClasses, type CueType, type ResonanceSignals } from './lib/resonanceEvaluator'
+import { veilAudio } from './lib/veilAudio'
 import type { CodexEntry, GameState, NpcProfile, ShelfCharacter } from './types'
 
 type DrawerId =
@@ -69,6 +71,7 @@ export default function App() {
   const [lastSignals, setLastSignals] = useState<ResonanceSignals | null>(null)
   const [lastCueType, setLastCueType] = useState<CueType | null>(null)
   const [diegeticMode, setDiegeticMode] = useState(false)
+  const [audioEnabled, setAudioEnabled] = useState(false)
 
   const notify = (msg: string) => {
     setToast(msg)
@@ -144,6 +147,7 @@ export default function App() {
     try {
       const res = await api.advanceVeil()
       setState(res.state)
+      veilAudio.playVeilShiftCue(res.veil_state)
       notify(`Veil shifted to ${res.veil_state.replace('_', ' ')}`)
     } catch (err) {
       notify((err as Error).message)
@@ -163,6 +167,7 @@ export default function App() {
       setState(res.state)
       if (res.signals) setLastSignals(res.signals)
       if (res.cue_type) setLastCueType(res.cue_type)
+      veilAudio.playDialogueCue(res.cue_type ?? null, res.signals ?? null, res.resonance_delta)
       setChatHistory((prev) => ({
         ...prev,
         [selectedNpc.id]: [
@@ -196,6 +201,7 @@ export default function App() {
     try {
       const res = await api.inspectObject(objectId)
       setState(res.state)
+      veilAudio.playInspectCue(res.message.includes('+5.0 Resonance'))
       notify(res.message)
     } catch (err) {
       notify((err as Error).message)
@@ -393,6 +399,12 @@ export default function App() {
           >
             Veil: <strong>{world.veil_state.replace('_', ' ')}</strong> ↻
           </button>
+          <ResonantCore
+            resonance={player.resonance}
+            tierName={player.resonance_tier.name}
+            veilState={world.veil_state}
+            cueType={lastCueType}
+          />
           <span className="pill">
             {diegeticMode ? (
               <strong>{player.resonance_tier.name}</strong>
@@ -418,6 +430,19 @@ export default function App() {
             title="Toggle between numeric testbed readouts and diegetic sensory cues"
           >
             {diegeticMode ? 'Diegetic' : 'Numeric'}
+          </button>
+          <button
+            type="button"
+            className={`pill ${audioEnabled ? 'veil-pill' : ''}`}
+            aria-pressed={audioEnabled}
+            onClick={() => {
+              const next = !audioEnabled
+              setAudioEnabled(next)
+              veilAudio.setEnabled(next)
+            }}
+            title="Toggle procedural Veil harmonic micro-cues"
+          >
+            {audioEnabled ? 'Audio: On' : 'Audio: Off'}
           </button>
         </div>
       </header>

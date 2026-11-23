@@ -147,3 +147,29 @@ def test_inspect_and_beat_choice_fastapi_contracts() -> None:
 
     assert client.post("/api/world/inspect", json={"object_id": "bogus_object"}).status_code == 404
     assert client.post("/api/world/beat-choice", json={"beat_id": "caetherra_false_comfort", "choice": "bad"}).status_code == 400
+
+
+def test_dq_object_inspection_unlocks_integrative_synthesis_tokens() -> None:
+    engine = _engine()
+    # At starter 350.0, mirror DQ tokens are NOT yet unlocked
+    assert "lingers" not in engine._revealed_tokens(350.0)
+
+    # Raise above Mirror threshold (500.0) and inspect mirror at DQ depth
+    engine._conn.execute(
+        "UPDATE player_stats SET resonance=500.0, has_crossed_first_threshold=1 WHERE player_id='player'"
+    )
+    engine._conn.commit()
+    inspected = engine.play(Inspect("mirror"))
+    assert inspected.ok is True
+
+    tokens = engine._revealed_tokens(505.0)
+    assert "reflection" in tokens
+    assert "lingers" in tokens
+
+    # Speaking with interiority and open inquiry referencing the newly revealed mirror DQ token triggers Integrative Synthesis
+    res = engine.play(
+        Talk("mira", "I am afraid the reflection in this mirror lingers longer than warm comfort — why?")
+    )
+    assert res.ok is True and res.reply is not None
+    assert res.reply.signals.get("integrativeSynthesis") is True
+    assert res.reply.cue_type == "breakthrough_surge"
