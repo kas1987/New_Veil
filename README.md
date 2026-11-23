@@ -19,11 +19,12 @@ Fresh public scaffold for **The Veil**. Older GitHub trees are **sources**, not 
 |---|---|
 | `00_charter` / `00_harness` | Constitution, review gates, harness |
 | `01_districts` | Places + unlock gates |
+| `02_systems` | RPG quests, items, encounters, economy, saves |
 | `03_memory` | Memory schema / store |
-| `04_runtime` | Orchestrator, DSSM, veil engine |
+| `04_runtime` | Unified RPG Game API, orchestrator, DSSM, veil engine |
 | `05_alignment` | Scorer / quarantine |
 | `06_logs` | Replay + validation outputs |
-| `07_ui` | Observatory / narrative UI |
+| `07_ui` | Interactive React RPG client (`game_client/`) + Observatory |
 | `09_registry` | Worktree maps, SSoT pointers |
 | `10_canon` | Immutable canon + lore bible |
 | `11_world` | Cities, factions, followers |
@@ -41,7 +42,19 @@ Fresh public scaffold for **The Veil**. Older GitHub trees are **sources**, not 
 git clone https://github.com/kas1987/New_Veil.git
 cd New_Veil
 python scripts/check_scaffold.py
-pip install pre-commit && pre-commit install
+pytest -q
+```
+
+### Run the Interactive RPG Vertical Slice
+
+```bash
+# Terminal 1 — Unified RPG Game API (port 8765)
+python 04_runtime/game_api/server.py
+
+# Terminal 2 — Interactive React RPG Client (port 5173)
+cd 07_ui/game_client
+npm install
+npm run dev
 ```
 
 For selective intake from legacy clones:

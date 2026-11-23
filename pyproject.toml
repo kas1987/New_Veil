@@ -1,0 +1,48 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "the-veil"
+version = "0.4.0"
+description = "The Veil — Interactive Narrative RPG, World Simulation, and Observatory"
+readme = "README.md"
+license = { text = "MIT" }
+requires-python = ">=3.11"
+dependencies = [
+    "fastapi>=0.111.0",
+    "uvicorn[standard]>=0.30.0",
+    "pydantic>=2.7.0",
+    "pyyaml>=6.0",
+]
+
+[project.optional-dependencies]
+observatory = [
+    "gradio>=4.0",
+    "matplotlib>=3.8",
+]
+dev = [
+    "pytest>=8.0",
+    "httpx>=0.27.0",
+    "ruff>=0.6.0",
+]
+
+[tool.pytest.ini_options]
+pythonpath = [".", "04_runtime/dssm_engine/src"]
+testpaths = [
+    "tests",
+    "05_alignment/tests",
+    "04_runtime/dssm_engine/tests",
+]
+norecursedirs = [
+    "90_intake",
+    "99_archive",
+    "node_modules",
+    "07_ui/game_client",
+    ".git",
+    ".venv",
+]
+
+[tool.ruff]
+line-length = 100
+exclude = ["90_intake", "99_archive", "07_ui/game_client"]

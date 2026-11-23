@@ -1,6 +1,6 @@
 {
   "root": ".",
-  "updated_at": "2026-10-05",
+  "updated_at": "2026-11-23",
   "promotions": [
     {
       "at": "2026-10-05",
@@ -84,6 +84,14 @@
       "note": "promoted from Viel-Small-Town 01_districts"
     },
     {
+      "nn": "02",
+      "paths": [
+        "02_systems"
+      ],
+      "status": "active",
+      "note": "RPG core systems: quests, items, encounters, economy, saves"
+    },
+    {
       "nn": "03",
       "paths": [
         "03_memory"
@@ -142,7 +150,8 @@
       "paths": [
         "11_world"
       ],
-      "status": "empty"
+      "status": "active",
+      "note": "world hierarchy: realms, regions, cities, towns, POIs, factions, travel graph"
     },
     {
       "nn": "12",
@@ -165,14 +174,16 @@
       "paths": [
         "14_psychometrics"
       ],
-      "status": "empty"
+      "status": "active",
+      "note": "RPG resonance attributes, psychometric axes, and trial check formulas"
     },
     {
       "nn": "15",
       "paths": [
         "15_voice"
       ],
-      "status": "empty"
+      "status": "active",
+      "note": "character voice registry, mood cues, and TTS surface schema"
     },
     {
       "nn": "90",

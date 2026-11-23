@@ -52,9 +52,10 @@ def test_run_trial_per_persona():
 
 
 def test_sweep_smoke():
+    cfg = load_config_dir(CONFIG_DIR)
     out = sweep(CONFIG_DIR, sessions=10, ratios=(5.0,), seeds=(11,))
     assert out["sessions"] == 10
-    assert len(out["cells"]) == 4
+    assert len(out["cells"]) == len(cfg.personas)
     for cell in out["cells"]:
         assert 0.0 <= cell["win_rate"] <= 1.0
 

@@ -4,19 +4,23 @@
   "role": "creative-ip",
   "root": ".",
   "github": "kas1987/New_Veil",
-  "version": "0.3.0-scaffold",
-  "status": "ACTIVE_SCAFFOLD",
-  "updated_at": "2026-10-05",
+  "version": "0.4.0-rpg-scaffold",
+  "status": "ACTIVE_RPG_SCAFFOLD",
+  "updated_at": "2026-11-23",
   "promoted_planes": [
     "00_charter",
     "01_districts",
+    "02_systems",
     "03_memory",
     "04_runtime",
     "05_alignment",
     "07_ui",
     "10_canon",
+    "11_world",
     "12_metaphysics",
     "13_agents",
+    "14_psychometrics",
+    "15_voice",
     "design"
   ],
   "legacy": {
@@ -47,6 +51,12 @@
         "01_districts"
       ],
       "role": "Districts"
+    },
+    "02": {
+      "folders": [
+        "02_systems"
+      ],
+      "role": "RPG Systems (quests, items, encounters, economy, saves)"
     },
     "03": {
       "folders": [

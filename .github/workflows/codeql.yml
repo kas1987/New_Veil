@@ -16,7 +16,12 @@ permissions:
 jobs:
   analyze:
     name: Analyze (Python)
+    name: Analyze (${{ matrix.language }})
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        language: [python, javascript-typescript]
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -25,6 +30,7 @@ jobs:
         uses: github/codeql-action/init@v4
         with:
           languages: python
+          languages: ${{ matrix.language }}
           queries: security-extended
 
       - name: Autobuild
@@ -34,3 +40,4 @@ jobs:
         uses: github/codeql-action/analyze@v4
         with:
           category: "/language:python"
+          category: "/language:${{ matrix.language }}"

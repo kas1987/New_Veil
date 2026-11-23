@@ -8,6 +8,7 @@ Fresh Veil home. Numbered planes only; no Small-Town waivers carried forward.
 |----|-------|-----------|----------|
 | 00 | Governance | `00_harness/`, `00_charter/` | Harness, charter, review gates |
 | 01 | Districts | `01_districts/` | Locations + unlock configs |
+| 02 | Systems | `02_systems/` | RPG quests, items, encounters, economy, saves |
 | 03 | Memory | `03_memory/` | Schema, router, SQLite |
 | 04 | Runtime | `04_runtime/` | Orchestrator, DSSM, veil engine |
 | 05 | Alignment | `05_alignment/` | Scorer, quarantine |

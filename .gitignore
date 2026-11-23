@@ -35,6 +35,8 @@ Desktop.ini
 **/*.ckpt
 **/*.pt
 **/node_modules/
+**/dist/
+07_ui/game_client/.vite/
 
 # Runtime dumps (keep schema/router; events are local)
 03_memory/events/**

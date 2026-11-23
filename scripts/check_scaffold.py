@@ -15,6 +15,7 @@ REQUIRED_FILES = [
     "REPO_STATUS.md",
     "CHROMATIC_TREES.md",
     "PROJECT_INDEX.json",
+    "pyproject.toml",
     "JOIN_FROM.md",
     "LICENSE",
     "SECURITY.md",
@@ -28,6 +29,7 @@ REQUIRED_DIRS = [
     "00_charter",
     "00_harness",
     "01_districts",
+    "02_systems",
     "03_memory",
     "04_runtime",
     "05_alignment",
@@ -64,7 +66,7 @@ SECRET_RE = re.compile(
 ABS_PATH_RE = re.compile(r"(?i)(?:[A-Z]:\\\\|/home/|/Users/)[^\s\"']+")
 
 SKIP_SUFFIXES = {".png", ".jpg", ".jpeg", ".gif", ".webp", ".sqlite", ".db"}
-SKIP_DIR_NAMES = {".git", ".venv", "__pycache__", ".pytest_cache", "node_modules"}
+SKIP_DIR_NAMES = {".git", ".venv", "__pycache__", ".pytest_cache", "node_modules", "dist"}
 
 
 def iter_text_files() -> list[Path]:
@@ -130,6 +132,15 @@ def main() -> int:
         "05_alignment/rules.json",
         "07_ui/gradio_app.py",
         "07_ui/metachromatic_design_system/SKILL.md",
+        "07_ui/game_client/package.json",
+        "02_systems/items.json",
+        "02_systems/quests.json",
+        "11_world/world_manifest.json",
+        "11_world/factions.json",
+        "13_agents/roster_index.json",
+        "14_psychometrics/attributes.json",
+        "15_voice/voice_registry.json",
+        "04_runtime/game_api/server.py",
         "veil_loader.py",
     ):
         if not (ROOT / rel).is_file():
