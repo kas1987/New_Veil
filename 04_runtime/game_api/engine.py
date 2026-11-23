@@ -13,12 +13,80 @@ import os
 import random
 import sqlite3
 import threading
+from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
 _VEIL_CYCLE = ["calm", "still", "storm", "quasar_active"]
 _TIME_CYCLE = ["dawn", "day", "dusk", "night"]
+
+
+@dataclass(frozen=True)
+class Travel:
+    location_id: str
+
+
+@dataclass(frozen=True)
+class Talk:
+    npc_id: str
+    text: str
+
+
+@dataclass(frozen=True)
+class AdvanceVeil:
+    pass
+
+
+@dataclass(frozen=True)
+class Buy:
+    item_id: str
+
+
+@dataclass(frozen=True)
+class Use:
+    item_id: str
+
+
+@dataclass(frozen=True)
+class Resolve:
+    encounter_id: str
+    choice_id: str
+    seed: int | None = None
+
+
+@dataclass(frozen=True)
+class ToggleParty:
+    character_id: str
+
+
+PlayAction = Travel | Talk | AdvanceVeil | Buy | Use | Resolve | ToggleParty
+
+
+@dataclass(frozen=True)
+class Reply:
+    speaker: str
+    text: str
+    resonance_delta: float
+
+
+@dataclass(frozen=True)
+class Check:
+    success: bool
+    roll: int
+    modifier: int
+    total: int
+    dc: int
+    outcome_text: str
+
+
+@dataclass(frozen=True)
+class PlayResult:
+    ok: bool
+    message: str
+    scene: dict[str, Any]
+    reply: Reply | None = None
+    check: Check | None = None
 
 
 def _load_json(path: Path) -> dict[str, Any]:
@@ -292,7 +360,7 @@ class VeilGameEngine:
 
     # ── Public Game State API ───────────────────────────────────────────────
 
-    def get_state(self) -> dict[str, Any]:
+    def _snapshot(self) -> dict[str, Any]:
         ws = self._row_dict("SELECT * FROM world_state WHERE player_id='player'")
         ps = self._row_dict("SELECT * FROM player_state WHERE player_id='player'")
         raw_stats = self._row_dict("SELECT * FROM player_stats WHERE player_id='player'")
@@ -452,7 +520,7 @@ class VeilGameEngine:
         )
 
         # True vs. False Ending readiness (per 10_canon/LORE_BIBLE.md)
-        ending_status = self.evaluate_ending(stats, ws, rels, discovered)
+        ending_status = self._evaluate_ending(stats, ws, rels, discovered)
 
         return {
             "world": {
@@ -485,10 +553,10 @@ class VeilGameEngine:
             "merchant": merchant,
             "recent_logs": list(reversed(recent_logs)),
             "ending_status": ending_status,
-            "saves": self.list_saves(),
+            "saves": self._list_saves(),
         }
 
-    def evaluate_ending(
+    def _evaluate_ending(
         self,
         stats: dict[str, Any] | None = None,
         ws: dict[str, Any] | None = None,
@@ -553,7 +621,7 @@ class VeilGameEngine:
 
     # ── Actions ─────────────────────────────────────────────────────────────
 
-    def travel(self, location_id: str) -> dict[str, Any]:
+    def _travel(self, location_id: str) -> dict[str, Any]:
         with self._lock:
             if location_id not in self.locations:
                 raise ValueError(f"Unknown location: {location_id}")
@@ -565,7 +633,7 @@ class VeilGameEngine:
 
             current_loc_id = ws["current_location"]
             if location_id == current_loc_id:
-                return {"ok": True, "message": "Already here.", "state": self.get_state()}
+                return {"ok": True, "message": "Already here.", "state": self._snapshot()}
 
             discovered = set(json.loads(ws.get("discovered_locations") or "[]"))
             edge = self._edge_between(current_loc_id, location_id)
@@ -573,7 +641,7 @@ class VeilGameEngine:
                 return {
                     "ok": False,
                     "message": f"No direct road from {self.locations[current_loc_id]['name']} to {self.locations[location_id]['name']}.",
-                    "state": self.get_state(),
+                    "state": self._snapshot(),
                 }
 
             target = self.locations[location_id]
@@ -581,7 +649,7 @@ class VeilGameEngine:
                 target, stats, ws, inv_map, int(ps.get("turns_taken", 0))
             )
             if not unlocked:
-                return {"ok": False, "message": reason, "state": self.get_state()}
+                return {"ok": False, "message": reason, "state": self._snapshot()}
 
             settlement = self.settlements[target["settlement_id"]]
             discovered.add(location_id)
@@ -636,9 +704,9 @@ class VeilGameEngine:
                     "positive": f"{target['name']} — {target['surface_description']}",
                 },
             )
-            return {"ok": True, "message": f"Arrived at {target['name']}.", "state": self.get_state()}
+            return {"ok": True, "message": f"Arrived at {target['name']}.", "state": self._snapshot()}
 
-    def talk(self, npc_id: str, player_text: str) -> dict[str, Any]:
+    def _talk(self, npc_id: str, player_text: str) -> dict[str, Any]:
         with self._lock:
             if npc_id not in self.characters:
                 raise ValueError(f"Unknown character: {npc_id}")
@@ -784,10 +852,10 @@ class VeilGameEngine:
                 "reply": reply,
                 "resonance_delta": round(res_delta, 3),
                 "veil_state": veil_state,
-                "state": self.get_state(),
+                "state": self._snapshot(),
             }
 
-    def advance_veil(self) -> dict[str, Any]:
+    def _advance_veil(self) -> dict[str, Any]:
         with self._lock:
             ws = self._row_dict("SELECT * FROM world_state WHERE player_id='player'")
             next_veil = _VEIL_CYCLE[(_VEIL_CYCLE.index(ws["veil_state"]) + 1) % len(_VEIL_CYCLE)]
@@ -813,9 +881,9 @@ class VeilGameEngine:
             if q_first and int(q_first["stage_index"]) >= 2 and "lantern" in self._inventory_map() and float(stats["resonance"]) >= 0.45:
                 self._advance_quest_stage("q_first_awakening", 3)
             self._conn.commit()
-            return {"ok": True, "veil_state": next_veil, "state": self.get_state()}
+            return {"ok": True, "veil_state": next_veil, "state": self._snapshot()}
 
-    def buy_item(self, item_id: str) -> dict[str, Any]:
+    def _buy_item(self, item_id: str) -> dict[str, Any]:
         with self._lock:
             item = self.items_catalog.get(item_id)
             if not item:
@@ -823,10 +891,10 @@ class VeilGameEngine:
             ws = self._row_dict("SELECT * FROM world_state WHERE player_id='player'")
             merchant = self.merchants_by_location.get(ws["current_location"])
             if not merchant or item_id not in merchant["stock"]:
-                return {"ok": False, "message": "This item is not sold here.", "state": self.get_state()}
+                return {"ok": False, "message": "This item is not sold here.", "state": self._snapshot()}
             cost = int(item["value_echoes"])
             if int(ws["echoes"]) < cost:
-                return {"ok": False, "message": f"Need {cost} Echoes (you have {ws['echoes']}).", "state": self.get_state()}
+                return {"ok": False, "message": f"Need {cost} Echoes (you have {ws['echoes']}).", "state": self._snapshot()}
 
             self._conn.execute(
                 "UPDATE world_state SET echoes = echoes - ? WHERE player_id='player'", (cost,)
@@ -837,16 +905,16 @@ class VeilGameEngine:
                 if q_first and int(q_first["stage_index"]) >= 1:
                     self._advance_quest_stage("q_first_awakening", 2)
             self._conn.commit()
-            return {"ok": True, "message": f"Acquired {item['name']} for {cost} Echoes.", "state": self.get_state()}
+            return {"ok": True, "message": f"Acquired {item['name']} for {cost} Echoes.", "state": self._snapshot()}
 
-    def use_or_equip_item(self, item_id: str) -> dict[str, Any]:
+    def _use_item(self, item_id: str) -> dict[str, Any]:
         with self._lock:
             item = self.items_catalog.get(item_id)
             if not item:
                 raise ValueError(f"Unknown item: {item_id}")
             inv = self._inventory_map()
             if item_id not in inv:
-                return {"ok": False, "message": "You do not carry this item.", "state": self.get_state()}
+                return {"ok": False, "message": "You do not carry this item.", "state": self._snapshot()}
 
             if item.get("equippable"):
                 new_eq = 0 if inv[item_id]["equipped"] else 1
@@ -873,13 +941,13 @@ class VeilGameEngine:
                 return {
                     "ok": False,
                     "message": f"{item['name']} is a key item and cannot be consumed.",
-                    "state": self.get_state(),
+                    "state": self._snapshot(),
                 }
 
             self._conn.commit()
-            return {"ok": True, "message": msg, "state": self.get_state()}
+            return {"ok": True, "message": msg, "state": self._snapshot()}
 
-    def resolve_encounter(self, encounter_id: str, choice_id: str, seed: int | None = None) -> dict[str, Any]:
+    def _resolve_encounter(self, encounter_id: str, choice_id: str, seed: int | None = None) -> dict[str, Any]:
         with self._lock:
             enc = self.encounters_catalog.get(encounter_id)
             if not enc:
@@ -893,13 +961,13 @@ class VeilGameEngine:
                 return {
                     "ok": False,
                     "message": "This encounter is not available at your current location.",
-                    "state": self.get_state(),
+                    "state": self._snapshot(),
                 }
             if ws["veil_state"] not in enc.get("veil_states", _VEIL_CYCLE):
                 return {
                     "ok": False,
                     "message": f"This encounter only manifests during: {', '.join(enc.get('veil_states', []))}.",
-                    "state": self.get_state(),
+                    "state": self._snapshot(),
                 }
             already = self._row_dict(
                 "SELECT 1 AS done FROM completed_encounters WHERE player_id='player' AND encounter_id=?",
@@ -909,7 +977,7 @@ class VeilGameEngine:
                 return {
                     "ok": False,
                     "message": f"You have already completed {enc['title']}.",
-                    "state": self.get_state(),
+                    "state": self._snapshot(),
                 }
 
             raw_stats = self._row_dict("SELECT * FROM player_stats WHERE player_id='player'")
@@ -968,17 +1036,17 @@ class VeilGameEngine:
                 "total": total,
                 "dc": dc,
                 "outcome_text": outcome_text,
-                "state": self.get_state(),
+                "state": self._snapshot(),
             }
 
     # ── Save / Load ─────────────────────────────────────────────────────────
 
-    def list_saves(self) -> list[dict[str, Any]]:
+    def _list_saves(self) -> list[dict[str, Any]]:
         return self._rows_list(
             "SELECT slot_id, label, updated_at FROM save_slots ORDER BY updated_at DESC"
         )
 
-    def save_game(self, slot_id: str, label: str = "") -> dict[str, Any]:
+    def _save_game(self, slot_id: str, label: str = "") -> dict[str, Any]:
         with self._lock:
             snapshot = {
                 "world_state": self._row_dict("SELECT * FROM world_state WHERE player_id='player'"),
@@ -1002,9 +1070,9 @@ class VeilGameEngine:
                 (slot_id, slot_label, json.dumps(snapshot)),
             )
             self._conn.commit()
-            return {"ok": True, "slot_id": slot_id, "label": slot_label, "saves": self.list_saves()}
+            return {"ok": True, "slot_id": slot_id, "label": slot_label, "saves": self._list_saves()}
 
-    def load_game(self, slot_id: str) -> dict[str, Any]:
+    def _load_game(self, slot_id: str) -> dict[str, Any]:
         with self._lock:
             row = self._row_dict("SELECT snapshot_json FROM save_slots WHERE slot_id=?", (slot_id,))
             if not row:
@@ -1102,7 +1170,7 @@ class VeilGameEngine:
                     (pb["npc_id"], pb["media_key"]),
                 )
             self._conn.commit()
-            return {"ok": True, "message": f"Loaded slot '{slot_id}'.", "state": self.get_state()}
+            return {"ok": True, "message": f"Loaded slot '{slot_id}'.", "state": self._snapshot()}
 
     # ── Party, Codex, Portrait Binding & Cue Hooks ──────────────────────────
 
@@ -1115,12 +1183,12 @@ class VeilGameEngine:
         with (logs_dir / filename).open("a", encoding="utf-8") as fh:
             fh.write(json.dumps(payload) + "\n")
 
-    def toggle_party(self, character_id: str) -> dict[str, Any]:
+    def _toggle_party(self, character_id: str) -> dict[str, Any]:
         char = self.characters.get(character_id)
         if not char:
             raise ValueError(f"Unknown character: {character_id}")
         if not char.get("can_join_party"):
-            return {"ok": False, "message": f"{char['display_name']} walks their own path and cannot join your party.", "state": self.get_state()}
+            return {"ok": False, "message": f"{char['display_name']} walks their own path and cannot join your party.", "state": self._snapshot()}
 
         ws = self._row_dict("SELECT active_party FROM world_state WHERE player_id='player'")
         party: list[str] = json.loads(ws.get("active_party") or "[]")
@@ -1129,7 +1197,7 @@ class VeilGameEngine:
             msg = f"{char['display_name']} left your active party."
         else:
             if len(party) >= 3:
-                return {"ok": False, "message": "Party is full (max 3 companions).", "state": self.get_state()}
+                return {"ok": False, "message": "Party is full (max 3 companions).", "state": self._snapshot()}
             party.append(character_id)
             msg = f"{char['display_name']} joined your party."
 
@@ -1138,9 +1206,9 @@ class VeilGameEngine:
             (json.dumps(party),),
         )
         self._conn.commit()
-        return {"ok": True, "message": msg, "party": party, "state": self.get_state()}
+        return {"ok": True, "message": msg, "party": party, "state": self._snapshot()}
 
-    def bind_portrait(self, npc_id: str, media_key: str) -> dict[str, Any]:
+    def _bind_portrait(self, npc_id: str, media_key: str) -> dict[str, Any]:
         if npc_id not in self.characters:
             raise ValueError(f"Unknown character: {npc_id}")
         clean_key = "".join(ch for ch in media_key.lower() if ch.isalnum() or ch in ("_", "-"))
@@ -1152,9 +1220,9 @@ class VeilGameEngine:
             (npc_id, clean_key),
         )
         self._conn.commit()
-        return {"ok": True, "npc_id": npc_id, "media_key": clean_key, "state": self.get_state()}
+        return {"ok": True, "npc_id": npc_id, "media_key": clean_key, "state": self._snapshot()}
 
-    def get_codex(self) -> list[dict[str, Any]]:
+    def _codex_entries(self) -> list[dict[str, Any]]:
         """Return canonical Lore & Metaphysics codex entries filtered by player resonance."""
         stats = self._row_dict("SELECT resonance FROM player_stats WHERE player_id='player'")
         res = float(stats.get("resonance", 0.35))
@@ -1184,10 +1252,72 @@ class VeilGameEngine:
             )
         return entries
 
-    def runtime_status(self, shelf_count: int = 0) -> dict[str, Any]:
+    def _runtime_status(self, shelf_count: int = 0) -> dict[str, Any]:
         return {
             "live_llm_enabled": os.environ.get("VEIL_USE_LIVE_LLM") == "1",
             "comfy_hub": os.environ.get("VEIL_COMFY_HUB", "http://127.0.0.1:8188"),
             "local_shelf_characters": shelf_count,
             "cues_enabled": str(self.db_path) != ":memory:" or os.environ.get("VEIL_EMIT_CUES") == "1",
         }
+
+    # ── Session interface ───────────────────────────────────────────────────
+
+    def scene(self) -> dict[str, Any]:
+        return self._snapshot()
+
+    def play(self, action: PlayAction) -> PlayResult:
+        if isinstance(action, Travel):
+            raw = self._travel(action.location_id)
+            return PlayResult(ok=raw["ok"], message=raw["message"], scene=raw["state"])
+        if isinstance(action, Talk):
+            raw = self._talk(action.npc_id, action.text)
+            return PlayResult(
+                ok=raw["ok"],
+                message=raw["reply"],
+                scene=raw["state"],
+                reply=Reply(raw["speaker"], raw["reply"], float(raw["resonance_delta"])),
+            )
+        if isinstance(action, AdvanceVeil):
+            raw = self._advance_veil()
+            return PlayResult(ok=raw["ok"], message=raw["veil_state"], scene=raw["state"])
+        if isinstance(action, Buy):
+            raw = self._buy_item(action.item_id)
+            return PlayResult(ok=raw["ok"], message=raw["message"], scene=raw["state"])
+        if isinstance(action, Use):
+            raw = self._use_item(action.item_id)
+            return PlayResult(ok=raw["ok"], message=raw["message"], scene=raw["state"])
+        if isinstance(action, Resolve):
+            raw = self._resolve_encounter(action.encounter_id, action.choice_id, action.seed)
+            check = None
+            if "roll" in raw:
+                check = Check(
+                    success=bool(raw["success"]),
+                    roll=int(raw["roll"]),
+                    modifier=int(raw["modifier"]),
+                    total=int(raw["total"]),
+                    dc=int(raw["dc"]),
+                    outcome_text=raw["outcome_text"],
+                )
+            return PlayResult(ok=raw["ok"], message=raw.get("message", ""), scene=raw["state"], check=check)
+        if isinstance(action, ToggleParty):
+            raw = self._toggle_party(action.character_id)
+            return PlayResult(ok=raw["ok"], message=raw["message"], scene=raw["state"])
+        raise ValueError(f"Unknown play action: {type(action).__name__}")
+
+    def save(self, slot_id: str, label: str = "") -> PlayResult:
+        raw = self._save_game(slot_id, label)
+        return PlayResult(ok=True, message=raw["label"], scene=self._snapshot())
+
+    def load(self, slot_id: str) -> PlayResult:
+        raw = self._load_game(slot_id)
+        return PlayResult(ok=raw["ok"], message=raw["message"], scene=raw["state"])
+
+    def bind_portrait(self, npc_id: str, media_key: str) -> PlayResult:
+        raw = self._bind_portrait(npc_id, media_key)
+        return PlayResult(ok=True, message=raw["media_key"], scene=raw["state"])
+
+    def codex(self) -> list[dict[str, Any]]:
+        return self._codex_entries()
+
+    def status(self, shelf_count: int = 0) -> dict[str, Any]:
+        return self._runtime_status(shelf_count)

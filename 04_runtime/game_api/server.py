@@ -24,7 +24,17 @@ if str(_ROOT) not in sys.path:
 if str(_HERE) not in sys.path:
     sys.path.insert(0, str(_HERE))
 
-from engine import VeilGameEngine  # noqa: E402
+from engine import (  # noqa: E402
+    AdvanceVeil,
+    Buy,
+    PlayResult,
+    Resolve,
+    Talk,
+    ToggleParty,
+    Travel,
+    Use,
+    VeilGameEngine,
+)
 from media_adapter import MediaAdapter  # noqa: E402
 
 
@@ -84,63 +94,97 @@ def create_app(db_path: Path | str | None = None) -> FastAPI:
     def health() -> dict:
         return {"status": "ok", "world": engine.world["world_id"], "version": "0.4.0"}
 
+    def _played(result: PlayResult) -> dict:
+        return {"ok": result.ok, "message": result.message, "state": result.scene}
+
     @app.get("/api/game/state")
     def get_state() -> dict:
-        return engine.get_state()
+        return engine.scene()
 
     @app.get("/api/game/ending")
     def get_ending() -> dict:
-        return engine.evaluate_ending()
+        return engine.scene()["ending_status"]
 
     @app.post("/api/world/travel")
     def travel(req: TravelRequest) -> dict:
         try:
-            return engine.travel(req.location_id)
+            return _played(engine.play(Travel(req.location_id)))
         except ValueError as exc:
             raise HTTPException(status_code=404, detail=str(exc)) from exc
 
     @app.post("/api/world/advance-veil")
     def advance_veil() -> dict:
-        return engine.advance_veil()
+        result = engine.play(AdvanceVeil())
+        return {"ok": result.ok, "veil_state": result.scene["world"]["veil_state"], "state": result.scene}
 
     @app.post("/api/dialogue/turn")
     def dialogue_turn(req: DialogueRequest) -> dict:
         try:
-            return engine.talk(req.npc_id, req.message)
+            result = engine.play(Talk(req.npc_id, req.message))
         except ValueError as exc:
             raise HTTPException(status_code=400, detail=str(exc)) from exc
+        reply = result.reply
+        return {
+            "ok": result.ok,
+            "npc_id": req.npc_id,
+            "speaker": reply.speaker if reply else "",
+            "reply": reply.text if reply else "",
+            "resonance_delta": reply.resonance_delta if reply else 0,
+            "veil_state": result.scene["world"]["veil_state"],
+            "state": result.scene,
+        }
 
     @app.post("/api/economy/buy")
     def buy_item(req: ItemRequest) -> dict:
         try:
-            return engine.buy_item(req.item_id)
+            return _played(engine.play(Buy(req.item_id)))
         except ValueError as exc:
             raise HTTPException(status_code=404, detail=str(exc)) from exc
 
     @app.post("/api/inventory/use")
     def use_item(req: ItemRequest) -> dict:
         try:
-            return engine.use_or_equip_item(req.item_id)
+            return _played(engine.play(Use(req.item_id)))
         except ValueError as exc:
             raise HTTPException(status_code=404, detail=str(exc)) from exc
 
     @app.post("/api/encounters/resolve")
     def resolve_encounter(req: EncounterRequest) -> dict:
         try:
-            return engine.resolve_encounter(req.encounter_id, req.choice_id)
+            result = engine.play(Resolve(req.encounter_id, req.choice_id))
         except ValueError as exc:
             raise HTTPException(status_code=404, detail=str(exc)) from exc
+        if result.check is None:
+            return {"ok": result.ok, "message": result.message, "state": result.scene}
+        check = result.check
+        return {
+            "ok": result.ok,
+            "success": check.success,
+            "roll": check.roll,
+            "modifier": check.modifier,
+            "total": check.total,
+            "dc": check.dc,
+            "outcome_text": check.outcome_text,
+            "state": result.scene,
+        }
 
     @app.post("/api/saves/save")
     def save_game(req: SaveRequest) -> dict:
-        return engine.save_game(req.slot_id, req.label)
+        result = engine.save(req.slot_id, req.label)
+        return {
+            "ok": result.ok,
+            "slot_id": req.slot_id,
+            "label": result.message,
+            "saves": result.scene["saves"],
+        }
 
     @app.post("/api/saves/load/{slot_id}")
     def load_game(slot_id: str) -> dict:
         try:
-            return engine.load_game(slot_id)
+            result = engine.load(slot_id)
         except ValueError as exc:
             raise HTTPException(status_code=404, detail=str(exc)) from exc
+        return {"ok": result.ok, "message": result.message, "state": result.scene}
 
     @app.get("/api/media/portrait/{character_key}")
     def get_portrait(character_key: str):
@@ -156,24 +200,31 @@ def create_app(db_path: Path | str | None = None) -> FastAPI:
     @app.post("/api/media/bind")
     def bind_portrait(req: PortraitBindRequest) -> dict:
         try:
-            return engine.bind_portrait(req.npc_id, req.media_key)
+            result = engine.bind_portrait(req.npc_id, req.media_key)
         except ValueError as exc:
             raise HTTPException(status_code=400, detail=str(exc)) from exc
+        return {"ok": result.ok, "npc_id": req.npc_id, "media_key": result.message, "state": result.scene}
 
     @app.post("/api/party/toggle")
     def toggle_party(req: PartyRequest) -> dict:
         try:
-            return engine.toggle_party(req.character_id)
+            result = engine.play(ToggleParty(req.character_id))
         except ValueError as exc:
             raise HTTPException(status_code=404, detail=str(exc)) from exc
+        return {
+            "ok": result.ok,
+            "message": result.message,
+            "party": result.scene["world"]["active_party"],
+            "state": result.scene,
+        }
 
     @app.get("/api/codex")
     def get_codex() -> dict:
-        return {"entries": engine.get_codex()}
+        return {"entries": engine.codex()}
 
     @app.get("/api/runtime/status")
     def runtime_status() -> dict:
-        return engine.runtime_status(shelf_count=len(media.list_local_shelf_characters(limit=100)))
+        return engine.status(shelf_count=len(media.list_local_shelf_characters(limit=100)))
 
     # Serve built Vite client if present
     dist_dir = _ROOT / "07_ui" / "game_client" / "dist"
