@@ -205,6 +205,7 @@ describe('The Veil RPG Client', () => {
     fireEvent.click(screen.getByRole('button', { name: /Relics & Pack/i }))
     expect(screen.getByText(/Crystallized Echo Shard/i)).toBeTruthy()
 
+    // Switch to Stats & Factions tab
     // Switch to Stats & Factions tab (verify Ending Trajectory card)
     fireEvent.click(screen.getByRole('button', { name: /Stats & Factions/i }))
     expect(screen.getByText('The Nine Sisters')).toBeTruthy()

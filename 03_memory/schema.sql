@@ -151,3 +151,11 @@ CREATE TABLE IF NOT EXISTS portrait_bindings (
     media_key TEXT NOT NULL,
     updated_at TEXT DEFAULT CURRENT_TIMESTAMP
 );
+
+-- One-shot Resonance Trial / Encounter completions.
+CREATE TABLE IF NOT EXISTS completed_encounters (
+    player_id TEXT DEFAULT 'player',
+    encounter_id TEXT NOT NULL,
+    completed_at TEXT DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (player_id, encounter_id)
+);

@@ -12,6 +12,7 @@ import json
 import os
 import random
 import sqlite3
+import threading
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
@@ -66,6 +67,7 @@ class VeilGameEngine:
             m["location_id"]: m for m in self.economy.get("merchants", [])
         }
 
+        self._lock = threading.RLock()
         self._conn = self._init_db()
         self._seed_defaults()
 
@@ -156,22 +158,25 @@ class VeilGameEngine:
         inv: dict[str, dict[str, Any]],
         turns_taken: int,
     ) -> tuple[bool, str]:
-        cond = loc.get("unlock_conditions") or {}
+        settlement = self.settlements.get(loc["settlement_id"], {})
+        settlement_cond = settlement.get("unlock_conditions") or {}
+        loc_cond = loc.get("unlock_conditions") or {}
+
         res = float(stats.get("resonance", 0.0))
-        min_res = float(cond.get("min_resonance", 0.0))
+        min_res = max(float(settlement_cond.get("min_resonance", 0.0)), float(loc_cond.get("min_resonance", 0.0)))
         if res < min_res:
             return False, f"Requires {min_res:.2f} Resonance (current: {res:.2f})."
 
-        min_inter = int(cond.get("min_interactions", 0))
+        min_inter = max(int(settlement_cond.get("min_interactions", 0)), int(loc_cond.get("min_interactions", 0)))
         if turns_taken < min_inter:
             return False, f"Requires {min_inter} meaningful interactions (current: {turns_taken})."
 
-        req_item = cond.get("requires_item")
+        req_item = loc_cond.get("requires_item") or settlement_cond.get("requires_item")
         if req_item and req_item not in inv:
             item_name = self.items_catalog.get(req_item, {}).get("name", req_item)
             return False, f"Requires {item_name}."
 
-        req_district = cond.get("requires_district")
+        req_district = loc_cond.get("requires_district")
         discovered = set(json.loads(world_state.get("discovered_locations") or "[]"))
         discovered_districts = {
             self.locations[lid]["district_id"] for lid in discovered if lid in self.locations
@@ -179,11 +184,19 @@ class VeilGameEngine:
         if req_district and req_district not in discovered_districts:
             return False, f"Must visit {req_district} first."
 
-        allowed_veil = cond.get("veil_states")
+        allowed_veil = loc_cond.get("veil_states")
         if allowed_veil and world_state.get("veil_state") not in allowed_veil:
             return False, f"Only reveals itself during: {', '.join(allowed_veil)}."
 
         return True, "Path open."
+
+    def _edge_between(self, src: str, dst: str) -> dict[str, Any] | None:
+        for edge in self.world["connections"]:
+            if edge["from"] == src and edge["to"] == dst:
+                return edge
+            if edge.get("bidirectional") and edge["to"] == src and edge["from"] == dst:
+                return edge
+        return None
 
     def _adjacent_locations(self, location_id: str) -> set[str]:
         adj: set[str] = set()
@@ -353,6 +366,7 @@ class VeilGameEngine:
                         "resistance": round(float(rel["resistance"]), 1),
                         "interactions": int(rel["interactions"]),
                     },
+                    "portrait_url": f"/api/media/portrait/{char.get('portrait_hint', cid)}",
                     "portrait_url": f"/api/media/portrait/{portrait_key}",
                 }
             )
@@ -410,11 +424,16 @@ class VeilGameEngine:
             for f in self.factions
         ]
 
-        # Available encounters at current location
+        # Available encounters at current location (excluding one-shot completed trials)
+        completed_enc = {
+            r["encounter_id"]
+            for r in self._rows_list("SELECT encounter_id FROM completed_encounters WHERE player_id='player'")
+        }
         encounters = [
             enc
             for enc in self.encounters_catalog.values()
-            if enc["location_id"] == current_loc_id
+            if enc["id"] not in completed_enc
+            and enc["location_id"] == current_loc_id
             and ws["veil_state"] in enc.get("veil_states", _VEIL_CYCLE)
         ]
 
@@ -535,329 +554,422 @@ class VeilGameEngine:
     # ── Actions ─────────────────────────────────────────────────────────────
 
     def travel(self, location_id: str) -> dict[str, Any]:
-        if location_id not in self.locations:
-            raise ValueError(f"Unknown location: {location_id}")
-        ws = self._row_dict("SELECT * FROM world_state WHERE player_id='player'")
-        ps = self._row_dict("SELECT * FROM player_state WHERE player_id='player'")
-        raw_stats = self._row_dict("SELECT * FROM player_stats WHERE player_id='player'")
-        inv_map = self._inventory_map()
-        stats = self._effective_stats(raw_stats, inv_map)
+        with self._lock:
+            if location_id not in self.locations:
+                raise ValueError(f"Unknown location: {location_id}")
+            ws = self._row_dict("SELECT * FROM world_state WHERE player_id='player'")
+            ps = self._row_dict("SELECT * FROM player_state WHERE player_id='player'")
+            raw_stats = self._row_dict("SELECT * FROM player_stats WHERE player_id='player'")
+            inv_map = self._inventory_map()
+            stats = self._effective_stats(raw_stats, inv_map)
 
-        target = self.locations[location_id]
-        unlocked, reason = self._check_location_access(
-            target, stats, ws, inv_map, int(ps.get("turns_taken", 0))
-        )
-        if not unlocked:
-            return {"ok": False, "message": reason, "state": self.get_state()}
+            current_loc_id = ws["current_location"]
+            if location_id == current_loc_id:
+                return {"ok": True, "message": "Already here.", "state": self.get_state()}
 
-        settlement = self.settlements[target["settlement_id"]]
-        discovered = set(json.loads(ws.get("discovered_locations") or "[]"))
-        discovered.add(location_id)
+            discovered = set(json.loads(ws.get("discovered_locations") or "[]"))
+            edge = self._edge_between(current_loc_id, location_id)
+            if edge is None and location_id not in discovered:
+                return {
+                    "ok": False,
+                    "message": f"No direct road from {self.locations[current_loc_id]['name']} to {self.locations[location_id]['name']}.",
+                    "state": self.get_state(),
+                }
 
-        # Advance time by 1 tick on travel
-        next_time_idx = (_TIME_CYCLE.index(ws["time_of_day"]) + 1) % len(_TIME_CYCLE)
-        next_day = int(ws["day_count"]) + (1 if next_time_idx == 0 else 0)
+            target = self.locations[location_id]
+            unlocked, reason = self._check_location_access(
+                target, stats, ws, inv_map, int(ps.get("turns_taken", 0))
+            )
+            if not unlocked:
+                return {"ok": False, "message": reason, "state": self.get_state()}
 
-        self._conn.execute(
-            "UPDATE world_state SET current_region=?, current_settlement=?, current_district=?, "
-            "current_location=?, time_of_day=?, day_count=?, discovered_locations=?, "
-            "updated_at=CURRENT_TIMESTAMP WHERE player_id='player'",
-            (
-                settlement["region_id"],
-                settlement["id"],
-                target["district_id"],
-                location_id,
-                _TIME_CYCLE[next_time_idx],
-                next_day,
-                json.dumps(sorted(discovered)),
-            ),
-        )
-        self._conn.execute(
-            "INSERT INTO memories (scope, agent_id, subject_id, content) VALUES ('event', 'world', 'player', ?)",
-            (f"Traveled to {target['name']} ({settlement['name']}).",),
-        )
+            settlement = self.settlements[target["settlement_id"]]
+            discovered.add(location_id)
 
-        # Quest progression hooks
-        if location_id == "solstice_bazaar":
-            self._advance_quest_stage("q_solstice_trade", 1)
-        elif location_id == "stillward_cloister":
-            self._advance_quest_stage("q_stilling_bell", 1)
-        elif location_id == "ashveil_forges":
-            self._advance_quest_stage("q_ashes_of_belief", 1)
-        elif location_id == "ember_vaults_anvil":
-            self._advance_quest_stage("q_ashes_of_belief", 2)
-        elif location_id == "hollow_clearing":
-            self._advance_quest_stage("q_nine_sisters", 1)
+            # Advance time by edge travel_ticks (default 1 for fast-travel to discovered locations)
+            ticks = int(edge.get("travel_ticks", 1)) if edge else 1
+            cur_time_idx = _TIME_CYCLE.index(ws["time_of_day"])
+            total_ticks = cur_time_idx + ticks
+            next_time_idx = total_ticks % len(_TIME_CYCLE)
+            next_day = int(ws["day_count"]) + (total_ticks // len(_TIME_CYCLE))
 
-        self._conn.commit()
-        self._emit_cue(
-            "scene_prompts.jsonl",
-            {
-                "created_at": datetime.now(UTC).isoformat(),
-                "agent_id": "world",
-                "district": target["district_id"],
-                "location": location_id,
-                "veil_state": ws["veil_state"],
-                "positive": f"{target['name']} — {target['surface_description']}",
-            },
-        )
-        return {"ok": True, "message": f"Arrived at {target['name']}.", "state": self.get_state()}
+            self._conn.execute(
+                "UPDATE world_state SET current_region=?, current_settlement=?, current_district=?, "
+                "current_location=?, time_of_day=?, day_count=?, discovered_locations=?, "
+                "updated_at=CURRENT_TIMESTAMP WHERE player_id='player'",
+                (
+                    settlement["region_id"],
+                    settlement["id"],
+                    target["district_id"],
+                    location_id,
+                    _TIME_CYCLE[next_time_idx],
+                    next_day,
+                    json.dumps(sorted(discovered)),
+                ),
+            )
+            self._conn.execute(
+                "INSERT INTO memories (scope, agent_id, subject_id, content) VALUES ('event', 'world', 'player', ?)",
+                (f"Traveled to {target['name']} ({settlement['name']}).",),
+            )
+
+            # Quest progression hooks (only advance travel-only objectives here)
+            if location_id == "solstice_bazaar":
+                self._advance_quest_stage("q_solstice_trade", 1)
+            elif location_id == "stillward_cloister":
+                self._advance_quest_stage("q_stilling_bell", 1)
+            elif location_id == "ember_vaults_anvil":
+                q_ash = self._row_dict("SELECT stage_index FROM quest_progress WHERE player_id='player' AND quest_id='q_ashes_of_belief'")
+                if q_ash and int(q_ash["stage_index"]) >= 1:
+                    self._advance_quest_stage("q_ashes_of_belief", 2)
+            elif location_id == "hollow_clearing":
+                self._advance_quest_stage("q_nine_sisters", 1)
+
+            self._conn.commit()
+            self._emit_cue(
+                "scene_prompts.jsonl",
+                {
+                    "created_at": datetime.now(UTC).isoformat(),
+                    "agent_id": "world",
+                    "district": target["district_id"],
+                    "location": location_id,
+                    "veil_state": ws["veil_state"],
+                    "positive": f"{target['name']} — {target['surface_description']}",
+                },
+            )
+            return {"ok": True, "message": f"Arrived at {target['name']}.", "state": self.get_state()}
 
     def talk(self, npc_id: str, player_text: str) -> dict[str, Any]:
-        if npc_id not in self.characters:
-            raise ValueError(f"Unknown character: {npc_id}")
-        text = player_text.strip()
-        if not text:
-            raise ValueError("Message cannot be empty")
+        with self._lock:
+            if npc_id not in self.characters:
+                raise ValueError(f"Unknown character: {npc_id}")
+            text = player_text.strip()
+            if not text:
+                raise ValueError("Message cannot be empty")
 
-        char = self.characters[npc_id]
-        ws = self._row_dict("SELECT * FROM world_state WHERE player_id='player'")
-        stats = self._row_dict("SELECT * FROM player_stats WHERE player_id='player'")
-        veil_state = ws["veil_state"]
-        res = float(stats.get("resonance", 0.35))
+            char = self.characters[npc_id]
+            ws = self._row_dict("SELECT * FROM world_state WHERE player_id='player'")
+            current_loc = self.locations[ws["current_location"]]
+            active_party = set(json.loads(ws.get("active_party") or "[]"))
+            if npc_id not in current_loc.get("npcs", []) and npc_id not in active_party:
+                raise ValueError(f"{char['display_name']} is not at {current_loc['name']}.")
 
-        # Compute emotional depth & resonance delta from input richness
-        lowered = text.lower()
-        deep_keywords = ("veil", "quasar", "prism", "truth", "memory", "shadow", "dream", "trust", "fear", "why")
-        depth_hits = sum(1 for kw in deep_keywords if kw in lowered)
-        res_delta = min(0.08, 0.02 + depth_hits * 0.015 + (0.01 if len(text) > 45 else 0.0))
-        new_res = round(min(1.0, res + res_delta), 3)
+            stats = self._row_dict("SELECT * FROM player_stats WHERE player_id='player'")
+            veil_state = ws["veil_state"]
+            res = float(stats.get("resonance", 0.35))
 
-        # Optional live orchestrator hook when explicitly enabled
-        reply: str | None = None
-        if os.environ.get("VEIL_USE_LIVE_LLM") == "1":
-            try:
-                from veil_loader import load_module
+            # Compute emotional depth & resonance delta from input richness
+            lowered = text.lower()
+            deep_keywords = ("veil", "quasar", "prism", "truth", "memory", "shadow", "dream", "trust", "fear", "why")
+            depth_hits = sum(1 for kw in deep_keywords if kw in lowered)
+            res_delta = min(0.08, 0.02 + depth_hits * 0.015 + (0.01 if len(text) > 45 else 0.0))
+            new_res = round(min(1.0, res + res_delta), 3)
 
-                orch = load_module("orchestrator", self.repo_root / "04_runtime" / "orchestrator.py")
-                out = orch.run_once(agent_id=npc_id, target_agent="player", player_input=text)
-                if out and out.get("output"):
-                    reply = str(out["output"])
-            except Exception:
-                reply = None
+            # Optional stateless live LLM + alignment gate when explicitly enabled
+            reply: str | None = None
+            if os.environ.get("VEIL_USE_LIVE_LLM") == "1":
+                try:
+                    from veil_loader import load_module
 
-        if not reply:
+                    llm_mod = load_module("llm_provider", self.repo_root / "04_runtime" / "llm_provider.py")
+                    scorer_mod = load_module("scorer", self.repo_root / "05_alignment" / "scorer.py")
+                    candidate = llm_mod.generate_agent_output(
+                        agent_id=npc_id,
+                        prompt=f"[Location: {current_loc['name']} | Veil: {veil_state} | Resonance: {new_res:.2f}]\nPlayer: {text}",
+                    )
+                    if candidate and not scorer_mod.score_output(candidate, veil_state=veil_state).quarantine_recommended:
+                        reply = str(candidate)
+                except Exception:
+                    reply = None
+
+            if not reply:
+                if veil_state == "quasar_active":
+                    reply = (
+                        f"{char['display_name']} studies you beneath the Quasar's gravity. "
+                        f"\"You asked about '{text[:60]}'. Strip away the Prism's comfort—{char['hidden_function'].lower()}.\""
+                    )
+                elif depth_hits >= 1 or new_res >= 0.55:
+                    reply = (
+                        f"{char['display_name']} pauses, the surface smile softening into real attention. "
+                        f"\"Few travelers look past the warmth so quickly. Remember: {char['surface_function']}. "
+                        f"Keep listening, and the Veil will answer.\""
+                    )
+                else:
+                    reply = f"{char['display_name']} answers warmly: \"{char['greeting']}\""
+
+            # DSSM-inspired relationship update (Quasar gravity applies in quasar_active!)
+            rel = self._row_dict(
+                "SELECT * FROM relationships WHERE agent_a=? AND agent_b='player'", (npc_id,)
+            )
+            trust = float(rel.get("trust", 50.0))
+            affection = float(rel.get("affection", 50.0))
+            suspicion = float(rel.get("suspicion", 10.0))
+            resistance = float(rel.get("resistance", 70.0))
+            interactions = int(rel.get("interactions", 0)) + 1
+
             if veil_state == "quasar_active":
-                reply = (
-                    f"{char['display_name']} studies you beneath the Quasar's gravity. "
-                    f"\"You asked about '{text[:60]}'. Strip away the Prism's comfort—{char['hidden_function'].lower()}.\""
-                )
-            elif depth_hits >= 1 or new_res >= 0.55:
-                reply = (
-                    f"{char['display_name']} pauses, the surface smile softening into real attention. "
-                    f"\"Few travelers look past the warmth so quickly. Remember: {char['surface_function']}. "
-                    f"Keep listening, and the Veil will answer.\""
-                )
+                suspicion = min(100.0, suspicion + 4.0)
+                affection = max(0.0, affection - 1.5)
+                trust = min(100.0, trust + 3.5)
             else:
-                reply = f"{char['display_name']} answers warmly: \"{char['greeting']}\""
+                trust = min(100.0, trust + 2.5 + depth_hits * 0.8)
+                affection = min(100.0, affection + 2.0)
+                resistance = max(0.0, resistance - 2.0)
 
-        # DSSM-inspired relationship update (Quasar gravity applies in quasar_active!)
-        rel = self._row_dict(
-            "SELECT * FROM relationships WHERE agent_a=? AND agent_b='player'", (npc_id,)
-        )
-        trust = float(rel.get("trust", 50.0))
-        affection = float(rel.get("affection", 50.0))
-        suspicion = float(rel.get("suspicion", 10.0))
-        resistance = float(rel.get("resistance", 70.0))
-        interactions = int(rel.get("interactions", 0)) + 1
+            self._conn.execute(
+                "INSERT INTO relationships (agent_a, agent_b, trust, affection, suspicion, resistance, interactions, last_interaction) "
+                "VALUES (?, 'player', ?, ?, ?, ?, ?, CURRENT_TIMESTAMP) "
+                "ON CONFLICT(agent_a, agent_b) DO UPDATE SET "
+                "trust=excluded.trust, affection=excluded.affection, suspicion=excluded.suspicion, "
+                "resistance=excluded.resistance, interactions=excluded.interactions, updated_at=CURRENT_TIMESTAMP",
+                (npc_id, trust, affection, suspicion, resistance, interactions),
+            )
 
-        if veil_state == "quasar_active":
-            suspicion = min(100.0, suspicion + 4.0)
-            affection = max(0.0, affection - 1.5)
-            trust = min(100.0, trust + 3.5)
-        else:
-            trust = min(100.0, trust + 2.5 + depth_hits * 0.8)
-            affection = min(100.0, affection + 2.0)
-            resistance = max(0.0, resistance - 2.0)
+            # Update player resonance, turns, XP, memory
+            self._conn.execute(
+                "UPDATE player_stats SET resonance=?, updated_at=CURRENT_TIMESTAMP WHERE player_id='player'",
+                (new_res,),
+            )
+            self._conn.execute(
+                "UPDATE player_state SET turns_taken = turns_taken + 1, emotional_depth = ?, "
+                "last_updated=CURRENT_TIMESTAMP WHERE player_id='player'",
+                (new_res,),
+            )
+            self._add_xp(15)
+            self._conn.execute(
+                "INSERT INTO memories (scope, agent_id, subject_id, content) VALUES ('shared', ?, 'player', ?)",
+                (npc_id, f"Player: {text} | {char['display_name']}: {reply}"),
+            )
 
-        self._conn.execute(
-            "INSERT INTO relationships (agent_a, agent_b, trust, affection, suspicion, resistance, interactions, last_interaction) "
-            "VALUES (?, 'player', ?, ?, ?, ?, ?, CURRENT_TIMESTAMP) "
-            "ON CONFLICT(agent_a, agent_b) DO UPDATE SET "
-            "trust=excluded.trust, affection=excluded.affection, suspicion=excluded.suspicion, "
-            "resistance=excluded.resistance, interactions=excluded.interactions, updated_at=CURRENT_TIMESTAMP",
-            (npc_id, trust, affection, suspicion, resistance, interactions),
-        )
+            # Quest triggers (enforce prerequisite stages!)
+            inv_map = self._inventory_map()
+            if npc_id == "mira":
+                self._advance_quest_stage("q_first_awakening", 1)
+                q_first = self._row_dict("SELECT stage_index FROM quest_progress WHERE player_id='player' AND quest_id='q_first_awakening'")
+                shifted = veil_state != "calm" or bool(
+                    self._conn.execute("SELECT 1 FROM memories WHERE content LIKE 'The Veil shifted%' LIMIT 1").fetchone()
+                )
+                if q_first and int(q_first["stage_index"]) >= 2 and "lantern" in inv_map and new_res >= 0.45 and shifted:
+                    self._advance_quest_stage("q_first_awakening", 3)
+            elif npc_id == "kaelen_lanternwright":
+                q_sol = self._row_dict("SELECT stage_index FROM quest_progress WHERE player_id='player' AND quest_id='q_solstice_trade'")
+                if q_sol and int(q_sol["stage_index"]) >= 1:
+                    self._advance_quest_stage("q_solstice_trade", 2)
+            elif npc_id == "warden":
+                q_st = self._row_dict("SELECT stage_index FROM quest_progress WHERE player_id='player' AND quest_id='q_stilling_bell'")
+                if q_st and int(q_st["stage_index"]) >= 1:
+                    self._advance_quest_stage("q_stilling_bell", 2)
+            elif npc_id == "vael" and ws["current_location"] == "ashveil_forges":
+                self._advance_quest_stage("q_ashes_of_belief", 1)
+            elif npc_id == "rendered":
+                q_ash = self._row_dict("SELECT stage_index FROM quest_progress WHERE player_id='player' AND quest_id='q_ashes_of_belief'")
+                if q_ash and int(q_ash["stage_index"]) >= 2:
+                    self._advance_quest_stage("q_ashes_of_belief", 3)
 
-        # Update player resonance, turns, XP, memory
-        self._conn.execute(
-            "UPDATE player_stats SET resonance=?, updated_at=CURRENT_TIMESTAMP WHERE player_id='player'",
-            (new_res,),
-        )
-        self._conn.execute(
-            "UPDATE player_state SET turns_taken = turns_taken + 1, emotional_depth = ?, "
-            "last_updated=CURRENT_TIMESTAMP WHERE player_id='player'",
-            (new_res,),
-        )
-        self._add_xp(15)
-        self._conn.execute(
-            "INSERT INTO memories (scope, agent_id, subject_id, content) VALUES ('shared', ?, 'player', ?)",
-            (npc_id, f"Player: {text} | {char['display_name']}: {reply}"),
-        )
-
-        # Quest triggers
-        if npc_id == "mira":
-            self._advance_quest_stage("q_first_awakening", 1)
-            if new_res >= 0.45:
-                self._advance_quest_stage("q_first_awakening", 3)
-        elif npc_id == "kaelen_lanternwright":
-            self._advance_quest_stage("q_solstice_trade", 2)
-        elif npc_id == "warden":
-            self._advance_quest_stage("q_stilling_bell", 2)
-        elif npc_id == "rendered":
-            self._advance_quest_stage("q_ashes_of_belief", 3)
-
-        self._conn.commit()
-        voice_profile = self.voices.get(npc_id, {})
-        self._emit_cue(
-            "tts_queue.jsonl",
-            {
-                "created_at": datetime.now(UTC).isoformat(),
-                "agent_id": npc_id,
-                "voice_id": voice_profile.get("timbre", "default"),
-                "emotion": voice_profile.get("quasar_shift" if veil_state == "quasar_active" else "default_mood", "Warmth"),
-                "text": reply[:240],
-            },
-        )
-        return {
-            "ok": True,
-            "npc_id": npc_id,
-            "speaker": char["display_name"],
-            "reply": reply,
-            "resonance_delta": round(res_delta, 3),
-            "veil_state": veil_state,
-            "state": self.get_state(),
-        }
+            self._conn.commit()
+            voice_profile = self.voices.get(npc_id, {})
+            self._emit_cue(
+                "tts_queue.jsonl",
+                {
+                    "created_at": datetime.now(UTC).isoformat(),
+                    "agent_id": npc_id,
+                    "voice_id": voice_profile.get("timbre", "default"),
+                    "emotion": voice_profile.get("quasar_shift" if veil_state == "quasar_active" else "default_mood", "Warmth"),
+                    "text": reply[:240],
+                },
+            )
+            return {
+                "ok": True,
+                "npc_id": npc_id,
+                "speaker": char["display_name"],
+                "reply": reply,
+                "resonance_delta": round(res_delta, 3),
+                "veil_state": veil_state,
+                "state": self.get_state(),
+            }
 
     def advance_veil(self) -> dict[str, Any]:
-        ws = self._row_dict("SELECT * FROM world_state WHERE player_id='player'")
-        next_veil = _VEIL_CYCLE[(_VEIL_CYCLE.index(ws["veil_state"]) + 1) % len(_VEIL_CYCLE)]
-        next_time_idx = (_TIME_CYCLE.index(ws["time_of_day"]) + 1) % len(_TIME_CYCLE)
-        next_day = int(ws["day_count"]) + (1 if next_time_idx == 0 else 0)
+        with self._lock:
+            ws = self._row_dict("SELECT * FROM world_state WHERE player_id='player'")
+            next_veil = _VEIL_CYCLE[(_VEIL_CYCLE.index(ws["veil_state"]) + 1) % len(_VEIL_CYCLE)]
+            next_time_idx = (_TIME_CYCLE.index(ws["time_of_day"]) + 1) % len(_TIME_CYCLE)
+            next_day = int(ws["day_count"]) + (1 if next_time_idx == 0 else 0)
 
-        self._conn.execute(
-            "UPDATE world_state SET veil_state=?, time_of_day=?, day_count=?, updated_at=CURRENT_TIMESTAMP "
-            "WHERE player_id='player'",
-            (next_veil, _TIME_CYCLE[next_time_idx], next_day),
-        )
-        self._conn.execute(
-            "UPDATE player_state SET veil_state=?, last_updated=CURRENT_TIMESTAMP WHERE player_id='player'",
-            (next_veil,),
-        )
-        self._conn.execute(
-            "INSERT INTO memories (scope, agent_id, subject_id, content) VALUES ('event', 'veil', 'player', ?)",
-            (f"The Veil shifted to {next_veil.replace('_', ' ')} ({_TIME_CYCLE[next_time_idx]}).",),
-        )
-        self._conn.commit()
-        return {"ok": True, "veil_state": next_veil, "state": self.get_state()}
+            self._conn.execute(
+                "UPDATE world_state SET veil_state=?, time_of_day=?, day_count=?, updated_at=CURRENT_TIMESTAMP "
+                "WHERE player_id='player'",
+                (next_veil, _TIME_CYCLE[next_time_idx], next_day),
+            )
+            self._conn.execute(
+                "UPDATE player_state SET veil_state=?, last_updated=CURRENT_TIMESTAMP WHERE player_id='player'",
+                (next_veil,),
+            )
+            self._conn.execute(
+                "INSERT INTO memories (scope, agent_id, subject_id, content) VALUES ('event', 'veil', 'player', ?)",
+                (f"The Veil shifted to {next_veil.replace('_', ' ')} ({_TIME_CYCLE[next_time_idx]}).",),
+            )
+            # Check if First Light final stage (stage 2 + lantern + resonance >= 0.45 + Veil shift) is now met
+            q_first = self._row_dict("SELECT stage_index FROM quest_progress WHERE player_id='player' AND quest_id='q_first_awakening'")
+            stats = self._row_dict("SELECT resonance FROM player_stats WHERE player_id='player'")
+            if q_first and int(q_first["stage_index"]) >= 2 and "lantern" in self._inventory_map() and float(stats["resonance"]) >= 0.45:
+                self._advance_quest_stage("q_first_awakening", 3)
+            self._conn.commit()
+            return {"ok": True, "veil_state": next_veil, "state": self.get_state()}
 
     def buy_item(self, item_id: str) -> dict[str, Any]:
-        item = self.items_catalog.get(item_id)
-        if not item:
-            raise ValueError(f"Unknown item: {item_id}")
-        ws = self._row_dict("SELECT * FROM world_state WHERE player_id='player'")
-        merchant = self.merchants_by_location.get(ws["current_location"])
-        if not merchant or item_id not in merchant["stock"]:
-            return {"ok": False, "message": "This item is not sold here.", "state": self.get_state()}
-        cost = int(item["value_echoes"])
-        if int(ws["echoes"]) < cost:
-            return {"ok": False, "message": f"Need {cost} Echoes (you have {ws['echoes']}).", "state": self.get_state()}
+        with self._lock:
+            item = self.items_catalog.get(item_id)
+            if not item:
+                raise ValueError(f"Unknown item: {item_id}")
+            ws = self._row_dict("SELECT * FROM world_state WHERE player_id='player'")
+            merchant = self.merchants_by_location.get(ws["current_location"])
+            if not merchant or item_id not in merchant["stock"]:
+                return {"ok": False, "message": "This item is not sold here.", "state": self.get_state()}
+            cost = int(item["value_echoes"])
+            if int(ws["echoes"]) < cost:
+                return {"ok": False, "message": f"Need {cost} Echoes (you have {ws['echoes']}).", "state": self.get_state()}
 
-        self._conn.execute(
-            "UPDATE world_state SET echoes = echoes - ? WHERE player_id='player'", (cost,)
-        )
-        self._give_item(item_id, 1)
-        if item_id == "lantern":
-            self._advance_quest_stage("q_first_awakening", 2)
-        self._conn.commit()
-        return {"ok": True, "message": f"Acquired {item['name']} for {cost} Echoes.", "state": self.get_state()}
+            self._conn.execute(
+                "UPDATE world_state SET echoes = echoes - ? WHERE player_id='player'", (cost,)
+            )
+            self._give_item(item_id, 1)
+            if item_id == "lantern":
+                q_first = self._row_dict("SELECT stage_index FROM quest_progress WHERE player_id='player' AND quest_id='q_first_awakening'")
+                if q_first and int(q_first["stage_index"]) >= 1:
+                    self._advance_quest_stage("q_first_awakening", 2)
+            self._conn.commit()
+            return {"ok": True, "message": f"Acquired {item['name']} for {cost} Echoes.", "state": self.get_state()}
 
     def use_or_equip_item(self, item_id: str) -> dict[str, Any]:
-        item = self.items_catalog.get(item_id)
-        if not item:
-            raise ValueError(f"Unknown item: {item_id}")
-        inv = self._inventory_map()
-        if item_id not in inv:
-            return {"ok": False, "message": "You do not carry this item.", "state": self.get_state()}
+        with self._lock:
+            item = self.items_catalog.get(item_id)
+            if not item:
+                raise ValueError(f"Unknown item: {item_id}")
+            inv = self._inventory_map()
+            if item_id not in inv:
+                return {"ok": False, "message": "You do not carry this item.", "state": self.get_state()}
 
-        if item.get("equippable"):
-            new_eq = 0 if inv[item_id]["equipped"] else 1
-            self._conn.execute(
-                "UPDATE inventory SET equipped=? WHERE player_id='player' AND item_id=?",
-                (new_eq, item_id),
-            )
-            msg = f"{'Equipped' if new_eq else 'Unequipped'} {item['name']}."
-        else:
-            effect = item.get("effect") or {}
-            delta = float(effect.get("resonance_delta", 0.0))
-            if delta:
-                stats = self._row_dict("SELECT resonance FROM player_stats WHERE player_id='player'")
-                new_res = round(min(1.0, float(stats["resonance"]) + delta), 3)
+            if item.get("equippable"):
+                new_eq = 0 if inv[item_id]["equipped"] else 1
                 self._conn.execute(
-                    "UPDATE player_stats SET resonance=? WHERE player_id='player'", (new_res,)
+                    "UPDATE inventory SET equipped=? WHERE player_id='player' AND item_id=?",
+                    (new_eq, item_id),
                 )
-            self._conn.execute(
-                "UPDATE inventory SET quantity = quantity - 1 WHERE player_id='player' AND item_id=?",
-                (item_id,),
-            )
-            msg = f"Used {item['name']} (+{delta:.2f} Resonance)."
+                msg = f"{'Equipped' if new_eq else 'Unequipped'} {item['name']}."
+            elif item.get("category") == "consumable":
+                effect = item.get("effect") or {}
+                delta = float(effect.get("resonance_delta", 0.0))
+                if delta:
+                    stats = self._row_dict("SELECT resonance FROM player_stats WHERE player_id='player'")
+                    new_res = round(min(1.0, float(stats["resonance"]) + delta), 3)
+                    self._conn.execute(
+                        "UPDATE player_stats SET resonance=? WHERE player_id='player'", (new_res,)
+                    )
+                self._conn.execute(
+                    "UPDATE inventory SET quantity = quantity - 1 WHERE player_id='player' AND item_id=?",
+                    (item_id,),
+                )
+                msg = f"Used {item['name']} (+{delta:.2f} Resonance)."
+            else:
+                return {
+                    "ok": False,
+                    "message": f"{item['name']} is a key item and cannot be consumed.",
+                    "state": self.get_state(),
+                }
 
-        self._conn.commit()
-        return {"ok": True, "message": msg, "state": self.get_state()}
+            self._conn.commit()
+            return {"ok": True, "message": msg, "state": self.get_state()}
 
     def resolve_encounter(self, encounter_id: str, choice_id: str, seed: int | None = None) -> dict[str, Any]:
-        enc = self.encounters_catalog.get(encounter_id)
-        if not enc:
-            raise ValueError(f"Unknown encounter: {encounter_id}")
-        choice = next((c for c in enc["choices"] if c["id"] == choice_id), None)
-        if not choice:
-            raise ValueError(f"Unknown choice: {choice_id}")
+        with self._lock:
+            enc = self.encounters_catalog.get(encounter_id)
+            if not enc:
+                raise ValueError(f"Unknown encounter: {encounter_id}")
+            choice = next((c for c in enc["choices"] if c["id"] == choice_id), None)
+            if not choice:
+                raise ValueError(f"Unknown choice: {choice_id}")
 
-        raw_stats = self._row_dict("SELECT * FROM player_stats WHERE player_id='player'")
-        stats = self._effective_stats(raw_stats, self._inventory_map())
-        attr = choice["attribute"]
-        attr_val = int(stats.get(attr, 10))
-        modifier = (attr_val - 10) // 2
-        rng = random.Random(seed)
-        roll = rng.randint(1, 20)
-        total = roll + modifier
-        dc = int(choice["dc"])
-        success = total >= dc
+            ws = self._row_dict("SELECT * FROM world_state WHERE player_id='player'")
+            if enc["location_id"] != ws["current_location"]:
+                return {
+                    "ok": False,
+                    "message": "This encounter is not available at your current location.",
+                    "state": self.get_state(),
+                }
+            if ws["veil_state"] not in enc.get("veil_states", _VEIL_CYCLE):
+                return {
+                    "ok": False,
+                    "message": f"This encounter only manifests during: {', '.join(enc.get('veil_states', []))}.",
+                    "state": self.get_state(),
+                }
+            already = self._row_dict(
+                "SELECT 1 AS done FROM completed_encounters WHERE player_id='player' AND encounter_id=?",
+                (encounter_id,),
+            )
+            if already:
+                return {
+                    "ok": False,
+                    "message": f"You have already completed {enc['title']}.",
+                    "state": self.get_state(),
+                }
 
-        rewards = choice.get("rewards") or {}
-        if success:
-            if rewards.get("xp"):
-                self._add_xp(int(rewards["xp"]))
-            if rewards.get("echoes"):
+            raw_stats = self._row_dict("SELECT * FROM player_stats WHERE player_id='player'")
+            stats = self._effective_stats(raw_stats, self._inventory_map())
+            attr = choice["attribute"]
+            attr_val = int(stats.get(attr, 10))
+            modifier = (attr_val - 10) // 2
+            rng = random.Random(seed)
+            roll = rng.randint(1, 20)
+            total = roll + modifier
+            dc = int(choice["dc"])
+            success = total >= dc
+
+            rewards = choice.get("rewards") or {}
+            if success:
+                if rewards.get("xp"):
+                    self._add_xp(int(rewards["xp"]))
+                if rewards.get("echoes"):
+                    self._conn.execute(
+                        "UPDATE world_state SET echoes = echoes + ? WHERE player_id='player'",
+                        (int(rewards["echoes"]),),
+                    )
+                if rewards.get("resonance_delta"):
+                    new_res = round(min(1.0, float(stats["resonance"]) + float(rewards["resonance_delta"])), 3)
+                    self._conn.execute(
+                        "UPDATE player_stats SET resonance=? WHERE player_id='player'", (new_res,)
+                    )
                 self._conn.execute(
-                    "UPDATE world_state SET echoes = echoes + ? WHERE player_id='player'",
-                    (int(rewards["echoes"]),),
+                    "INSERT OR IGNORE INTO completed_encounters (player_id, encounter_id) VALUES ('player', ?)",
+                    (encounter_id,),
                 )
-            if rewards.get("resonance_delta"):
-                new_res = round(min(1.0, float(stats["resonance"]) + float(rewards["resonance_delta"])), 3)
-                self._conn.execute(
-                    "UPDATE player_stats SET resonance=? WHERE player_id='player'", (new_res,)
-                )
-            outcome_text = choice["success_text"]
-        else:
-            self._add_xp(10)
-            outcome_text = choice["failure_text"]
+                # Quest completion hooks for trial encounters
+                if encounter_id == "trial_stillward_mirror" and ws["veil_state"] in ("storm", "quasar_active"):
+                    q_st = self._row_dict("SELECT stage_index FROM quest_progress WHERE player_id='player' AND quest_id='q_stilling_bell'")
+                    if q_st and int(q_st["stage_index"]) >= 2:
+                        self._advance_quest_stage("q_stilling_bell", 3)
+                elif encounter_id == "trial_quasar_gravity":
+                    q_nine = self._row_dict("SELECT stage_index FROM quest_progress WHERE player_id='player' AND quest_id='q_nine_sisters'")
+                    if q_nine and int(q_nine["stage_index"]) >= 1:
+                        self._advance_quest_stage("q_nine_sisters", 2)
+                outcome_text = choice["success_text"]
+            else:
+                self._add_xp(10)
+                outcome_text = choice["failure_text"]
 
-        self._conn.execute(
-            "INSERT INTO memories (scope, agent_id, subject_id, content) VALUES ('event', 'trial', 'player', ?)",
-            (f"{enc['title']} ({'Success' if success else 'Resisted'} {total}/{dc}): {outcome_text}",),
-        )
-        self._conn.commit()
-        return {
-            "ok": True,
-            "success": success,
-            "roll": roll,
-            "modifier": modifier,
-            "total": total,
-            "dc": dc,
-            "outcome_text": outcome_text,
-            "state": self.get_state(),
-        }
+            self._conn.execute(
+                "INSERT INTO memories (scope, agent_id, subject_id, content) VALUES ('event', 'trial', 'player', ?)",
+                (f"{enc['title']} ({'Success' if success else 'Resisted'} {total}/{dc}): {outcome_text}",),
+            )
+            self._conn.commit()
+            return {
+                "ok": True,
+                "success": success,
+                "roll": roll,
+                "modifier": modifier,
+                "total": total,
+                "dc": dc,
+                "outcome_text": outcome_text,
+                "state": self.get_state(),
+            }
 
     # ── Save / Load ─────────────────────────────────────────────────────────
 
@@ -867,88 +979,130 @@ class VeilGameEngine:
         )
 
     def save_game(self, slot_id: str, label: str = "") -> dict[str, Any]:
-        snapshot = {
-            "world_state": self._row_dict("SELECT * FROM world_state WHERE player_id='player'"),
-            "player_state": self._row_dict("SELECT * FROM player_state WHERE player_id='player'"),
-            "player_stats": self._row_dict("SELECT * FROM player_stats WHERE player_id='player'"),
-            "inventory": self._rows_list("SELECT item_id, quantity, equipped FROM inventory WHERE player_id='player'"),
-            "quests": self._rows_list("SELECT quest_id, status, stage_index FROM quest_progress WHERE player_id='player'"),
-            "factions": self._rows_list("SELECT faction_id, reputation, rank FROM faction_reputation WHERE player_id='player'"),
-        }
-        slot_label = label.strip() or f"Save {datetime.now(UTC).strftime('%Y-%m-%d %H:%M')}"
-        self._conn.execute(
-            "INSERT INTO save_slots (slot_id, label, snapshot_json, updated_at) VALUES (?, ?, ?, CURRENT_TIMESTAMP) "
-            "ON CONFLICT(slot_id) DO UPDATE SET label=excluded.label, snapshot_json=excluded.snapshot_json, updated_at=CURRENT_TIMESTAMP",
-            (slot_id, slot_label, json.dumps(snapshot)),
-        )
-        self._conn.commit()
-        return {"ok": True, "slot_id": slot_id, "label": slot_label, "saves": self.list_saves()}
+        with self._lock:
+            snapshot = {
+                "world_state": self._row_dict("SELECT * FROM world_state WHERE player_id='player'"),
+                "player_state": self._row_dict("SELECT * FROM player_state WHERE player_id='player'"),
+                "player_stats": self._row_dict("SELECT * FROM player_stats WHERE player_id='player'"),
+                "inventory": self._rows_list("SELECT item_id, quantity, equipped FROM inventory WHERE player_id='player'"),
+                "quests": self._rows_list("SELECT quest_id, status, stage_index FROM quest_progress WHERE player_id='player'"),
+                "factions": self._rows_list("SELECT faction_id, reputation, rank FROM faction_reputation WHERE player_id='player'"),
+                "relationships": self._rows_list(
+                    "SELECT agent_a, agent_b, trust, affection, suspicion, resistance, interactions FROM relationships WHERE agent_b='player'"
+                ),
+                "completed_encounters": self._rows_list(
+                    "SELECT encounter_id FROM completed_encounters WHERE player_id='player'"
+                ),
+                "portrait_bindings": self._rows_list("SELECT npc_id, media_key FROM portrait_bindings"),
+            }
+            slot_label = label.strip() or f"Save {datetime.now(UTC).strftime('%Y-%m-%d %H:%M')}"
+            self._conn.execute(
+                "INSERT INTO save_slots (slot_id, label, snapshot_json, updated_at) VALUES (?, ?, ?, CURRENT_TIMESTAMP) "
+                "ON CONFLICT(slot_id) DO UPDATE SET label=excluded.label, snapshot_json=excluded.snapshot_json, updated_at=CURRENT_TIMESTAMP",
+                (slot_id, slot_label, json.dumps(snapshot)),
+            )
+            self._conn.commit()
+            return {"ok": True, "slot_id": slot_id, "label": slot_label, "saves": self.list_saves()}
 
     def load_game(self, slot_id: str) -> dict[str, Any]:
-        row = self._row_dict("SELECT snapshot_json FROM save_slots WHERE slot_id=?", (slot_id,))
-        if not row:
-            raise ValueError(f"Save slot not found: {slot_id}")
-        snap = json.loads(row["snapshot_json"])
-        ws = snap["world_state"]
-        ps = snap["player_state"]
-        st = snap["player_stats"]
+        with self._lock:
+            row = self._row_dict("SELECT snapshot_json FROM save_slots WHERE slot_id=?", (slot_id,))
+            if not row:
+                raise ValueError(f"Save slot not found: {slot_id}")
+            snap = json.loads(row["snapshot_json"])
+            ws = snap["world_state"]
+            ps = snap["player_state"]
+            st = snap["player_stats"]
 
-        self._conn.execute(
-            "UPDATE world_state SET current_region=?, current_settlement=?, current_district=?, "
-            "current_location=?, day_count=?, time_of_day=?, veil_state=?, echoes=?, discovered_locations=?, active_party=? "
-            "WHERE player_id='player'",
-            (
-                ws["current_region"],
-                ws["current_settlement"],
-                ws["current_district"],
-                ws["current_location"],
-                ws["day_count"],
-                ws["time_of_day"],
-                ws["veil_state"],
-                ws["echoes"],
-                ws["discovered_locations"],
-                ws["active_party"],
-            ),
-        )
-        self._conn.execute(
-            "UPDATE player_state SET emotional_depth=?, turns_taken=?, unlocked_districts=?, dreams_seen=?, veil_state=? "
-            "WHERE player_id='player'",
-            (
-                ps["emotional_depth"],
-                ps["turns_taken"],
-                ps["unlocked_districts"],
-                ps["dreams_seen"],
-                ps["veil_state"],
-            ),
-        )
-        self._conn.execute(
-            "UPDATE player_stats SET level=?, xp=?, resonance=?, clarity=?, empathy=?, resolve=?, perception=?, veil_attunement=? "
-            "WHERE player_id='player'",
-            (
-                st["level"],
-                st["xp"],
-                st["resonance"],
-                st["clarity"],
-                st["empathy"],
-                st["resolve"],
-                st["perception"],
-                st["veil_attunement"],
-            ),
-        )
-        self._conn.execute("DELETE FROM inventory WHERE player_id='player'")
-        for item in snap.get("inventory", []):
             self._conn.execute(
-                "INSERT INTO inventory (player_id, item_id, quantity, equipped) VALUES ('player', ?, ?, ?)",
-                (item["item_id"], item["quantity"], item["equipped"]),
+                "UPDATE world_state SET current_region=?, current_settlement=?, current_district=?, "
+                "current_location=?, day_count=?, time_of_day=?, veil_state=?, echoes=?, discovered_locations=?, active_party=? "
+                "WHERE player_id='player'",
+                (
+                    ws["current_region"],
+                    ws["current_settlement"],
+                    ws["current_district"],
+                    ws["current_location"],
+                    ws["day_count"],
+                    ws["time_of_day"],
+                    ws["veil_state"],
+                    ws["echoes"],
+                    ws["discovered_locations"],
+                    ws["active_party"],
+                ),
             )
-        self._conn.execute("DELETE FROM quest_progress WHERE player_id='player'")
-        for q in snap.get("quests", []):
             self._conn.execute(
-                "INSERT INTO quest_progress (player_id, quest_id, status, stage_index) VALUES ('player', ?, ?, ?)",
-                (q["quest_id"], q["status"], q["stage_index"]),
+                "UPDATE player_state SET emotional_depth=?, turns_taken=?, unlocked_districts=?, dreams_seen=?, veil_state=? "
+                "WHERE player_id='player'",
+                (
+                    ps["emotional_depth"],
+                    ps["turns_taken"],
+                    ps["unlocked_districts"],
+                    ps["dreams_seen"],
+                    ps["veil_state"],
+                ),
             )
-        self._conn.commit()
-        return {"ok": True, "message": f"Loaded slot '{slot_id}'.", "state": self.get_state()}
+            self._conn.execute(
+                "UPDATE player_stats SET level=?, xp=?, resonance=?, clarity=?, empathy=?, resolve=?, perception=?, veil_attunement=? "
+                "WHERE player_id='player'",
+                (
+                    st["level"],
+                    st["xp"],
+                    st["resonance"],
+                    st["clarity"],
+                    st["empathy"],
+                    st["resolve"],
+                    st["perception"],
+                    st["veil_attunement"],
+                ),
+            )
+            self._conn.execute("DELETE FROM inventory WHERE player_id='player'")
+            for item in snap.get("inventory", []):
+                self._conn.execute(
+                    "INSERT INTO inventory (player_id, item_id, quantity, equipped) VALUES ('player', ?, ?, ?)",
+                    (item["item_id"], item["quantity"], item["equipped"]),
+                )
+            self._conn.execute("DELETE FROM quest_progress WHERE player_id='player'")
+            for q in snap.get("quests", []):
+                self._conn.execute(
+                    "INSERT INTO quest_progress (player_id, quest_id, status, stage_index) VALUES ('player', ?, ?, ?)",
+                    (q["quest_id"], q["status"], q["stage_index"]),
+                )
+            self._conn.execute("DELETE FROM faction_reputation WHERE player_id='player'")
+            for f in snap.get("factions", []):
+                self._conn.execute(
+                    "INSERT INTO faction_reputation (player_id, faction_id, reputation, rank) VALUES ('player', ?, ?, ?)",
+                    (f["faction_id"], f["reputation"], f["rank"]),
+                )
+            self._conn.execute("DELETE FROM relationships WHERE agent_b='player'")
+            for r in snap.get("relationships", []):
+                self._conn.execute(
+                    "INSERT INTO relationships (agent_a, agent_b, trust, affection, suspicion, resistance, interactions) "
+                    "VALUES (?, ?, ?, ?, ?, ?, ?)",
+                    (
+                        r["agent_a"],
+                        r["agent_b"],
+                        r["trust"],
+                        r["affection"],
+                        r["suspicion"],
+                        r["resistance"],
+                        r["interactions"],
+                    ),
+                )
+            self._conn.execute("DELETE FROM completed_encounters WHERE player_id='player'")
+            for ce in snap.get("completed_encounters", []):
+                self._conn.execute(
+                    "INSERT INTO completed_encounters (player_id, encounter_id) VALUES ('player', ?)",
+                    (ce["encounter_id"],),
+                )
+            self._conn.execute("DELETE FROM portrait_bindings")
+            for pb in snap.get("portrait_bindings", []):
+                self._conn.execute(
+                    "INSERT INTO portrait_bindings (npc_id, media_key) VALUES (?, ?)",
+                    (pb["npc_id"], pb["media_key"]),
+                )
+            self._conn.commit()
+            return {"ok": True, "message": f"Loaded slot '{slot_id}'.", "state": self.get_state()}
 
     # ── Party, Codex, Portrait Binding & Cue Hooks ──────────────────────────
 

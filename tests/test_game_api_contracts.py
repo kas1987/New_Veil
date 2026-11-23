@@ -31,8 +31,13 @@ def test_health_and_error_handling() -> None:
 
 def test_locked_district_blocks_travel_until_earned() -> None:
     client = _make_client()
-    # The Hollow requires 0.75 resonance; starter player has 0.35
-    resp = client.post("/api/world/travel", json={"location_id": "hollow_clearing"})
+    # Non-adjacent jump to The Hollow is blocked by the travel graph
+    no_road = client.post("/api/world/travel", json={"location_id": "hollow_clearing"}).json()
+    assert no_road["ok"] is False
+    assert "No direct road" in no_road["message"]
+
+    # Adjacent Ashveil Furnaces requires 0.50 resonance; starter player has 0.35
+    resp = client.post("/api/world/travel", json={"location_id": "ashveil_forges"})
     assert resp.status_code == 200
     body = resp.json()
     assert body["ok"] is False
@@ -126,13 +131,20 @@ def test_expanded_town_pois_and_true_vs_false_ending_tracker() -> None:
     initial = client.get("/api/game/ending").json()
     assert initial["trajectory"] == "false_ending_risk"
 
-    # Travel to expanded Solstice Crossing POIs
+    # Follow connected roads: caetherra_plaza -> solstice_bazaar -> crossroads_tavern -> solstice_bazaar -> mirror_well
+    assert client.post("/api/world/travel", json={"location_id": "solstice_bazaar"}).json()["ok"] is True
     assert client.post("/api/world/travel", json={"location_id": "crossroads_tavern"}).json()["ok"] is True
+    assert client.post("/api/world/travel", json={"location_id": "solstice_bazaar"}).json()["ok"] is True
     assert client.post("/api/world/travel", json={"location_id": "mirror_well"}).json()["ok"] is True
 
-    # Satisfy all 4 True Ending canon criteria
+    # Satisfy all 4 True Ending canon criteria + settlement interaction gate (6 turns)
     engine._conn.execute("UPDATE player_stats SET resonance = 0.85 WHERE player_id='player'")
+    engine._conn.execute("UPDATE player_state SET turns_taken = 8 WHERE player_id='player'")
     engine._conn.execute("UPDATE relationships SET trust = 75.0 WHERE agent_a='mira' AND agent_b='player'")
+    engine._conn.execute(
+        "UPDATE world_state SET current_location='gravity_spire_deck', current_settlement='obsidian_reach', "
+        "current_region='quasar_rim', current_district='gravity_spire' WHERE player_id='player'"
+    )
     engine._conn.commit()
     for _ in range(3):
         client.post("/api/world/advance-veil")  # reaches quasar_active
@@ -142,6 +154,49 @@ def test_expanded_town_pois_and_true_vs_false_ending_tracker() -> None:
     assert ready["trajectory"] == "true_ending_ready"
     assert all(ready["criteria"].values())
     assert "void_threshold" in ready["hidden_paths_found"]
+
+
+def test_review_fixes_security_and_consistency() -> None:
+    client = _make_client()
+    engine = client.app.state.engine
+
+    # 1. Absent NPC dialogue rejected (Warden is in Stillward, not Caetherra Plaza)
+    absent = client.post("/api/dialogue/turn", json={"npc_id": "warden", "message": "Hello from afar"})
+    assert absent.status_code == 400
+
+    # 2. Key item cannot be consumed/destroyed
+    engine._give_item("key", 1)
+    engine._conn.commit()
+    use_key = client.post("/api/inventory/use", json={"item_id": "key"}).json()
+    assert use_key["ok"] is False
+    assert any(i["id"] == "key" for i in use_key["state"]["inventory"])
+
+    # 3. Encounter location check + one-shot completion
+    wrong_loc = client.post(
+        "/api/encounters/resolve",
+        json={"encounter_id": "trial_quasar_gravity", "choice_id": "stand_in_truth"},
+    ).json()
+    assert wrong_loc["ok"] is False
+
+    engine._conn.execute("UPDATE player_stats SET empathy = 28 WHERE player_id='player'")
+    engine._conn.commit()
+    ok_enc = engine.resolve_encounter("trial_prism_surface", "accept_warmth", seed=42)
+    assert ok_enc["ok"] is True and ok_enc["success"] is True
+    repeat_enc = engine.resolve_encounter("trial_prism_surface", "accept_warmth", seed=42)
+    assert repeat_enc["ok"] is False
+
+    # 4. Save/load restores relationships AND faction reputation
+    client.post("/api/saves/save", json={"slot_id": "snap_full", "label": "Full Snapshot"})
+    client.post("/api/dialogue/turn", json={"npc_id": "mira", "message": "Tell me about the Veil truth."})
+    engine._adjust_faction("nine_sisters", 25)
+    engine._conn.commit()
+
+    loaded = client.post("/api/saves/load/snap_full").json()
+    assert loaded["ok"] is True
+    mira = next(n for n in loaded["state"]["npcs_here"] if n["id"] == "mira")
+    nine = next(f for f in loaded["state"]["factions"] if f["id"] == "nine_sisters")
+    assert mira["relationship"]["interactions"] == 0
+    assert nine["reputation"] == 0
 
 
 def test_party_codex_portrait_binding_and_runtime_status() -> None:

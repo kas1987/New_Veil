@@ -41,6 +41,7 @@ export default function App() {
   const [inputText, setInputText] = useState('')
   const [chatHistory, setChatHistory] = useState<Record<string, ChatLine[]>>({})
   const [toast, setToast] = useState<string | null>(null)
+  const [loadError, setLoadError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
   const [codex, setCodex] = useState<CodexEntry[]>([])
   const [shelf, setShelf] = useState<ShelfCharacter[]>([])
@@ -51,16 +52,24 @@ export default function App() {
     window.setTimeout(() => setToast((curr) => (curr === msg ? null : curr)), 3600)
   }
 
-  useEffect(() => {
+  const bootstrap = () => {
+    setLoadError(null)
     api
       .getState()
       .then((s) => {
         setState(s)
         if (s.npcs_here.length > 0) setSelectedNpcId(s.npcs_here[0].id)
       })
-      .catch((err: Error) => notify(`API offline: ${err.message}`))
+      .catch((err: Error) => {
+        setLoadError(err.message || 'Unable to reach Veil Game Engine')
+        notify(`API offline: ${err.message}`)
+      })
     api.getCodex().then((r) => setCodex(r.entries || [])).catch(() => {})
     api.listLocalShelf().then((r) => setShelf(r.characters || [])).catch(() => {})
+  }
+
+  useEffect(() => {
+    bootstrap()
   }, [])
 
   const selectedNpc = useMemo(() => {
@@ -89,6 +98,8 @@ export default function App() {
       const res = await api.advanceVeil()
       setState(res.state)
       notify(`Veil shifted to ${res.veil_state.replace('_', ' ')}`)
+    } catch (err) {
+      notify((err as Error).message)
     } finally {
       setBusy(false)
     }
@@ -126,6 +137,8 @@ export default function App() {
       const res = await api.buyItem(itemId)
       setState(res.state)
       notify(res.message)
+    } catch (err) {
+      notify((err as Error).message)
     } finally {
       setBusy(false)
     }
@@ -137,6 +150,8 @@ export default function App() {
       const res = await api.useItem(itemId)
       setState(res.state)
       notify(res.message)
+    } catch (err) {
+      notify((err as Error).message)
     } finally {
       setBusy(false)
     }
@@ -150,6 +165,8 @@ export default function App() {
       notify(
         `${res.success ? 'SUCCESS' : 'RESISTED'} (Roll ${res.roll}+${res.modifier}=${res.total} vs DC ${res.dc})`,
       )
+    } catch (err) {
+      notify((err as Error).message)
     } finally {
       setBusy(false)
     }
@@ -157,17 +174,34 @@ export default function App() {
 
   const handleQuickSave = async () => {
     if (!state) return
-    const label = `Day ${state.world.day_count} · ${state.world.current_location.name}`
-    await api.saveGame('quicksave', label)
-    const fresh = await api.getState()
-    setState(fresh)
-    notify(`Saved: ${label}`)
+    setBusy(true)
+    try {
+      const label = `Day ${state.world.day_count} · ${state.world.current_location.name}`
+      await api.saveGame('quicksave', label)
+      const fresh = await api.getState()
+      setState(fresh)
+      notify(`Saved: ${label}`)
+    } catch (err) {
+      notify((err as Error).message)
+    } finally {
+      setBusy(false)
+    }
   }
 
   const handleLoadSave = async (slotId: string) => {
-    const res = await api.loadGame(slotId)
-    setState(res.state)
-    notify(res.message)
+    setBusy(true)
+    try {
+      const res = await api.loadGame(slotId)
+      setState(res.state)
+      setChatHistory({})
+      setInputText('')
+      if (res.state.npcs_here.length > 0) setSelectedNpcId(res.state.npcs_here[0].id)
+      notify(res.message)
+    } catch (err) {
+      notify((err as Error).message)
+    } finally {
+      setBusy(false)
+    }
   }
 
   const handleToggleParty = async (characterId: string) => {
@@ -176,6 +210,8 @@ export default function App() {
       const res = await api.toggleParty(characterId)
       setState(res.state)
       notify(res.message)
+    } catch (err) {
+      notify((err as Error).message)
     } finally {
       setBusy(false)
     }
@@ -187,6 +223,8 @@ export default function App() {
       const res = await api.bindPortrait(bindTargetNpc, mediaKey)
       setState(res.state)
       notify(`Bound portrait '${mediaKey}' to ${bindTargetNpc}`)
+    } catch (err) {
+      notify((err as Error).message)
     } finally {
       setBusy(false)
     }
@@ -197,9 +235,20 @@ export default function App() {
       <div className="veil-shell" style={{ placeItems: 'center', padding: 40 }}>
         <div className="card" style={{ maxWidth: 440, textAlign: 'center' }}>
           <div className="brand-title">THE VEIL</div>
-          <p className="scene-sub" style={{ marginTop: 10 }}>
-            Connecting to Veil Game Engine (<code>127.0.0.1:8765</code>)…
-          </p>
+          {loadError ? (
+            <>
+              <p className="scene-sub" style={{ marginTop: 10, color: 'var(--ember)' }}>
+                Unable to connect to Veil Game Engine: {loadError}
+              </p>
+              <button type="button" className="btn btn-quasar" style={{ marginTop: 12 }} onClick={bootstrap}>
+                Retry Connection
+              </button>
+            </>
+          ) : (
+            <p className="scene-sub" style={{ marginTop: 10 }}>
+              Connecting to Veil Game Engine (<code>127.0.0.1:8765</code>)…
+            </p>
+          )}
         </div>
       </div>
     )
