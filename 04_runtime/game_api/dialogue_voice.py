@@ -140,7 +140,8 @@ def select_offline_reply(
         rumors = [
             r
             for r in (memory_ctx.get("earned_rumors") or [])
-            if r.get("agent_id") in ("mira", "solenne", "greeter", "threadwatcher")
+            if r.get("agent_id") in (beats_pack.get("npcs") or {})
+            and not (npc_id == "solenne" and r.get("agent_id") == "vael")
         ]
         rumor_prefix = str(npc_pack.get("rumor_prefix") or "").strip()
         if (

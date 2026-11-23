@@ -146,7 +146,15 @@ class VeilGameEngine:
         }
         self.psychometrics = _load_json(self.repo_root / "14_psychometrics" / "attributes.json")
         self.voices = _load_json(self.repo_root / "15_voice" / "voice_registry.json")["voices"]
-        self.dialogue_beats = _load_json(self.repo_root / "13_agents" / "caetherra_dialogue_beats.json")
+        caetherra_beats = _load_json(self.repo_root / "13_agents" / "caetherra_dialogue_beats.json")
+        town_beats = _load_json(self.repo_root / "13_agents" / "veil_town_dialogue_beats.json")
+        self.dialogue_beats = {
+            "schema_version": caetherra_beats.get("schema_version", "1.0.0"),
+            "npcs": {
+                **caetherra_beats.get("npcs", {}),
+                **town_beats.get("npcs", {}),
+            },
+        }
         self.symbolic_objects = {
             obj["id"]: obj
             for obj in _load_json(self.repo_root / "12_metaphysics" / "symbolic_object_registry.json")["objects"]
