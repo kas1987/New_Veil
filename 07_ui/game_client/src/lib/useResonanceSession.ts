@@ -56,9 +56,17 @@ export function useResonanceSession() {
 
   const useConsumableOrTrial = useCallback(
     (source: { itemId?: string; trialDelta?: number }) => {
-      const result = applyDirectDelta(session, source)
-      setSession(result.nextState)
-      return result
+      const direct = applyDirectDelta(session, source)
+      if (direct.appliedDelta === 0 || direct.nextState.isSealedOut) {
+        setSession(direct.nextState)
+        return direct
+      }
+      const drifted = processNonTalkTurn(direct.nextState)
+      setSession(drifted.nextState)
+      return {
+        nextState: drifted.nextState,
+        appliedDelta: Number((drifted.nextState.resonance - session.resonance).toFixed(2)),
+      }
     },
     [session],
   )

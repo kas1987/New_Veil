@@ -24,6 +24,7 @@ _RES_MOD = load_module("veil_resonance_evaluator", Path(__file__).resolve().pare
 
 _VEIL_CYCLE = ["calm", "still", "storm", "quasar_active"]
 _TIME_CYCLE = ["dawn", "day", "dusk", "night"]
+RESONANCE_SCHEMA_VERSION = 2
 
 
 @dataclass(frozen=True)
@@ -160,17 +161,20 @@ class VeilGameEngine:
         ):
             if col_name not in columns:
                 conn.execute(f"ALTER TABLE player_stats ADD COLUMN {col_name} {col_def}")
-        # Migrate legacy 0.0-1.0 resonance rows cleanly to the 0-1000 scale
-        conn.execute(
-            "UPDATE player_stats SET "
-            "resonance = ROUND(resonance * 1000.0, 2), "
-            "has_crossed_first_threshold = CASE WHEN ROUND(resonance * 1000.0, 2) >= 450.0 THEN 1 ELSE has_crossed_first_threshold END "
-            "WHERE resonance > 0.0 AND resonance <= 1.0"
-        )
-        conn.execute(
-            "UPDATE player_state SET emotional_depth = ROUND(emotional_depth * 1000.0, 2) "
-            "WHERE emotional_depth > 0.0 AND emotional_depth <= 1.0"
-        )
+        user_version = int(conn.execute("PRAGMA user_version").fetchone()[0])
+        if user_version < RESONANCE_SCHEMA_VERSION:
+            # Migrate legacy 0.0-1.0 resonance rows cleanly to the 0-1000 scale once
+            conn.execute(
+                "UPDATE player_stats SET "
+                "resonance = ROUND(resonance * 1000.0, 2), "
+                "has_crossed_first_threshold = CASE WHEN ROUND(resonance * 1000.0, 2) >= 450.0 THEN 1 ELSE has_crossed_first_threshold END "
+                "WHERE resonance > 0.0 AND resonance <= 1.0"
+            )
+            conn.execute(
+                "UPDATE player_state SET emotional_depth = ROUND(emotional_depth * 1000.0, 2) "
+                "WHERE emotional_depth > 0.0 AND emotional_depth <= 1.0"
+            )
+        conn.execute(f"PRAGMA user_version = {RESONANCE_SCHEMA_VERSION}")
         conn.commit()
         return conn
 
@@ -1202,6 +1206,7 @@ class VeilGameEngine:
     def _save_game(self, slot_id: str, label: str = "") -> dict[str, Any]:
         with self._lock:
             snapshot = {
+                "schema_version": RESONANCE_SCHEMA_VERSION,
                 "world_state": self._row_dict("SELECT * FROM world_state WHERE player_id='player'"),
                 "player_state": self._row_dict("SELECT * FROM player_state WHERE player_id='player'"),
                 "player_stats": self._row_dict("SELECT * FROM player_stats WHERE player_id='player'"),
@@ -1231,6 +1236,7 @@ class VeilGameEngine:
             if not row:
                 raise ValueError(f"Save slot not found: {slot_id}")
             snap = json.loads(row["snapshot_json"])
+            snap_version = int(snap.get("schema_version") or 1)
             ws = snap["world_state"]
             ps = snap["player_state"]
             st = snap["player_stats"]
@@ -1252,11 +1258,11 @@ class VeilGameEngine:
                     ws["active_party"],
                 ),
             )
-            ps_depth = float(ps.get("emotional_depth") or 0.0)
-            if 0.0 < ps_depth <= 1.0:
+            ps_depth = 0.0 if ps.get("emotional_depth") is None else float(ps["emotional_depth"])
+            if snap_version < RESONANCE_SCHEMA_VERSION and 0.0 < ps_depth <= 1.0:
                 ps_depth = round(ps_depth * 1000.0, 2)
-            st_res = float(st.get("resonance") or 350.0)
-            if 0.0 < st_res <= 1.0:
+            st_res = 350.0 if st.get("resonance") is None else float(st["resonance"])
+            if snap_version < RESONANCE_SCHEMA_VERSION and 0.0 < st_res <= 1.0:
                 st_res = round(st_res * 1000.0, 2)
             st_crossed = 1 if (int(st.get("has_crossed_first_threshold") or 0) or st_res >= 450.0) else 0
 
@@ -1456,6 +1462,14 @@ class VeilGameEngine:
         return self._snapshot()
 
     def play(self, action: PlayAction) -> PlayResult:
+        with self._lock:
+            stats = self._row_dict("SELECT resonance FROM player_stats WHERE player_id='player'")
+            if stats and float(stats["resonance"]) <= 0.0:
+                return PlayResult(
+                    ok=False,
+                    message="The Veil has sealed you out. Tune a new frequency (reset_session) or load a saved state to continue.",
+                    scene=self._snapshot(),
+                )
         if isinstance(action, Travel):
             raw = self._travel(action.location_id)
             return PlayResult(ok=raw["ok"], message=raw["message"], scene=raw["state"])

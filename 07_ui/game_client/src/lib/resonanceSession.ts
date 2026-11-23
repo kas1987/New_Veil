@@ -125,7 +125,7 @@ export function processTalkTurn(
       ...state,
       resonance: evaluation.newResonance,
       turnsTaken: state.turnsTaken + 1,
-      turnsSinceLastTalk: 0,
+      turnsSinceLastTalk: evaluation.delta > 0 ? 0 : state.turnsSinceLastTalk,
       hasCrossedFirstThreshold: crossed450,
       playerLastLine: playerLine,
       recentKeywords: nextRecentKeywords,

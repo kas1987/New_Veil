@@ -1,3 +1,4 @@
+import { act, renderHook } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 import corpus from '../../../../14_psychometrics/calibration_corpus.json'
 import { evaluateTalkResonance, type TurnContext } from './resonanceEvaluator'
@@ -9,6 +10,7 @@ import {
   processTalkTurn,
   type ResonanceSessionState,
 } from './resonanceSession'
+import { useResonanceSession } from './useResonanceSession'
 
 describe('Resonance Psychometric & Session Engine (3-Layer 0-1000 Scale)', () => {
   it('starts at 350.0 and protects the grace floor for the first 5 talks below 450.0', () => {
@@ -332,4 +334,64 @@ describe('Resonance Psychometric & Session Engine (3-Layer 0-1000 Scale)', () =>
       if ('npcBond' in exp) expect(res.signals.npcBond).toBe(exp.npcBond)
     },
   )
+
+  it('preserves sandbox drift across friction talks and resets it only on positive talks', () => {
+    let state: ResonanceSessionState = {
+      ...createInitialSession(),
+      turnsTaken: 6,
+      hasCrossedFirstThreshold: true,
+      resonance: 500.0,
+    }
+    state = processNonTalkTurn(state).nextState
+    state = processNonTalkTurn(state).nextState
+    expect(state.turnsSinceLastTalk).toBe(2)
+
+    const friction = processTalkTurn(state, 'mira', 'Say something real.', 'ok')
+    expect(friction.evaluation.delta).toBeLessThanOrEqual(0)
+    expect(friction.nextState.turnsSinceLastTalk).toBe(2)
+
+    const thirdNonTalk = processNonTalkTurn(friction.nextState)
+    expect(thirdNonTalk.driftApplied).toBe(-0.5)
+    expect(thirdNonTalk.nextState.turnsSinceLastTalk).toBe(0)
+
+    let preResonant = processNonTalkTurn(thirdNonTalk.nextState).nextState
+    preResonant = processNonTalkTurn(preResonant).nextState
+    expect(preResonant.turnsSinceLastTalk).toBe(2)
+
+    const resonant = processTalkTurn(
+      preResonant,
+      'mira',
+      'The lanterns hold a quiet truth.',
+      'I wonder why the lanterns hold memory beside the veil?',
+    )
+    expect(resonant.evaluation.delta).toBeGreaterThan(0)
+    expect(resonant.nextState.turnsSinceLastTalk).toBe(0)
+  })
+
+  it('counts sandbox items and trials in useResonanceSession as non-talk actions', () => {
+    const { result } = renderHook(() => useResonanceSession())
+
+    act(() => {
+      result.current.advanceNonTalkTurn()
+    })
+    act(() => {
+      result.current.advanceNonTalkTurn()
+    })
+    expect(result.current.session.turnsSinceLastTalk).toBe(2)
+
+    let itemResult: { appliedDelta: number } = { appliedDelta: 0 }
+    act(() => {
+      itemResult = result.current.useConsumableOrTrial({ itemId: 'echo_shard' })
+    })
+    // +6.0 from echo_shard followed by -0.5 3rd-non-talk calm drift -> +5.5 net (355.5)
+    expect(itemResult.appliedDelta).toBe(5.5)
+    expect(result.current.session.resonance).toBe(355.5)
+    expect(result.current.session.turnsSinceLastTalk).toBe(0)
+
+    act(() => {
+      result.current.useConsumableOrTrial({ trialDelta: 10 })
+    })
+    expect(result.current.session.resonance).toBe(365.5)
+    expect(result.current.session.turnsSinceLastTalk).toBe(1)
+  })
 })

@@ -251,6 +251,7 @@ def test_resolve_populates_message_and_save_restores_resonance_metadata() -> Non
     snap = json.loads(
         engine._row_dict("SELECT snapshot_json FROM save_slots WHERE slot_id='meta_check'")["snapshot_json"]
     )
+    snap.pop("schema_version", None)
     snap["player_stats"]["resonance"] = 0.35
     snap["player_state"]["emotional_depth"] = 0.35
     engine._conn.execute(
@@ -307,3 +308,75 @@ def test_legacy_sqlite_migration_adds_resonance_columns_and_rescales_values(tmp_
         assert reply.ok is True
     finally:
         engine.close()
+
+
+def test_schema_version_gates_legacy_migration_without_rescaling_low_v2_values(tmp_path: Path) -> None:
+    db_file = tmp_path / "v2_veil.sqlite"
+    engine = VeilGameEngine(repo_root=ROOT, db_path=db_file)
+    try:
+        assert int(engine._conn.execute("PRAGMA user_version").fetchone()[0]) == 2
+        engine._conn.execute(
+            "UPDATE player_stats SET resonance=0.5, has_crossed_first_threshold=1 WHERE player_id='player'"
+        )
+        engine._conn.execute("UPDATE player_state SET emotional_depth=0.5 WHERE player_id='player'")
+        engine._conn.commit()
+        assert engine.save("low_v2", "Low v2 0.5").ok is True
+        snap = json.loads(
+            engine._row_dict("SELECT snapshot_json FROM save_slots WHERE slot_id='low_v2'")["snapshot_json"]
+        )
+        assert snap["schema_version"] == 2
+    finally:
+        engine.close()
+
+    reopened = VeilGameEngine(repo_root=ROOT, db_path=db_file)
+    try:
+        assert reopened.scene()["player"]["resonance"] == 0.5
+        ps = reopened._row_dict("SELECT emotional_depth FROM player_state WHERE player_id='player'")
+        assert float(ps["emotional_depth"]) == 0.5
+
+        # Mutate away, then load v2 low-resonance save -> stays 0.5
+        reopened.play(Use("echo_shard"))
+        assert reopened.scene()["player"]["resonance"] == 6.5
+        loaded_v2 = reopened.load("low_v2")
+        assert loaded_v2.scene["player"]["resonance"] == 0.5
+
+        # Legacy save without schema_version at 0.5 rescales once to 500.0
+        legacy_snap = json.loads(
+            reopened._row_dict("SELECT snapshot_json FROM save_slots WHERE slot_id='low_v2'")["snapshot_json"]
+        )
+        legacy_snap.pop("schema_version", None)
+        reopened._conn.execute(
+            "INSERT OR REPLACE INTO save_slots (slot_id, label, snapshot_json) VALUES (?, ?, ?)",
+            ("legacy_05", "Legacy 0.5", json.dumps(legacy_snap)),
+        )
+        reopened._conn.commit()
+        loaded_legacy = reopened.load("legacy_05")
+        assert loaded_legacy.scene["player"]["resonance"] == 500.0
+    finally:
+        reopened.close()
+
+
+def test_sealed_session_rejects_play_actions_until_reset() -> None:
+    engine = _engine()
+    engine._conn.execute("UPDATE player_stats SET resonance=0.0 WHERE player_id='player'")
+    engine._conn.commit()
+
+    shard_use = engine.play(Use("echo_shard"))
+    assert shard_use.ok is False
+    assert "sealed" in shard_use.message.lower()
+    assert shard_use.scene["player"]["resonance"] == 0.0
+    echo_item = next(item for item in shard_use.scene["inventory"] if item["id"] == "echo_shard")
+    assert echo_item["quantity"] == 2
+
+    blocked_talk = _talk(engine, text="I feel afraid — why is everything quiet?")
+    assert blocked_talk.ok is False
+    assert blocked_talk.scene["player"]["resonance"] == 0.0
+
+    blocked_travel = engine.play(Travel("solstice_bazaar"))
+    assert blocked_travel.ok is False
+    assert blocked_travel.scene["world"]["current_location"]["id"] == "caetherra_plaza"
+
+    reset = engine.reset_session()
+    assert reset.ok is True
+    assert reset.scene["player"]["resonance"] == 350.0
+    assert _talk(engine, text="I wonder why the lanterns stay warm here?").ok is True
