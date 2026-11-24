@@ -290,6 +290,14 @@ def create_app(db_path: Path | str | None = None) -> FastAPI:
         veil_state = engine.scene()["world"]["veil_state"]
         return {"voices": tts.list_profiles(veil_state=veil_state)}
 
+    @app.get("/api/voice/health")
+    def voice_health() -> dict:
+        return tts.check_health()
+
+    @app.post("/api/voice/unload")
+    def unload_voice() -> dict:
+        return tts.unload()
+
     @app.post("/api/voice/synthesize")
     def synthesize_voice(req: VoiceSynthesizeRequest) -> dict:
         if req.npc_id not in engine.characters:
@@ -307,8 +315,10 @@ def create_app(db_path: Path | str | None = None) -> FastAPI:
     def llm_status() -> dict:
         return {
             "live_llm_enabled": os.environ.get("VEIL_USE_LIVE_LLM") == "1",
+            "backend": os.environ.get("VEIL_LLM_BACKEND", "auto"),
             "model": _LLM_MOD.DEFAULT_MODEL,
             "base_url": _LLM_MOD.OLLAMA_BASE_URL,
+            "openai_base_url": _LLM_MOD.OPENAI_BASE_URL,
             "agents_with_prompts": [
                 cid for cid in engine.characters if bool(_LLM_MOD.load_system_prompt(cid))
             ],

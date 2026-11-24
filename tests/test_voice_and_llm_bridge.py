@@ -75,6 +75,45 @@ def test_tts_adapter_offline_wav_and_live_http(tmp_path: Path, monkeypatch) -> N
     assert live["mode"] == "live"
     assert live["audio_url"] == "http://127.0.0.1:9911/out/mira.wav"
 
+    # XTTS serve.py returns local WAV file path + sample_rate; adapter should inline as base64
+    local_wav = tmp_path / "veil_mira.wav"
+    local_wav.write_bytes(TTS_MOD.render_harmonic_wav(220.0))
+
+    class _FakeXTTSResp:
+        def __init__(self, payload: dict) -> None:
+            self._payload = payload
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *args):
+            return False
+
+        def read(self) -> bytes:
+            return json.dumps(self._payload).encode("utf-8")
+
+    def _fake_urlopen(req, timeout=0):
+        if req.full_url.endswith("/health"):
+            return _FakeXTTSResp({"loaded": True, "device": "cuda", "model": "xtts_v2"})
+        if req.full_url.endswith("/unload"):
+            return _FakeXTTSResp({"loaded": False})
+        return _FakeXTTSResp({"path": str(local_wav), "sample_rate": 24000})
+
+    monkeypatch.setattr(TTS_MOD.urllib.request, "urlopen", _fake_urlopen)
+    local_live = adapter.synthesize("mira", "Hear the lanterns.", queue=False)
+    assert local_live["mode"] == "live"
+    assert local_live["audio_base64"].startswith("data:audio/wav;base64,")
+    health = adapter.check_health()
+    assert health["ok"] is True and health["health"]["loaded"] is True
+    unload = adapter.unload()
+    assert unload["ok"] is True and unload["result"]["loaded"] is False
+
+    profiles = adapter.list_profiles()
+    assert len(profiles) == 15
+    for cid, prof in profiles.items():
+        assert prof.get("xtts_speaker"), f"{cid} missing xtts_speaker"
+        assert prof.get("qwen_speaker"), f"{cid} missing qwen_speaker"
+
 
 def test_live_llm_talk_bridge_with_alignment_gate(monkeypatch) -> None:
     engine = VeilGameEngine(repo_root=ROOT, db_path=":memory:")
@@ -119,7 +158,16 @@ def test_voice_and_llm_fastapi_endpoints() -> None:
     profiles = client.get("/api/voice/profiles")
     assert profiles.status_code == 200
     assert "mira" in profiles.json()["voices"]
+    assert profiles.json()["voices"]["mira"]["xtts_speaker"] == "Ana Florence"
     assert "kaelen_lanternwright" in profiles.json()["voices"]
+
+    v_health = client.get("/api/voice/health")
+    assert v_health.status_code == 200
+    assert "configured" in v_health.json()
+
+    v_unload = client.post("/api/voice/unload")
+    assert v_unload.status_code == 200
+    assert "ok" in v_unload.json()
 
     synth = client.post(
         "/api/voice/synthesize",
@@ -137,6 +185,7 @@ def test_voice_and_llm_fastapi_endpoints() -> None:
     llm_stat = client.get("/api/llm/status")
     assert llm_stat.status_code == 200
     assert len(llm_stat.json()["agents_with_prompts"]) == 15
+    assert "openai_base_url" in llm_stat.json()
 
     preview = client.post(
         "/api/dialogue/llm-preview",
@@ -153,3 +202,36 @@ def test_voice_and_llm_fastapi_endpoints() -> None:
         json={"npc_id": "missing_npc", "message": "hello"},
     )
     assert bad_preview.status_code == 404
+
+
+def test_llm_provider_openai_backend(monkeypatch) -> None:
+    monkeypatch.setenv("VEIL_LLM_BACKEND", "openai")
+    monkeypatch.setenv("VEIL_OPENAI_BASE_URL", "http://127.0.0.1:1234")
+    monkeypatch.delenv("VEIL_LLM_MODEL", raising=False)
+
+    class _FakeOpenAIResp:
+        def __init__(self, payload: dict) -> None:
+            self._payload = payload
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *args):
+            return False
+
+        def read(self) -> bytes:
+            return json.dumps(self._payload).encode("utf-8")
+
+    def _fake_open(req, timeout=0):
+        if req.full_url.endswith("/v1/models"):
+            return _FakeOpenAIResp({"data": [{"id": "gemma-4-12b-qat"}]})
+        return _FakeOpenAIResp(
+            {"choices": [{"message": {"content": "The Prism remembers calm voices."}}]}
+        )
+
+    monkeypatch.setattr(LLM_MOD.urllib.request, "urlopen", _fake_open)
+    out = LLM_MOD.generate_agent_output("mira", "Tell me about the lanterns.")
+    assert out["fallback"] is False
+    assert out["backend"] == "openai"
+    assert out["model"] == "gemma-4-12b-qat"
+    assert "Prism" in out["output"]

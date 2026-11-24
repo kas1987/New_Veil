@@ -23,6 +23,7 @@ validate_base_url = _ollama_http.validate_base_url
 request_headers = _ollama_http.request_headers
 
 OLLAMA_BASE_URL = validate_base_url(os.environ.get("OLLAMA_BASE_URL", "http://127.0.0.1:11434"))
+OPENAI_BASE_URL = validate_base_url(os.environ.get("VEIL_OPENAI_BASE_URL", "http://127.0.0.1:1234"))
 DEFAULT_MODEL = os.environ.get("VEIL_LLM_MODEL", "qwen3:8b")
 DEFAULT_TIMEOUT = float(os.environ.get("VEIL_LLM_TIMEOUT", "30"))
 
@@ -108,6 +109,22 @@ def check_health(base_url: str | None = None, timeout: float = 5.0) -> dict:
         return {"ok": False, "base_url": resolved, "models": [], "error": str(e)}
 
 
+def check_openai_health(base_url: str | None = None, timeout: float = 3.0) -> dict:
+    """Probe an OpenAI-compatible `/v1/models` endpoint (LM Studio)."""
+    resolved = validate_base_url(
+        base_url or os.environ.get("VEIL_OPENAI_BASE_URL") or OPENAI_BASE_URL
+    )
+    url = f"{resolved}/v1/models"
+    try:
+        req = urllib.request.Request(url, headers=request_headers())
+        with urllib.request.urlopen(req, timeout=timeout) as resp:
+            data = json.loads(resp.read().decode("utf-8"))
+        models = [m.get("id", "") for m in data.get("data", []) if m.get("id")]
+        return {"ok": True, "base_url": resolved, "models": models, "error": ""}
+    except (urllib.error.URLError, TimeoutError, OSError, json.JSONDecodeError, ValueError) as e:
+        return {"ok": False, "base_url": resolved, "models": [], "error": str(e)}
+
+
 def _ollama_generate(prompt: str, system: str, model: str, timeout: float) -> str:
     """POST to /api/generate. Raises urllib.error.URLError on connection failure."""
     body = json.dumps(
@@ -129,16 +146,65 @@ def _ollama_generate(prompt: str, system: str, model: str, timeout: float) -> st
     return (data.get("response") or "").strip()
 
 
+def _pick_openai_model(resolved: str, explicit_model: str | None, timeout: float) -> str:
+    env_model = os.environ.get("VEIL_LLM_MODEL", "").strip()
+    if explicit_model:
+        return explicit_model
+    if env_model:
+        return env_model
+    health = check_openai_health(base_url=resolved, timeout=min(timeout, 3.0))
+    models = health.get("models") or []
+    chat_models = [m for m in models if "embed" not in m.lower()]
+    return chat_models[0] if chat_models else (models[0] if models else DEFAULT_MODEL)
+
+
+def _openai_generate(
+    prompt: str,
+    system: str,
+    model: str | None,
+    timeout: float,
+    base_url: str | None = None,
+) -> tuple[str, str]:
+    """POST to `/v1/chat/completions` on LM Studio / OpenAI-compatible servers."""
+    resolved = validate_base_url(
+        base_url or os.environ.get("VEIL_OPENAI_BASE_URL") or OPENAI_BASE_URL
+    )
+    chosen = _pick_openai_model(resolved, model, timeout)
+    messages: list[dict[str, str]] = []
+    if system:
+        messages.append({"role": "system", "content": system})
+    messages.append({"role": "user", "content": prompt})
+    body = json.dumps(
+        {
+            "model": chosen,
+            "messages": messages,
+            "max_tokens": 220,
+            "temperature": 0.8,
+        }
+    ).encode("utf-8")
+    req = urllib.request.Request(
+        f"{resolved}/v1/chat/completions",
+        data=body,
+        headers=request_headers(),
+    )
+    with urllib.request.urlopen(req, timeout=timeout) as resp:
+        data = json.loads(resp.read().decode("utf-8"))
+    choices = data.get("choices") or []
+    first = choices[0] if choices else {}
+    msg = first.get("message") or {}
+    text = (msg.get("content") or first.get("text") or "").strip()
+    return text, chosen
+
+
 def generate_agent_output(
     agent_id: str,
     user_prompt: str | None = None,
     model: str | None = None,
     timeout: float | None = None,
 ) -> dict:
-    """Generate agent output via Ollama. Returns {"output", "model", "fallback"}.
+    """Generate agent output via Ollama or LM Studio (OpenAI-compatible).
 
-    Falls back to a deterministic placeholder if Ollama is unreachable so the
-    orchestrator never hard-fails on infrastructure absence.
+    Falls back to a deterministic placeholder if neither backend is reachable.
     """
     system = load_system_prompt(agent_id)
     if not user_prompt:
@@ -148,19 +214,34 @@ def generate_agent_output(
         )
     chosen_model = model or DEFAULT_MODEL
     chosen_timeout = timeout if timeout is not None else DEFAULT_TIMEOUT
+    backend = os.environ.get("VEIL_LLM_BACKEND", "auto").strip().lower()
+    last_err: Exception | None = None
+
+    if backend != "openai":
+        try:
+            text = _ollama_generate(user_prompt, system, chosen_model, chosen_timeout)
+            if not text:
+                raise RuntimeError("empty response from Ollama")
+            return {"output": text, "model": chosen_model, "fallback": False, "backend": "ollama"}
+        except (urllib.error.URLError, TimeoutError, RuntimeError, OSError, ValueError) as exc:
+            last_err = exc
+            if backend == "ollama":
+                fallback = _FALLBACK_TEMPLATE.format(agent_title=agent_id.title())
+                return {"output": fallback, "model": "fallback", "fallback": True, "error": str(exc)}
 
     try:
-        text = _ollama_generate(user_prompt, system, chosen_model, chosen_timeout)
+        text, used_model = _openai_generate(user_prompt, system, model, chosen_timeout)
         if not text:
-            raise RuntimeError("empty response from Ollama")
-        return {"output": text, "model": chosen_model, "fallback": False}
-    except (urllib.error.URLError, TimeoutError, RuntimeError, OSError, ValueError) as e:
+            raise RuntimeError("empty response from OpenAI-compatible backend")
+        return {"output": text, "model": used_model, "fallback": False, "backend": "openai"}
+    except (urllib.error.URLError, TimeoutError, RuntimeError, OSError, ValueError) as exc:
+        err = exc if last_err is None else f"{last_err}; openai: {exc}"
         fallback = _FALLBACK_TEMPLATE.format(agent_title=agent_id.title())
         return {
             "output": fallback,
             "model": "fallback",
             "fallback": True,
-            "error": str(e),
+            "error": str(err),
         }
 
 
