@@ -196,6 +196,52 @@ def _openai_generate(
     return text, chosen
 
 
+def check_router_status(router_url: str | None = None, timeout: float = 1.5) -> dict:
+    """Query Chromatic Router `/status` when ``VEIL_ROUTER_URL`` is configured."""
+    raw = (router_url if router_url is not None else os.environ.get("VEIL_ROUTER_URL", "")).strip()
+    if not raw:
+        return {
+            "configured": False,
+            "ok": False,
+            "holder": "unconfigured",
+            "comfy_busy": False,
+        }
+    try:
+        resolved = validate_base_url(raw)
+        req = urllib.request.Request(f"{resolved}/status", headers=request_headers())
+        with urllib.request.urlopen(req, timeout=timeout) as resp:
+            data = json.loads(resp.read().decode("utf-8"))
+        holder = str(data.get("holder") or "unknown")
+        comfy_list = data.get("comfy") or []
+        comfy_busy = holder in ("comfy", "mixed") or any(
+            isinstance(item, dict)
+            and (
+                item.get("state") == "busy"
+                or int(item.get("running") or 0) > 0
+                or int(item.get("pending") or 0) > 0
+            )
+            for item in comfy_list
+        )
+        return {
+            "configured": True,
+            "ok": True,
+            "base_url": resolved,
+            "holder": holder,
+            "released": bool(data.get("released")),
+            "comfy_busy": comfy_busy,
+            "status": data,
+        }
+    except (urllib.error.URLError, TimeoutError, json.JSONDecodeError, OSError, ValueError) as exc:
+        return {
+            "configured": True,
+            "ok": False,
+            "base_url": raw,
+            "holder": "unknown",
+            "comfy_busy": False,
+            "error": str(exc),
+        }
+
+
 def generate_agent_output(
     agent_id: str,
     user_prompt: str | None = None,
@@ -204,8 +250,22 @@ def generate_agent_output(
 ) -> dict:
     """Generate agent output via Ollama or LM Studio (OpenAI-compatible).
 
-    Falls back to a deterministic placeholder if neither backend is reachable.
+    Defers to deterministic fallback when Chromatic Router reports ComfyUI busy,
+    or if neither local LLM backend is reachable.
     """
+    router = check_router_status()
+    if router.get("ok") and (router.get("comfy_busy") or router.get("holder") in ("comfy", "mixed")):
+        holder = router.get("holder", "comfy")
+        fallback = _FALLBACK_TEMPLATE.format(agent_title=agent_id.title())
+        return {
+            "output": fallback,
+            "model": "fallback",
+            "fallback": True,
+            "deferred_by_router": True,
+            "router_holder": holder,
+            "error": f"Deferred live LLM: Chromatic Router reports GPU held by {holder}",
+        }
+
     system = load_system_prompt(agent_id)
     if not user_prompt:
         user_prompt = (

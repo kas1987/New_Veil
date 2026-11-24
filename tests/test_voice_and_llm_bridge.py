@@ -235,3 +235,61 @@ def test_llm_provider_openai_backend(monkeypatch) -> None:
     assert out["backend"] == "openai"
     assert out["model"] == "gemma-4-12b-qat"
     assert "Prism" in out["output"]
+
+
+def test_chromatic_router_defers_xtts_and_llm_when_comfy_busy(tmp_path: Path, monkeypatch) -> None:
+    monkeypatch.setenv("VEIL_ROUTER_URL", "http://127.0.0.1:8795")
+    monkeypatch.setenv("VEIL_TTS_URL", "http://127.0.0.1:8793")
+    monkeypatch.setenv("VEIL_LLM_BACKEND", "openai")
+
+    called_urls: list[str] = []
+
+    class _FakeRouterResp:
+        def __init__(self, payload: dict) -> None:
+            self._payload = payload
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *args):
+            return False
+
+        def read(self) -> bytes:
+            return json.dumps(self._payload).encode("utf-8")
+
+    def _fake_open(req, timeout=0):
+        called_urls.append(req.full_url)
+        if req.full_url.endswith("/status"):
+            return _FakeRouterResp(
+                {
+                    "holder": "comfy",
+                    "released": False,
+                    "comfy": [{"name": "art", "state": "busy", "running": 1, "pending": 18}],
+                }
+            )
+        if req.full_url.endswith("/unload"):
+            return _FakeRouterResp({"loaded": False})
+        raise AssertionError(f"Unexpected GPU call while ComfyUI busy: {req.full_url}")
+
+    monkeypatch.setattr(TTS_MOD.urllib.request, "urlopen", _fake_open)
+    monkeypatch.setattr(LLM_MOD.urllib.request, "urlopen", _fake_open)
+
+    adapter = TTS_MOD.VeilTTSAdapter(queue_path=tmp_path / "q.jsonl")
+    voice_out = adapter.synthesize("mira", "Hello", queue=False)
+    assert voice_out["mode"] == "synthetic_wav"
+    assert voice_out["deferred_by_router"] is True
+    assert voice_out["router_holder"] == "comfy"
+    assert any(u.endswith("/unload") for u in called_urls)
+    assert not any(u.endswith("/speak") for u in called_urls)
+
+    llm_out = LLM_MOD.generate_agent_output("mira", "Hello")
+    assert llm_out["fallback"] is True
+    assert llm_out["deferred_by_router"] is True
+    assert llm_out["router_holder"] == "comfy"
+    assert not any("/v1/chat/completions" in u for u in called_urls)
+
+    app = create_app(db_path=":memory:")
+    client = TestClient(app)
+    r_stat = client.get("/api/router/status")
+    assert r_stat.status_code == 200
+    assert "configured" in r_stat.json()

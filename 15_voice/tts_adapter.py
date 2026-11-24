@@ -52,14 +52,22 @@ _VEIL_RATIO: dict[str, float] = {
 }
 
 
-def _validated_tts_url(raw_url: str | None = None) -> str:
-    candidate = (raw_url if raw_url is not None else os.environ.get("VEIL_TTS_URL", "")).strip()
+def _validated_url(raw_url: str | None, env_var: str) -> str:
+    candidate = (raw_url if raw_url is not None else os.environ.get(env_var, "")).strip()
     if not candidate:
         return ""
     parsed = urllib.parse.urlparse(candidate)
     if parsed.scheme not in ("http", "https") or not parsed.netloc:
-        raise ValueError(f"Unsupported VEIL_TTS_URL: {candidate!r}")
+        raise ValueError(f"Unsupported {env_var}: {candidate!r}")
     return candidate.rstrip("/")
+
+
+def _validated_tts_url(raw_url: str | None = None) -> str:
+    return _validated_url(raw_url, "VEIL_TTS_URL")
+
+
+def _validated_router_url(raw_url: str | None = None) -> str:
+    return _validated_url(raw_url, "VEIL_ROUTER_URL")
 
 
 def render_harmonic_wav(
@@ -100,10 +108,12 @@ class VeilTTSAdapter:
         registry_path: Path | None = None,
         queue_path: Path | None = None,
         tts_url: str | None = None,
+        router_url: str | None = None,
     ) -> None:
         self.registry_path = registry_path or _DEFAULT_REGISTRY
         self.queue_path = queue_path or _DEFAULT_QUEUE
         self._explicit_url = tts_url
+        self._explicit_router_url = router_url
         data = json.loads(self.registry_path.read_text(encoding="utf-8"))
         self.voices: dict[str, dict[str, Any]] = dict(data.get("voices") or {})
 
@@ -133,6 +143,49 @@ class VeilTTSAdapter:
 
     def list_profiles(self, veil_state: str = "calm") -> dict[str, dict[str, Any]]:
         return {aid: self.get_profile(aid, veil_state=veil_state) for aid in self.voices}
+
+    def check_router_status(self, timeout: float = 1.5) -> dict[str, Any]:
+        router_url = _validated_router_url(self._explicit_router_url)
+        if not router_url:
+            return {
+                "configured": False,
+                "ok": False,
+                "holder": "unconfigured",
+                "comfy_busy": False,
+            }
+        req = urllib.request.Request(f"{router_url}/status")
+        try:
+            with urllib.request.urlopen(req, timeout=timeout) as resp:
+                data = json.loads(resp.read().decode("utf-8"))
+            holder = str(data.get("holder") or "unknown")
+            comfy_list = data.get("comfy") or []
+            comfy_busy = holder in ("comfy", "mixed") or any(
+                isinstance(item, dict)
+                and (
+                    item.get("state") == "busy"
+                    or int(item.get("running") or 0) > 0
+                    or int(item.get("pending") or 0) > 0
+                )
+                for item in comfy_list
+            )
+            return {
+                "configured": True,
+                "ok": True,
+                "base_url": router_url,
+                "holder": holder,
+                "released": bool(data.get("released")),
+                "comfy_busy": comfy_busy,
+                "status": data,
+            }
+        except (urllib.error.URLError, TimeoutError, json.JSONDecodeError, OSError, ValueError) as exc:
+            return {
+                "configured": True,
+                "ok": False,
+                "base_url": router_url,
+                "holder": "unknown",
+                "comfy_busy": False,
+                "error": str(exc),
+            }
 
     def check_health(self, timeout: float = 2.0) -> dict[str, Any]:
         base_url = _validated_tts_url(self._explicit_url)
@@ -209,7 +262,17 @@ class VeilTTSAdapter:
             "text": clipped_text,
         }
 
-        live_resp = self._submit_live(live_payload)
+        router = self.check_router_status()
+        deferred_by_router = bool(
+            router.get("ok") and (router.get("comfy_busy") or router.get("holder") in ("comfy", "mixed"))
+        )
+        live_resp: dict[str, Any] | None = None
+        if deferred_by_router:
+            if _validated_tts_url(self._explicit_url):
+                self.unload()
+        else:
+            live_resp = self._submit_live(live_payload)
+
         audio_url: str | None = None
         audio_base64: str | None = None
         mode = "synthetic_wav"
@@ -249,9 +312,10 @@ class VeilTTSAdapter:
                 }
             )
 
-        return {
+        out = {
             "ok": True,
             "mode": mode,
+            "deferred_by_router": deferred_by_router,
             "agent_id": agent_id,
             "profile": profile,
             "emotion": resolved_emotion,
@@ -261,6 +325,9 @@ class VeilTTSAdapter:
             "audio_base64": audio_base64,
             "audio_url": audio_url,
         }
+        if deferred_by_router:
+            out["router_holder"] = router.get("holder", "comfy")
+        return out
 
 
 def synthesize_voice(
