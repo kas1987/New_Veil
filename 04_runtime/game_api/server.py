@@ -292,7 +292,11 @@ def create_app(db_path: Path | str | None = None) -> FastAPI:
 
     @app.get("/api/voice/health")
     def voice_health() -> dict:
-        return tts.check_health()
+        return {**tts.check_health(), "router": tts.check_router_status()}
+
+    @app.get("/api/router/status")
+    def router_status() -> dict:
+        return _LLM_MOD.check_router_status()
 
     @app.post("/api/voice/unload")
     def unload_voice() -> dict:
@@ -319,6 +323,7 @@ def create_app(db_path: Path | str | None = None) -> FastAPI:
             "model": _LLM_MOD.DEFAULT_MODEL,
             "base_url": _LLM_MOD.OLLAMA_BASE_URL,
             "openai_base_url": _LLM_MOD.OPENAI_BASE_URL,
+            "router": _LLM_MOD.check_router_status(),
             "agents_with_prompts": [
                 cid for cid in engine.characters if bool(_LLM_MOD.load_system_prompt(cid))
             ],
